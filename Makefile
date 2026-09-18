@@ -3,7 +3,8 @@
 # Runtime role (non-superuser, subject to RLS) and owner role (migrations, test seeding).
 RUNTIME_DB := postgresql+asyncpg://app:app@localhost:5432/app_dev
 OWNER_DB   := postgresql+asyncpg://postgres:postgres@localhost:5432/app_dev
-API_ENV    := DATABASE_URL=$(RUNTIME_DB) MIGRATION_DATABASE_URL=$(OWNER_DB) REDIS_URL=redis://localhost:6380/0
+# DYLD_FALLBACK_LIBRARY_PATH lets WeasyPrint find Homebrew's Pango on macOS; harmless elsewhere.
+API_ENV    := DATABASE_URL=$(RUNTIME_DB) MIGRATION_DATABASE_URL=$(OWNER_DB) REDIS_URL=redis://localhost:6380/0 DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib
 
 # Boots Postgres + Redis + the API with autoreload.
 dev:

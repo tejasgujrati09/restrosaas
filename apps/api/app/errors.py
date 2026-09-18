@@ -7,8 +7,10 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.auth import OtpRateLimitedError
 from app.core.permissions import PermissionDeniedError
 
 logger = structlog.get_logger()
@@ -46,6 +48,25 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(PermissionDeniedError)
     async def _permission_denied(_: Request, exc: PermissionDeniedError) -> JSONResponse:
         return _response(403, "permission_denied", "You do not have access to this.")
+
+    @app.exception_handler(OtpRateLimitedError)
+    async def _rate_limited(_: Request, exc: OtpRateLimitedError) -> JSONResponse:
+        return _response(
+            429, "rate_limited", "Too many codes requested. Try again in a few minutes."
+        )
+
+    @app.exception_handler(IntegrityError)
+    async def _integrity(_: Request, exc: IntegrityError) -> JSONResponse:
+        # Database constraints are the last line of defence; map them to stable codes.
+        sqlstate = getattr(exc.orig, "sqlstate", None)
+        if sqlstate == "23505":
+            return _response(409, "duplicate", "That already exists.")
+        if sqlstate == "23503":
+            return _response(409, "in_use", "This is still used by other records.")
+        if sqlstate in {"23514", "23502"}:
+            return _response(422, "invalid_value", "One of the values is not allowed.")
+        logger.error("unmapped_integrity_error", sqlstate=sqlstate)
+        return _response(500, "internal_error", "Something went wrong.")
 
     @app.exception_handler(RequestValidationError)
     async def _validation(_: Request, exc: RequestValidationError) -> JSONResponse:

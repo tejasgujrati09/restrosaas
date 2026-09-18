@@ -12,6 +12,7 @@ from app.core.permissions import (
     assert_can,
     assert_can_write_own_tab,
     assert_is_platform_admin,
+    can,
 )
 
 
@@ -59,6 +60,10 @@ def test_non_staff_actor_is_denied_staff_capability() -> None:
         (Role.OWNER, Capability.EXPORT_INTEGRATIONS, True),
         (Role.MANAGER, Capability.MANAGE_WAITER_STAFF, True),
         (Role.MANAGER, Capability.MANAGE_ALL_STAFF, False),
+        (Role.BAR, Capability.VIEW_MENU, True),
+        (Role.WAITER, Capability.VIEW_OUTLET_SETTINGS, True),
+        (Role.MANAGER, Capability.EDIT_OUTLET_SETTINGS, False),
+        (Role.OWNER, Capability.EDIT_OUTLET_SETTINGS, True),
     ],
 )
 def test_capability_matrix_matches_spec(role: Role, capability: Capability, allowed: bool) -> None:
@@ -102,3 +107,10 @@ def test_staff_actor_fails_platform_admin_check() -> None:
     owner = make_staff((outlet_id, Role.OWNER))
     with pytest.raises(PermissionDeniedError):
         assert_is_platform_admin(owner)
+
+
+def test_can_is_the_non_raising_form_of_assert_can() -> None:
+    outlet_id = uuid4()
+    manager = make_staff((outlet_id, Role.MANAGER))
+    assert can(manager, Capability.SET_PRICE_RULES, outlet_id) is True
+    assert can(manager, Capability.EDIT_MENU_FULL, outlet_id) is False

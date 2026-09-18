@@ -22,6 +22,8 @@ class Seed:
     restaurant_b: uuid.UUID
     outlet_a: uuid.UUID
     outlet_b: uuid.UUID
+    owner_a: uuid.UUID
+    owner_b: uuid.UUID
     manager_a: uuid.UUID
     waiter_a: uuid.UUID
     kitchen_a: uuid.UUID
@@ -38,8 +40,18 @@ class Seed:
         return issue_token(user_id, [RoleClaim(restaurant, outlet, role)])
 
 
-def _phone() -> str:
-    return f"+919{random.randint(10**8, 10**9 - 1)}"
+TEST_PHONE_PREFIX = "+91999"
+_used_phones: set[str] = set()
+
+
+def new_phone() -> str:
+    """Unique fake number with a prefix reserved for tests, so cleanup can
+    remove exactly the users tests created."""
+    while True:
+        phone = f"{TEST_PHONE_PREFIX}{random.randint(10**6, 10**7 - 1)}"
+        if phone not in _used_phones:
+            _used_phones.add(phone)
+            return phone
 
 
 @pytest.fixture(scope="session")
@@ -60,6 +72,8 @@ async def seed(owner_engine: AsyncEngine) -> AsyncIterator[Seed]:
             "restaurant_b",
             "outlet_a",
             "outlet_b",
+            "owner_a",
+            "owner_b",
             "manager_a",
             "waiter_a",
             "kitchen_a",
@@ -68,8 +82,16 @@ async def seed(owner_engine: AsyncEngine) -> AsyncIterator[Seed]:
         )
     }
     phones = {
-        k: _phone()
-        for k in ("manager_a", "waiter_a", "kitchen_a", "inactive_waiter_a", "manager_b")
+        k: new_phone()
+        for k in (
+            "owner_a",
+            "owner_b",
+            "manager_a",
+            "waiter_a",
+            "kitchen_a",
+            "inactive_waiter_a",
+            "manager_b",
+        )
     }
     async with owner_engine.begin() as conn:
         for tenant in ("a", "b"):
@@ -100,6 +122,8 @@ async def seed(owner_engine: AsyncEngine) -> AsyncIterator[Seed]:
                 },
             )
         roles = [
+            ("owner_a", "a", "owner", True),
+            ("owner_b", "b", "owner", True),
             ("manager_a", "a", "manager", True),
             ("waiter_a", "a", "waiter", True),
             ("kitchen_a", "a", "kitchen", True),
@@ -126,15 +150,35 @@ async def seed(owner_engine: AsyncEngine) -> AsyncIterator[Seed]:
                 },
             )
     yield Seed(phones=phones, **ids)
-    rids = [ids["restaurant_a"], ids["restaurant_b"]]
-    uids = [ids[k] for k in phones]
     async with owner_engine.begin() as conn:
-        for table in ("audit_log", "staff_role", "dining_table", "outlet"):
+        rows = await conn.execute(
+            text("SELECT id FROM restaurant WHERE id = ANY(:r) OR brand_name LIKE 'TEST %'"),
+            {"r": [ids["restaurant_a"], ids["restaurant_b"]]},
+        )
+        rids = [r[0] for r in rows]
+        for table in (
+            "idempotency_key",
+            "audit_log",
+            "staff_invite",
+            "price_rule",
+            "menu_item_modifier_group",
+            "modifier",
+            "modifier_group",
+            "menu_item",
+            "menu_category",
+            "tax_class",
+            "station",
+            "dining_table",
+            "staff_role",
+            "outlet",
+        ):
             await conn.execute(
                 text(f"DELETE FROM {table} WHERE restaurant_id = ANY(:r)"), {"r": rids}
             )
         await conn.execute(text("DELETE FROM restaurant WHERE id = ANY(:r)"), {"r": rids})
-        await conn.execute(text("DELETE FROM app_user WHERE id = ANY(:u)"), {"u": uids})
+        await conn.execute(
+            text("DELETE FROM app_user WHERE phone LIKE :p"), {"p": f"{TEST_PHONE_PREFIX}%"}
+        )
 
 
 @pytest.fixture
@@ -146,3 +190,10 @@ async def client() -> AsyncIterator[httpx.AsyncClient]:
 
 def bearer(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
+
+
+def hdr(token: str, key: uuid.UUID | str | None = None) -> dict[str, str]:
+    headers = bearer(token)
+    if key is not None:
+        headers["Idempotency-Key"] = str(key)
+    return headers

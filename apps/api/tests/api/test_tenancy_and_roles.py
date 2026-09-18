@@ -4,6 +4,7 @@ import httpx
 import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.auth import RoleClaim, issue_token
 from app.core.permissions import Role
@@ -43,18 +44,24 @@ async def test_user_of_tenant_a_is_refused_outlet_of_tenant_b(
     assert r.json()["code"] == "permission_denied"
 
 
-async def test_rls_returns_zero_rows_even_if_a_claim_points_at_another_tenants_outlet(
+async def test_forged_claim_pairing_tenant_a_with_outlet_b_is_refused(
     client: httpx.AsyncClient, seed: Seed
 ) -> None:
-    """Backstop: pretend a bug or stale token lets tenant A's restaurant id
-    pair with tenant B's outlet. The API layer is satisfied, so only the
-    database stands between A and B's rows. Result must be empty, not an error."""
+    """A token whose claim pairs A's restaurant with B's outlet is refused: roles are
+    re-read from the database inside A's tenant, where B's outlet does not exist."""
     forged = issue_token(
         seed.manager_a, [RoleClaim(seed.restaurant_a, seed.outlet_b, Role.MANAGER)]
     )
     r = await client.get(f"/v1/outlets/{seed.outlet_b}/tables", headers=bearer(forged))
-    assert r.status_code == 200
-    assert r.json() == []
+    assert r.status_code == 403
+
+
+async def test_role_removed_after_token_issue_stops_working_immediately(
+    client: httpx.AsyncClient, seed: Seed, owner_engine: AsyncEngine
+) -> None:
+    token = seed.token(seed.inactive_waiter_a, Role.WAITER)
+    r = await client.get(f"/v1/outlets/{seed.outlet_a}/tables", headers=bearer(token))
+    assert r.status_code == 403  # the seeded waiter is deactivated; the JWT alone is not enough
 
 
 async def test_tenant_session_sees_only_its_own_rows(seed: Seed) -> None:
@@ -120,8 +127,11 @@ async def test_manager_can_list_staff_of_own_outlet_only(
         headers=bearer(seed.token(seed.manager_a, Role.MANAGER)),
     )
     assert r.status_code == 200
-    assert {s["role"] for s in r.json()} == {"manager", "waiter", "kitchen"}
-    assert len(r.json()) == 4
+    phones = {s["phone"] for s in r.json()}
+    seeded = {seed.phones[k] for k in ("owner_a", "manager_a", "waiter_a", "kitchen_a")}
+    assert seeded <= phones
+    assert seed.phones["manager_b"] not in phones  # never another tenant's staff
+    assert seed.phones["owner_b"] not in phones
 
 
 async def test_kitchen_cannot_view_tables(client: httpx.AsyncClient, seed: Seed) -> None:

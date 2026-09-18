@@ -46,3 +46,14 @@ async def anonymous_session() -> AsyncIterator[AsyncSession]:
     tables such as `app_user` only."""
     async with session_factory() as session, session.begin():
         yield session
+
+
+@asynccontextmanager
+async def invite_session(token_hash: str) -> AsyncIterator[AsyncSession]:
+    """Lets an unauthenticated invitee read exactly the one `staff_invite` row
+    whose hash they hold (see the `staff_invite_by_token` policy)."""
+    async with session_factory() as session, session.begin():
+        await session.execute(
+            text("SELECT set_config('app.invite_token_hash', :h, true)"), {"h": token_hash}
+        )
+        yield session

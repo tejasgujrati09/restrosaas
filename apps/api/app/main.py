@@ -9,7 +9,17 @@ from pydantic import BaseModel
 from starlette.datastructures import Headers, MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.api.v1 import auth, outlets
+from app.api.v1 import (
+    auth,
+    invites,
+    menu,
+    menu_import,
+    price_rules,
+    settings,
+    signup,
+    staff,
+    tables,
+)
 from app.errors import install_error_handlers
 from app.logging import configure_logging
 
@@ -19,7 +29,8 @@ logger = structlog.get_logger()
 app = FastAPI(title="RestoSaaS API", version="0.1.0")
 install_error_handlers(app)
 app.include_router(auth.router)
-app.include_router(outlets.router)
+for module in (signup, invites, settings, menu, menu_import, price_rules, tables, staff):
+    app.include_router(module.router)
 
 
 class HealthOut(BaseModel):

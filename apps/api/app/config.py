@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
     otp_dev_mode: bool = True
+    # Where QR codes and staff invite links point. Product domain is undecided (SPEC §12).
+    public_base_url: str = "http://localhost:3000"
+    staff_base_url: str = "http://localhost:3001"
+    invite_ttl_days: int = 7
 
 
 settings = Settings()

@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -56,3 +56,34 @@ class AuditLog(Base):
     before: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     after: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class StaffInvite(Base):
+    __tablename__ = "staff_invite"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    restaurant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("restaurant.id"))
+    outlet_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("outlet.id"))
+    phone: Mapped[str] = mapped_column(Text)
+    role: Mapped[str] = mapped_column(Text)
+    station_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("station.id"))
+    token_hash: Mapped[str] = mapped_column(Text, unique=True)
+    invited_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("app_user.id"))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class IdempotencyKey(Base):
+    __tablename__ = "idempotency_key"
+
+    restaurant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("restaurant.id"), primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("app_user.id"), primary_key=True)
+    key: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    method: Mapped[str] = mapped_column(Text)
+    path: Mapped[str] = mapped_column(Text)
+    request_hash: Mapped[str] = mapped_column(Text)
+    status_code: Mapped[int | None] = mapped_column(Integer)
+    response: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

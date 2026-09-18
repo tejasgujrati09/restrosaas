@@ -71,3 +71,34 @@ async def test_unhandled_error_is_500_without_stack_trace(client: httpx.AsyncCli
     assert r.status_code == 500
     assert r.json() == {"code": "internal_error", "message": "Something went wrong."}
     assert "secret" not in r.text
+
+
+@pytest.mark.parametrize(
+    ("sqlstate", "status", "code"),
+    [
+        ("23505", 409, "duplicate"),
+        ("23503", 409, "in_use"),
+        ("23514", 422, "invalid_value"),
+        ("23502", 422, "invalid_value"),
+        ("23000", 500, "internal_error"),
+    ],
+)
+async def test_database_constraint_errors_map_to_stable_codes(
+    client: httpx.AsyncClient, sqlstate: str, status: int, code: str
+) -> None:
+    from sqlalchemy.exc import IntegrityError
+
+    class _Orig(Exception):
+        pass
+
+    orig = _Orig()
+    orig.sqlstate = sqlstate  # type: ignore[attr-defined]
+    router = APIRouter()
+
+    @router.get(f"/_constraint_{sqlstate}")
+    async def fail() -> None:
+        raise IntegrityError("stmt", {}, orig)
+
+    app.include_router(router)
+    r = await client.get(f"/_constraint_{sqlstate}")
+    assert (r.status_code, r.json()["code"]) == (status, code)

@@ -25,6 +25,10 @@ class Role(StrEnum):
 
 class Capability(StrEnum):
     VIEW_TABLES_AND_TABS = "view_tables_and_tabs"
+    # Not in docs/SPEC.md §6; see docs/DECISIONS.md "Milestone 2 choices".
+    VIEW_MENU = "view_menu"
+    VIEW_OUTLET_SETTINGS = "view_outlet_settings"
+    EDIT_OUTLET_SETTINGS = "edit_outlet_settings"
     ADD_ORDER_LINES = "add_order_lines"
     MARK_ORDER_SERVED = "mark_order_served"
     MARK_ORDER_PREPARING = "mark_order_preparing"
@@ -52,6 +56,9 @@ class Capability(StrEnum):
 # because that is what the table itself shows; SPEC §6's "roles are additive"
 # note falls out of this automatically.
 CAPABILITY_MATRIX: dict[Capability, frozenset[Role]] = {
+    Capability.VIEW_MENU: frozenset(Role),
+    Capability.VIEW_OUTLET_SETTINGS: frozenset(Role),
+    Capability.EDIT_OUTLET_SETTINGS: frozenset({Role.OWNER}),
     Capability.VIEW_TABLES_AND_TABS: frozenset({Role.WAITER, Role.MANAGER, Role.OWNER}),
     Capability.ADD_ORDER_LINES: frozenset({Role.WAITER, Role.MANAGER, Role.OWNER}),
     Capability.MARK_ORDER_SERVED: frozenset({Role.WAITER, Role.MANAGER, Role.OWNER}),
@@ -140,3 +147,12 @@ def assert_can_write_own_tab(actor: Actor, tab_id: UUID) -> None:
 def assert_is_platform_admin(actor: Actor) -> None:
     if not isinstance(actor, PlatformAdminActor):
         raise PermissionDeniedError(capability=None, outlet_id=None)
+
+
+def can(actor: Actor, capability: Capability, outlet_id: UUID) -> bool:
+    """Non-raising form of `assert_can`, for shaping a response (never for gating a write)."""
+    try:
+        assert_can(actor, capability, outlet_id)
+    except PermissionDeniedError:
+        return False
+    return True

@@ -97,7 +97,7 @@ async def test_expired_code_is_rejected(
 
 async def test_code_for_phone_without_user_is_rejected(client: httpx.AsyncClient) -> None:
     phone = "+919111111111"
-    code = otp_store.issue(phone)
+    code = otp_store.issue(f"login:{phone}")
     r = await client.post("/v1/auth/otp/verify", json={"phone": phone, "code": code})
     assert r.status_code == 401
 

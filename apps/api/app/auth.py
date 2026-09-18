@@ -12,6 +12,8 @@ from app.core.permissions import Role
 
 OTP_TTL_SECONDS = 300
 OTP_MAX_ATTEMPTS = 5
+OTP_MAX_REQUESTS = 5
+OTP_REQUEST_WINDOW_SECONDS = 900
 
 
 @dataclass(frozen=True)
@@ -58,12 +60,28 @@ def decode_token(token: str) -> tuple[UUID, list[RoleClaim]]:
         raise InvalidTokenError from exc
 
 
+class OtpRateLimitedError(Exception):
+    pass
+
+
 class OtpStore:
     """In-process OTP stub for development. Replace with Redis plus a
     WhatsApp/SMS sender before any real deployment (Milestone 5 job queue)."""
 
     def __init__(self) -> None:
         self._entries: dict[str, tuple[str, float, int]] = {}
+        self._requests: dict[str, list[float]] = {}
+
+    def throttle(self, key: str) -> None:
+        """Count a code request against `key`; raise after too many in the window.
+        Call this before looking the phone up so the limit is identical for known
+        and unknown numbers and cannot be used to discover which are registered."""
+        now = time.monotonic()
+        recent = [t for t in self._requests.get(key, []) if now - t < OTP_REQUEST_WINDOW_SECONDS]
+        if len(recent) >= OTP_MAX_REQUESTS:
+            self._requests[key] = recent
+            raise OtpRateLimitedError
+        self._requests[key] = [*recent, now]
 
     def issue(self, phone: str) -> str:
         code = f"{secrets.randbelow(1_000_000):06d}"

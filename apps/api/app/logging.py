@@ -12,6 +12,8 @@ def configure_logging() -> None:
     """JSON logs; `restaurant_id`, `outlet_id`, `actor_user_id` and `request_id`
     are bound per request via structlog contextvars."""
     logging.basicConfig(format="%(message)s", stream=sys.stdout, level=settings.log_level)
+    # WeasyPrint logs every render step at INFO; keep it to warnings.
+    logging.getLogger("weasyprint").setLevel(logging.WARNING)
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,

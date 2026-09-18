@@ -8,11 +8,13 @@ from uuid import UUID
 import structlog
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import InvalidTokenError, RoleClaim, decode_token
-from app.core.permissions import PermissionDeniedError, StaffActor
+from app.core.permissions import PermissionDeniedError, Role, StaffActor
 from app.db.session import tenant_session
+from app.domains.staff.models import StaffRole
 from app.errors import ApiError
 
 _bearer = HTTPBearer(auto_error=False)
@@ -54,8 +56,10 @@ async def get_outlet_context(
     outlet_id: UUID, auth: Annotated[AuthContext, Depends(get_auth)]
 ) -> AsyncIterator[OutletContext]:
     """Resolves the tenant from the signed claims (never from the request),
-    then opens a session with `app.restaurant_id` set so Postgres RLS is the
-    backstop for every query the handler runs."""
+    opens a session with `app.restaurant_id` set so Postgres RLS is the
+    backstop, then re-reads the user's roles from the database. The token only
+    says which tenant to look in; `staff_role` stays the source of truth, so a
+    deactivated user loses access on the next request, not when the JWT expires."""
     claim = next((c for c in auth.claims if c.outlet_id == outlet_id), None)
     if claim is None:
         raise PermissionDeniedError(capability=None, outlet_id=outlet_id)
@@ -63,9 +67,19 @@ async def get_outlet_context(
         restaurant_id=str(claim.restaurant_id), outlet_id=str(outlet_id)
     )
     async with tenant_session(claim.restaurant_id) as session:
+        db_roles = await session.scalars(
+            select(StaffRole.role).where(
+                StaffRole.user_id == auth.actor.user_id,
+                StaffRole.outlet_id == outlet_id,
+                StaffRole.active.is_(True),
+            )
+        )
+        roles = frozenset((outlet_id, Role(r)) for r in db_roles)
+        if not roles:
+            raise PermissionDeniedError(capability=None, outlet_id=outlet_id)
         yield OutletContext(
             session=session,
-            actor=auth.actor,
+            actor=StaffActor(actor_type="staff", user_id=auth.actor.user_id, roles=roles),
             outlet_id=outlet_id,
             restaurant_id=claim.restaurant_id,
         )
