@@ -1,0 +1,9 @@
+packages:
+  - "apps/guest"
+  - "apps/staff"
+  - "apps/admin"
+  - "packages/ui"
+  - "packages/api-client"
+  - "e2e"
+allowBuilds:
+  unrs-resolver: false

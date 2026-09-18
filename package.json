@@ -1,0 +1,13 @@
+{
+  "name": "restosaas",
+  "private": true,
+  "packageManager": "pnpm@11.1.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint": "pnpm -r --filter '!e2e' --if-present run lint",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "test": "pnpm -r --filter '!e2e' --if-present run test"
+  }
+}
