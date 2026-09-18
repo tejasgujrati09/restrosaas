@@ -1,0 +1,49 @@
+# Full stack for the `golden-flows` CI job (.github/workflows/ci.yml).
+# Guest/staff/admin services are added here once they have real Dockerfiles and
+# the golden-flow UI exists (Milestone 5) — see docs/DECISIONS.md
+# "Milestones 1-4 land on a long-lived `integration` branch, not `main`".
+# Until then this job is expected to fail on integration-bound PRs.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app_e2e
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: apps/api
+    environment:
+      DATABASE_URL: postgresql+asyncpg://app:app@postgres:5432/app_e2e
+      MIGRATION_DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/app_e2e
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: e2e-test-secret
+      OTP_DEV_MODE: "true"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "uv run alembic upgrade head &&
+             uv run uvicorn app.main:app --host 0.0.0.0 --port 8000"
