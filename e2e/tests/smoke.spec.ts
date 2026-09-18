@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { ports } from "../ports";
 
 const apps = [
-  { name: "guest", port: ports.guest, heading: "Guest ordering" },
+  { name: "guest", port: ports.guest, heading: "Order at your table" },
   { name: "staff", port: ports.staff, heading: "Sign in" },
   { name: "admin", port: ports.admin, heading: "Platform admin" },
 ];

@@ -659,6 +659,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/cart/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Quote Cart
+         * @description Prices a cart without placing it, using the same validation and snapshot code
+         *     as placing an order, so the cart screen never does money maths of its own.
+         *     Read-only: nothing is written.
+         */
+        post: operations["quote_cart_v1_outlets__outlet_id__tabs__tab_id__cart_quote_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/outlets/{outlet_id}/tabs/{tab_id}/confirm": {
         parameters: {
             query?: never;
@@ -1495,6 +1517,33 @@ export interface components {
             tab_status: string;
             /** Table Label */
             table_label: string;
+        };
+        /** QuoteLineOut */
+        QuoteLineOut: {
+            /** Line Total Paise */
+            line_total_paise: number;
+            /**
+             * Menu Item Id
+             * Format: uuid
+             */
+            menu_item_id: string;
+            /** Modifiers */
+            modifiers: components["schemas"]["app__api__v1__tabs__ModifierOut"][];
+            /** Name */
+            name: string;
+            price_rule: components["schemas"]["RuleRefOut"] | null;
+            /** Qty */
+            qty: number;
+            /** Unit Price Paise */
+            unit_price_paise: number;
+        };
+        /** QuoteOut */
+        QuoteOut: {
+            /** Can Order */
+            can_order: boolean;
+            /** Lines */
+            lines: components["schemas"]["QuoteLineOut"][];
+            totals: components["schemas"]["TotalsOut"];
         };
         /**
          * Role
@@ -4997,6 +5046,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TabOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    quote_cart_v1_outlets__outlet_id__tabs__tab_id__cart_quote_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tab_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteOut"];
                 };
             };
             /** @description Unauthorized */

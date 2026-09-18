@@ -760,6 +760,60 @@ async def test_exclusive_outlet_adds_tax_on_top(
             )
 
 
+# --- cart quote ---------------------------------------------------------------
+
+
+async def test_quote_matches_what_placing_the_order_then_shows(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, owner_engine: AsyncEngine
+) -> None:
+    await client.patch(
+        f"{env.base}/settings", json={"service_charge_bp": 1000}, headers=owner(seed)
+    )
+    g = await new_guest(client, seed)
+    body = {"lines": [one(env.item, 2)]}
+    quote = await client.post(f"{g.base}/cart/quote", json=body, headers=g.headers())
+    assert quote.status_code == 200, quote.text
+    q = quote.json()
+    assert q["can_order"] is True
+    assert (q["lines"][0]["name"], q["lines"][0]["line_total_paise"]) == ("G Paneer Tikka", 64000)
+    # Quoting writes nothing.
+    assert (await g.tab())["rounds"] == []
+    async with owner_engine.connect() as conn:
+        n = await conn.scalar(
+            text("SELECT count(*) FROM tab_event WHERE tab_id = :t"), {"t": uuid.UUID(g.tab_id)}
+        )
+    assert n == 1  # only "opened"
+
+    await g.order(body["lines"])
+    assert (await g.tab())["totals"] == q["totals"]
+
+
+async def test_quote_reports_bad_carts_and_unconfirmed_tabs(
+    client: httpx.AsyncClient, seed: Seed, env: Menu
+) -> None:
+    await client.patch(
+        f"{env.base}/settings", json={"waiter_confirm_mode": True}, headers=owner(seed)
+    )
+    g = await new_guest(client, seed)
+    ok = await client.post(
+        f"{g.base}/cart/quote", json={"lines": [one(env.item)]}, headers=g.headers()
+    )
+    assert ok.json()["can_order"] is False
+    unknown = await client.post(
+        f"{g.base}/cart/quote",
+        json={"lines": [{"menu_item_id": str(uuid.uuid4()), "qty": 1}]},
+        headers=g.headers(),
+    )
+    assert (unknown.status_code, unknown.json()["code"]) == (422, "unknown_item")
+    other = await new_guest(client, seed, "T2")
+    cross = await client.post(
+        f"/v1/outlets/{g.outlet_id}/tabs/{other.tab_id}/cart/quote",
+        json={"lines": [one(env.item)]},
+        headers=g.headers(),
+    )
+    assert cross.status_code == 403
+
+
 # --- idempotency --------------------------------------------------------------
 
 

@@ -32,7 +32,7 @@ from app.core.state import (
     transition_tab,
 )
 from app.deps import GuestContext
-from app.domains.menu.orderable import load_items, load_price_rules
+from app.domains.menu.orderable import LoadedItem, load_items, load_price_rules
 from app.domains.tab.models import Order, OrderLine, ServiceRequest, Tab, TabEvent
 from app.domains.tenant.models import Outlet
 from app.errors import ApiError
@@ -136,6 +136,53 @@ async def accept_due_orders(ctx: GuestContext, now: datetime) -> None:
         )
 
 
+async def build_snapshots(
+    ctx: GuestContext, cart: list[CartLine], now: datetime
+) -> tuple[Outlet, dict[UUID, LoadedItem], list[LineSnapshot]]:
+    """Validates a cart against the live menu and prices it as of `now`. Shared
+    by placing an order and by the cart preview, so what a guest is quoted is
+    exactly what gets snapshotted."""
+    session = ctx.session
+    outlet = await session.get(Outlet, ctx.outlet_id)
+    assert outlet is not None
+    tz = ZoneInfo(outlet.timezone)
+    local_now = now.astimezone(tz).time()
+    rules = OutletOrderRules(
+        liquor_licensed=outlet.liquor_licensed,
+        liquor_approval_required=outlet.liquor_approval_required,
+        prices_include_tax=outlet.prices_include_tax,
+    )
+    loaded = await load_items(
+        session, ctx.outlet_id, outlet.liquor_vat_rate_bp, {c.menu_item_id for c in cart}
+    )
+    price_rules, rule_names = await load_price_rules(session, ctx.outlet_id)
+
+    snapshots: list[LineSnapshot] = []
+    try:
+        for cart_line in cart:
+            found = loaded.get(cart_line.menu_item_id)
+            if found is None:
+                raise CartError(
+                    "unknown_item",
+                    "One of the items is not on this menu.",
+                    {"item_id": str(cart_line.menu_item_id)},
+                )
+            price = effective_price(
+                PricedItem(found.row.id, found.row.category_id, found.row.base_price_paise),
+                price_rules,
+                now,
+                tz,
+            )
+            name = rule_names.get(price.price_rule_id) if price.price_rule_id else None
+            snapshots.append(
+                build_line_snapshot(found.orderable, cart_line, rules, price, name, local_now)
+            )
+    except CartError as exc:
+        status = 422 if exc.code in _UNPROCESSABLE_CART_CODES else 409
+        raise ApiError(status, exc.code, exc.message, exc.details) from exc
+    return outlet, loaded, snapshots
+
+
 @dataclass(frozen=True)
 class PlacedOrder:
     order: Order
@@ -153,44 +200,7 @@ async def place_customer_order(
         )
     await accept_due_orders(ctx, now)
 
-    outlet = await session.get(Outlet, ctx.outlet_id)
-    assert outlet is not None
-    tz = ZoneInfo(outlet.timezone)
-    local_now = now.astimezone(tz).time()
-    rules = OutletOrderRules(
-        liquor_licensed=outlet.liquor_licensed,
-        liquor_approval_required=outlet.liquor_approval_required,
-        prices_include_tax=outlet.prices_include_tax,
-    )
-    loaded = await load_items(
-        session, ctx.outlet_id, outlet.liquor_vat_rate_bp, {c.menu_item_id for c in cart}
-    )
-    price_rules, rule_names = await load_price_rules(session, ctx.outlet_id)
-
-    snapshots: list[tuple[LineSnapshot, int]] = []
-    try:
-        for index, cart_line in enumerate(cart):
-            found = loaded.get(cart_line.menu_item_id)
-            if found is None:
-                raise CartError(
-                    "unknown_item",
-                    "One of the items is not on this menu.",
-                    {"item_id": str(cart_line.menu_item_id)},
-                )
-            price = effective_price(
-                PricedItem(found.row.id, found.row.category_id, found.row.base_price_paise),
-                price_rules,
-                now,
-                tz,
-            )
-            name = rule_names.get(price.price_rule_id) if price.price_rule_id else None
-            snapshot = build_line_snapshot(
-                found.orderable, cart_line, rules, price, name, local_now
-            )
-            snapshots.append((snapshot, index))
-    except CartError as exc:
-        status = 422 if exc.code in _UNPROCESSABLE_CART_CODES else 409
-        raise ApiError(status, exc.code, exc.message, exc.details) from exc
+    _, loaded, snapshots = await build_snapshots(ctx, cart, now)
 
     seq_no = (
         await session.scalar(select(func.max(Order.seq_no)).where(Order.tab_id == ctx.tab_id))
@@ -210,7 +220,7 @@ async def place_customer_order(
     await session.flush()
 
     lines: list[OrderLine] = []
-    for snap, index in snapshots:
+    for index, snap in enumerate(snapshots):
         line = OrderLine(
             restaurant_id=ctx.restaurant_id,
             order_id=order.id,
@@ -233,7 +243,7 @@ async def place_customer_order(
         lines.append(line)
     await session.flush()
 
-    for (snap, _), line in zip(snapshots, lines, strict=True):
+    for snap, line in zip(snapshots, lines, strict=True):
         guest_event(
             ctx,
             now,

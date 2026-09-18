@@ -26,7 +26,7 @@ from app.api.v1.common import (
 from app.core.ordering import MAX_QTY, CartLine
 from app.core.permissions import Capability, assert_can, assert_can_write_own_tab
 from app.core.state import CUSTOMER_UNDO_WINDOW_SECONDS, OrderState
-from app.core.tab_totals import TotalsLine, compute_tab_totals
+from app.core.tab_totals import TabTotals, TotalsLine, compute_tab_totals
 from app.domains.staff.models import AppUser
 from app.domains.tab import service
 from app.domains.tab.models import Order, OrderLine, ServiceRequest, Tab
@@ -112,6 +112,24 @@ class TabOut(BaseModel):
     rounds: list[RoundOut]
     totals: TotalsOut
     open_requests: list[str]
+
+
+class QuoteLineOut(BaseModel):
+    menu_item_id: UUID
+    name: str
+    qty: int
+    unit_price_paise: int
+    modifiers: list[ModifierOut]
+    line_total_paise: int
+    price_rule: RuleRefOut | None
+
+
+class QuoteOut(BaseModel):
+    lines: list[QuoteLineOut]
+    # Tax split and service charge for this cart alone, as they will be on the tab.
+    totals: TotalsOut
+    # False while the tab waits for a waiter's confirmation.
+    can_order: bool
 
 
 class ServiceChargeIn(BaseModel):
@@ -210,6 +228,54 @@ async def place_order(
     )
 
 
+@router.post("/cart/quote", responses=ERRORS)
+async def quote_cart(tab_id: UUID, ctx: GuestCtx, body: PlaceOrderIn) -> QuoteOut:
+    """Prices a cart without placing it, using the same validation and snapshot code
+    as placing an order, so the cart screen never does money maths of its own.
+    Read-only: nothing is written."""
+    assert_can_write_own_tab(ctx.actor, tab_id)
+    tab = await service.lock_live_tab(ctx.session, tab_id)
+    cart = [CartLine(c.menu_item_id, c.qty, tuple(c.modifier_ids)) for c in body.lines]
+    outlet, _, snapshots = await service.build_snapshots(ctx, cart, clock.utcnow())
+    totals = compute_tab_totals(
+        [
+            TotalsLine(
+                unit_gross_paise=s.unit_gross_paise,
+                qty=s.qty,
+                rate_bp=s.tax_class["rate_bp"],
+                is_liquor=s.tax_class["is_liquor"],
+                prices_include_tax=s.tax_class["prices_include_tax"],
+            )
+            for s in snapshots
+        ],
+        service_charge_bp=outlet.service_charge_bp,
+        service_charge_removed=tab.service_charge_removed,
+    )
+    return QuoteOut(
+        lines=[
+            QuoteLineOut(
+                menu_item_id=s.menu_item_id,
+                name=s.item_name,
+                qty=s.qty,
+                unit_price_paise=s.unit_price_paise,
+                modifiers=[
+                    ModifierOut(name=m["name"], price_delta_paise=m["price_delta_paise"])
+                    for m in s.modifiers
+                ],
+                line_total_paise=s.line_total_paise,
+                price_rule=(
+                    RuleRefOut(id=s.price_rule_id, name=s.price_rule_name)
+                    if s.price_rule_id
+                    else None
+                ),
+            )
+            for s in snapshots
+        ],
+        totals=_totals_out(totals, outlet, tab),
+        can_order=tab.confirmed_at is not None,
+    )
+
+
 @router.post("/orders/{order_id}/undo", responses=ERRORS)
 async def undo_order(
     tab_id: UUID, order_id: UUID, ctx: GuestCtx, key: IdempotencyKeyHeader
@@ -227,6 +293,21 @@ async def undo_order(
 
     return await guest_idempotent_write(
         ctx, key, f"POST tabs/{tab_id}/orders/{order_id}/undo", None, RoundOut, produce
+    )
+
+
+def _totals_out(totals: TabTotals, outlet: Outlet, tab: Tab) -> TotalsOut:
+    return TotalsOut(
+        items_paise=totals.items_paise,
+        taxable_value_paise=totals.taxable_value_paise,
+        cgst_paise=totals.cgst_paise,
+        sgst_paise=totals.sgst_paise,
+        liquor_vat_paise=totals.liquor_vat_paise,
+        service_charge_paise=totals.service_charge_paise,
+        service_charge_bp=outlet.service_charge_bp,
+        service_charge_removed=tab.service_charge_removed,
+        estimated_total_paise=totals.estimated_total_paise,
+        prices_include_tax=outlet.prices_include_tax,
     )
 
 
@@ -285,18 +366,7 @@ async def _tab_out(ctx: GuestCtx, tab: Tab) -> TabOut:
         rounds=[
             _round_out(o, lines_by_order.get(o.id, []), ctx.tab_session_id, names) for o in orders
         ],
-        totals=TotalsOut(
-            items_paise=totals.items_paise,
-            taxable_value_paise=totals.taxable_value_paise,
-            cgst_paise=totals.cgst_paise,
-            sgst_paise=totals.sgst_paise,
-            liquor_vat_paise=totals.liquor_vat_paise,
-            service_charge_paise=totals.service_charge_paise,
-            service_charge_bp=outlet.service_charge_bp,
-            service_charge_removed=tab.service_charge_removed,
-            estimated_total_paise=totals.estimated_total_paise,
-            prices_include_tax=outlet.prices_include_tax,
-        ),
+        totals=_totals_out(totals, outlet, tab),
         open_requests=sorted(open_requests),
     )
 

@@ -1721,6 +1721,84 @@
         "title": "QrSessionOut",
         "type": "object"
       },
+      "QuoteLineOut": {
+        "properties": {
+          "line_total_paise": {
+            "title": "Line Total Paise",
+            "type": "integer"
+          },
+          "menu_item_id": {
+            "format": "uuid",
+            "title": "Menu Item Id",
+            "type": "string"
+          },
+          "modifiers": {
+            "items": {
+              "$ref": "#/components/schemas/app__api__v1__tabs__ModifierOut"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_rule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RuleRefOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "unit_price_paise": {
+            "title": "Unit Price Paise",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "menu_item_id",
+          "name",
+          "qty",
+          "unit_price_paise",
+          "modifiers",
+          "line_total_paise",
+          "price_rule"
+        ],
+        "title": "QuoteLineOut",
+        "type": "object"
+      },
+      "QuoteOut": {
+        "properties": {
+          "can_order": {
+            "title": "Can Order",
+            "type": "boolean"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteLineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/TotalsOut"
+          }
+        },
+        "required": [
+          "lines",
+          "totals",
+          "can_order"
+        ],
+        "title": "QuoteOut",
+        "type": "object"
+      },
       "Role": {
         "description": "Mirrors `StaffRole.role` (docs/SPEC.md \u00a77.1).",
         "enum": [
@@ -7624,6 +7702,115 @@
           }
         ],
         "summary": "Get Tab",
+        "tags": [
+          "tabs"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/cart/quote": {
+      "post": {
+        "description": "Prices a cart without placing it, using the same validation and snapshot code\nas placing an order, so the cart screen never does money maths of its own.\nRead-only: nothing is written.",
+        "operationId": "quote_cart_v1_outlets__outlet_id__tabs__tab_id__cart_quote_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tab_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tab Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Quote Cart",
         "tags": [
           "tabs"
         ]
