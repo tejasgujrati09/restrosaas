@@ -1,0 +1,34 @@
+# --- Python / apps/api ---
+apps/api/.venv/
+apps/api/__pycache__/
+**/__pycache__/
+*.pyc
+apps/api/.pytest_cache/
+apps/api/.mypy_cache/
+apps/api/.ruff_cache/
+apps/api/htmlcov/
+apps/api/.coverage
+apps/api/coverage.xml
+
+# --- Node / pnpm workspace ---
+node_modules/
+.next/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.turbo/
+
+# --- Playwright ---
+e2e/test-results/
+e2e/playwright-report/
+e2e/.cache/
+
+# --- Env / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- OS ---
+.DS_Store
+.lighthouseci/

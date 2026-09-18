@@ -1,0 +1,11 @@
+"""Per-outlet settings, not global flags (docs/CLAUDE.md §5.9). Values live on
+`Outlet` columns; this module is just the defaults applied when a new
+`Outlet` row is created, so the default lives in exactly one place.
+"""
+
+from __future__ import annotations
+
+DEFAULT_ACK_THRESHOLD_PAISE = 50_000  # ₹500, docs/SPEC.md §3/§7.3
+DEFAULT_WAITER_CONFIRM_MODE = False
+DEFAULT_LIQUOR_APPROVAL_REQUIRED = False
+DEFAULT_PRICES_INCLUDE_TAX = True  # docs/DECISIONS.md "Tax storage"
