@@ -152,8 +152,12 @@ async def seed(owner_engine: AsyncEngine) -> AsyncIterator[Seed]:
     yield Seed(phones=phones, **ids)
     async with owner_engine.begin() as conn:
         rows = await conn.execute(
-            text("SELECT id FROM restaurant WHERE id = ANY(:r) OR brand_name LIKE 'TEST %'"),
-            {"r": [ids["restaurant_a"], ids["restaurant_b"]]},
+            text(
+                "SELECT id FROM restaurant WHERE id = ANY(:r) OR brand_name LIKE 'TEST %' "
+                "OR id IN (SELECT sr.restaurant_id FROM staff_role sr "
+                "JOIN app_user u ON u.id = sr.user_id WHERE u.phone LIKE :p)"
+            ),
+            {"r": [ids["restaurant_a"], ids["restaurant_b"]], "p": f"{TEST_PHONE_PREFIX}%"},
         )
         rids = [r[0] for r in rows]
         for table in (

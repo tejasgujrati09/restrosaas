@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,10 +18,24 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
     otp_dev_mode: bool = True
+    # Browser tests cannot read the console, so they set a fixed code. Refused in production.
+    otp_dev_fixed_code: str | None = None
     # Where QR codes and staff invite links point. Product domain is undecided (SPEC §12).
     public_base_url: str = "http://localhost:3000"
     staff_base_url: str = "http://localhost:3001"
     invite_ttl_days: int = 7
+    # Browser origins allowed to call the API (the three Next.js apps).
+    cors_origins: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",
+    ]
+
+    @model_validator(mode="after")
+    def _no_fixed_otp_in_production(self) -> Settings:
+        if self.otp_dev_fixed_code is not None and self.environment == "production":
+            raise ValueError("OTP_DEV_FIXED_CODE must not be set when ENVIRONMENT=production")
+        return self
 
 
 settings = Settings()

@@ -102,3 +102,24 @@ async def test_database_constraint_errors_map_to_stable_codes(
     app.include_router(router)
     r = await client.get(f"/_constraint_{sqlstate}")
     assert (r.status_code, r.json()["code"]) == (status, code)
+
+
+async def test_cors_allows_configured_origins_and_the_idempotency_header(
+    client: httpx.AsyncClient,
+) -> None:
+    preflight = await client.options(
+        "/v1/auth/otp/request",
+        headers={
+            "Origin": "http://localhost:3001",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type,idempotency-key,authorization",
+        },
+    )
+    assert preflight.status_code == 200
+    assert preflight.headers["access-control-allow-origin"] == "http://localhost:3001"
+    assert "idempotency-key" in preflight.headers["access-control-allow-headers"].lower()
+    stranger = await client.options(
+        "/v1/auth/otp/request",
+        headers={"Origin": "https://evil.example", "Access-Control-Request-Method": "POST"},
+    )
+    assert "access-control-allow-origin" not in stranger.headers

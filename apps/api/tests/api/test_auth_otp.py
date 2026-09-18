@@ -125,3 +125,17 @@ async def test_non_dev_mode_does_not_print_code(
     r = await client.post("/v1/auth/otp/request", json={"phone": seed.phones["waiter_a"]})
     assert r.status_code == 202
     assert "OTP for" not in capsys.readouterr().out
+
+
+def test_fixed_code_is_used_when_configured_and_refused_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from pydantic import ValidationError
+
+    from app.config import Settings
+
+    monkeypatch.setattr("app.auth.settings.otp_dev_fixed_code", "424242")
+    assert otp_store.issue("login:+919444444444") == "424242"
+    with pytest.raises(ValidationError, match="production"):
+        Settings(environment="production", otp_dev_fixed_code="424242")
+    assert Settings(environment="production").otp_dev_fixed_code is None

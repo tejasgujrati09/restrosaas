@@ -3,7 +3,7 @@ import { ports } from "../ports";
 
 const apps = [
   { name: "guest", port: ports.guest, heading: "Guest ordering" },
-  { name: "staff", port: ports.staff, heading: "Staff" },
+  { name: "staff", port: ports.staff, heading: "Sign in" },
   { name: "admin", port: ports.admin, heading: "Platform admin" },
 ];
 

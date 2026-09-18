@@ -10,15 +10,20 @@ Python owns every business rule (`apps/api`); TypeScript only renders (`apps/gue
 Needs Docker, [uv](https://docs.astral.sh/uv/), Node 22+ and pnpm.
 
 ```bash
+brew install pango                                # macOS only: PDFs (QR sheets, menu) need it
 cp .env.example apps/api/.env                     # dev-only credentials
 docker compose up -d --wait postgres redis        # Postgres 16 + Redis
 (cd apps/api && uv sync && uv run alembic upgrade head)
 pnpm install
-(cd apps/api && uv run uvicorn app.main:app --reload)   # API on :8000, docs at /docs
-pnpm --filter guest dev                           # :3000  (staff :3001, admin :3002)
+(cd apps/api && DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run uvicorn app.main:app --reload)   # API :8000, docs at /docs
+pnpm --filter staff dev                           # owner and staff app on :3001  (guest :3000, admin :3002)
 ```
 
-Staff sign in with phone + OTP. In development the OTP is printed to the API console.
+Then open http://localhost:3001/signup. Sign-in and sign-up use a phone number and a one-time code;
+in development the code is printed in the API console (the `[dev] OTP for ...` line).
+
+Owner path to printed QR codes: sign up, then **Setup** (GSTIN, tax classes), **Menu** (add items or import a CSV),
+**Tables & QR** (add tables, print the QR sheet), **Staff** (invite by WhatsApp link).
 
 ## Everyday commands
 
@@ -27,6 +32,7 @@ Staff sign in with phone + OTP. In development the OTP is printed to the API con
 | `make dev` | Postgres, Redis and the API in Docker with autoreload |
 | `make test-db` | Start Postgres, migrate, run the API tests against the real database |
 | `make check` | Every CI gate, in CI order (see `CLAUDE.md` §10) |
+| `pnpm --filter e2e test` | Browser tests: boots the API and all three apps and walks the owner journey (set `E2E_*_PORT` if 3000-3002 or 8000 are taken) |
 | `pnpm --filter api-client generate` | Regenerate the TypeScript client after the API changes (export first: `cd apps/api && uv run python -m app.export_openapi ../../openapi.json`) |
 
 ## Two database roles

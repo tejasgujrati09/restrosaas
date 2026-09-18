@@ -5,6 +5,7 @@ import uuid
 
 import structlog
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.datastructures import Headers, MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -20,6 +21,7 @@ from app.api.v1 import (
     staff,
     tables,
 )
+from app.config import settings as app_settings
 from app.errors import install_error_handlers
 from app.logging import configure_logging
 
@@ -81,3 +83,11 @@ class RequestContextMiddleware:
 
 
 app.add_middleware(RequestContextMiddleware)
+# Added last so it is outermost and answers preflight requests before anything else.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=app_settings.cors_origins,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "X-Request-ID"],
+    expose_headers=["X-Request-ID"],
+)

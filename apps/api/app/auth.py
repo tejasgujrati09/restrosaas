@@ -84,7 +84,7 @@ class OtpStore:
         self._requests[key] = [*recent, now]
 
     def issue(self, phone: str) -> str:
-        code = f"{secrets.randbelow(1_000_000):06d}"
+        code = settings.otp_dev_fixed_code or f"{secrets.randbelow(1_000_000):06d}"
         self._entries[phone] = (code, time.monotonic() + OTP_TTL_SECONDS, 0)
         return code
 
