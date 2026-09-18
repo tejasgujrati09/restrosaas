@@ -11,11 +11,14 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import clock
 from app.auth import InvalidTokenError, RoleClaim, decode_token
-from app.core.permissions import PermissionDeniedError, Role, StaffActor
+from app.core.permissions import CustomerActor, PermissionDeniedError, Role, StaffActor
 from app.db.session import tenant_session
 from app.domains.staff.models import StaffRole
+from app.domains.tab.models import Tab, TabSession
 from app.errors import ApiError
+from app.guest_auth import parse_session_token
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -82,4 +85,67 @@ async def get_outlet_context(
             actor=StaffActor(actor_type="staff", user_id=auth.actor.user_id, roles=roles),
             outlet_id=outlet_id,
             restaurant_id=claim.restaurant_id,
+        )
+
+
+@dataclass(frozen=True)
+class GuestContext:
+    session: AsyncSession
+    actor: CustomerActor
+    outlet_id: UUID
+    restaurant_id: UUID
+    tab_id: UUID
+    tab_session_id: UUID
+
+
+_SESSION_ENDED = ApiError(
+    401, "session_ended", "This table's session has ended. Scan the QR code on your table again."
+)
+
+
+async def get_guest_context(
+    outlet_id: UUID,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+) -> AsyncIterator[GuestContext]:
+    """Guest requests carry a TabSession token, not a staff JWT. The token names
+    the tenant; the session must be unexpired, unrevoked and on a live tab, and
+    the tab must belong to the outlet in the path. Ownership of a *specific* tab
+    is then checked by the handler with `assert_can_write_own_tab`."""
+    if credentials is None:
+        raise ApiError(401, "not_authenticated", "Scan the QR code on your table to start.")
+    try:
+        restaurant_id, token_hash = parse_session_token(credentials.credentials)
+    except InvalidTokenError as exc:
+        raise ApiError(401, "invalid_token", "Scan the QR code on your table again.") from exc
+    async with tenant_session(restaurant_id) as session:
+        row = (
+            await session.execute(
+                select(TabSession, Tab)
+                .join(Tab, Tab.id == TabSession.tab_id)
+                .where(TabSession.token_hash == token_hash)
+            )
+        ).first()
+        if row is None:
+            raise _SESSION_ENDED
+        tab_session, tab = row._tuple()
+        if (
+            tab_session.revoked
+            or tab_session.expires_at <= clock.utcnow()
+            or tab.status not in ("open", "bill_requested")
+        ):
+            raise _SESSION_ENDED
+        if tab.outlet_id != outlet_id:
+            raise PermissionDeniedError(capability=None, outlet_id=outlet_id)
+        structlog.contextvars.bind_contextvars(
+            restaurant_id=str(restaurant_id), outlet_id=str(outlet_id), tab_id=str(tab.id)
+        )
+        yield GuestContext(
+            session=session,
+            actor=CustomerActor(
+                actor_type="customer", tab_session_id=tab_session.id, tab_id=tab.id
+            ),
+            outlet_id=outlet_id,
+            restaurant_id=restaurant_id,
+            tab_id=tab.id,
+            tab_session_id=tab_session.id,
         )

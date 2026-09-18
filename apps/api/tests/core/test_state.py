@@ -93,3 +93,32 @@ def test_customer_cannot_cancel_after_60s() -> None:
 
 def test_customer_cannot_cancel_once_accepted() -> None:
     assert can_customer_cancel_order_line(OrderState.ACCEPTED, 1) is False
+
+
+@pytest.mark.parametrize(
+    ("status", "seconds", "due"),
+    [
+        (OrderState.PLACED, 59.9, False),
+        (OrderState.PLACED, 60, False),
+        (OrderState.PLACED, 60.1, True),
+        (OrderState.ACCEPTED, 600, False),
+        (OrderState.CANCELLED, 600, False),
+    ],
+)
+def test_auto_accept_is_due_only_after_the_undo_window(
+    status: OrderState, seconds: float, due: bool
+) -> None:
+    from app.core.state import order_auto_accept_due
+
+    assert order_auto_accept_due(status, seconds) is due
+
+
+def test_undo_and_auto_accept_never_both_hold() -> None:
+    from app.core.state import order_auto_accept_due
+
+    for tenths in range(0, 1200):
+        seconds = tenths / 10
+        assert not (
+            can_customer_cancel_order_line(OrderState.PLACED, seconds)
+            and order_auto_accept_due(OrderState.PLACED, seconds)
+        )

@@ -161,6 +161,12 @@ async def seed(owner_engine: AsyncEngine) -> AsyncIterator[Seed]:
         )
         rids = [r[0] for r in rows]
         for table in (
+            "tab_event",
+            "service_request",
+            "order_line",
+            "tab_order",
+            "tab_session",
+            "tab",
             "idempotency_key",
             "audit_log",
             "staff_invite",

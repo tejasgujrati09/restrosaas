@@ -48,6 +48,48 @@
         "title": "BulkTablesIn",
         "type": "object"
       },
+      "CartLineIn": {
+        "properties": {
+          "menu_item_id": {
+            "format": "uuid",
+            "title": "Menu Item Id",
+            "type": "string"
+          },
+          "modifier_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Modifier Ids",
+            "type": "array"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "qty": {
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Qty",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "menu_item_id",
+          "qty"
+        ],
+        "title": "CartLineIn",
+        "type": "object"
+      },
       "CategoryIn": {
         "properties": {
           "available_from": {
@@ -152,6 +194,26 @@
         "title": "CategoryOut",
         "type": "object"
       },
+      "ConfirmOut": {
+        "properties": {
+          "confirmed_at": {
+            "format": "date-time",
+            "title": "Confirmed At",
+            "type": "string"
+          },
+          "tab_id": {
+            "format": "uuid",
+            "title": "Tab Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tab_id",
+          "confirmed_at"
+        ],
+        "title": "ConfirmOut",
+        "type": "object"
+      },
       "EffectivePriceOut": {
         "properties": {
           "item_id": {
@@ -212,6 +274,217 @@
           "message"
         ],
         "title": "ErrorOut",
+        "type": "object"
+      },
+      "GuestCategoryOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GuestItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "items"
+        ],
+        "title": "GuestCategoryOut",
+        "type": "object"
+      },
+      "GuestItemOut": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "base_price_paise": {
+            "title": "Base Price Paise",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "is_liquor": {
+            "title": "Is Liquor",
+            "type": "boolean"
+          },
+          "modifier_groups": {
+            "items": {
+              "$ref": "#/components/schemas/GuestModifierGroupOut"
+            },
+            "title": "Modifier Groups",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_paise": {
+            "title": "Price Paise",
+            "type": "integer"
+          },
+          "price_rule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RuleBadgeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "self_orderable": {
+            "title": "Self Orderable",
+            "type": "boolean"
+          },
+          "veg": {
+            "title": "Veg",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "veg",
+          "is_liquor",
+          "image_url",
+          "price_paise",
+          "base_price_paise",
+          "price_rule",
+          "available",
+          "self_orderable",
+          "modifier_groups"
+        ],
+        "title": "GuestItemOut",
+        "type": "object"
+      },
+      "GuestMenuOut": {
+        "properties": {
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/GuestCategoryOut"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "outlet_name": {
+            "title": "Outlet Name",
+            "type": "string"
+          },
+          "prices_include_tax": {
+            "title": "Prices Include Tax",
+            "type": "boolean"
+          },
+          "service_charge_bp": {
+            "title": "Service Charge Bp",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "outlet_name",
+          "prices_include_tax",
+          "service_charge_bp",
+          "categories"
+        ],
+        "title": "GuestMenuOut",
+        "type": "object"
+      },
+      "GuestModifierGroupOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "max_select": {
+            "title": "Max Select",
+            "type": "integer"
+          },
+          "min_select": {
+            "title": "Min Select",
+            "type": "integer"
+          },
+          "modifiers": {
+            "items": {
+              "$ref": "#/components/schemas/GuestModifierOut"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "min_select",
+          "max_select",
+          "modifiers"
+        ],
+        "title": "GuestModifierGroupOut",
+        "type": "object"
+      },
+      "GuestModifierOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_delta_paise": {
+            "title": "Price Delta Paise",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price_delta_paise"
+        ],
+        "title": "GuestModifierOut",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -759,6 +1032,145 @@
         "title": "ItemOut",
         "type": "object"
       },
+      "LineOut": {
+        "properties": {
+          "acked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acked At"
+          },
+          "by_you": {
+            "title": "By You",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "line_total_paise": {
+            "title": "Line Total Paise",
+            "type": "integer"
+          },
+          "modifiers": {
+            "items": {
+              "$ref": "#/components/schemas/app__api__v1__tabs__ModifierOut"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "needs_customer_ack": {
+            "title": "Needs Customer Ack",
+            "type": "boolean"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "placed_by": {
+            "enum": [
+              "customer",
+              "staff"
+            ],
+            "title": "Placed By",
+            "type": "string"
+          },
+          "price_rule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RuleRefOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "staff_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Name"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "unit_price_paise": {
+            "title": "Unit Price Paise",
+            "type": "integer"
+          },
+          "void_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Void Reason"
+          },
+          "voided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voided At"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "qty",
+          "unit_price_paise",
+          "modifiers",
+          "line_total_paise",
+          "status",
+          "placed_by",
+          "by_you",
+          "staff_name",
+          "price_rule",
+          "needs_customer_ack",
+          "acked_at",
+          "note",
+          "voided_at",
+          "void_reason"
+        ],
+        "title": "LineOut",
+        "type": "object"
+      },
       "MenuCategoryOut": {
         "properties": {
           "available_from": {
@@ -919,7 +1331,7 @@
           },
           "modifiers": {
             "items": {
-              "$ref": "#/components/schemas/ModifierOut"
+              "$ref": "#/components/schemas/app__api__v1__menu__ModifierOut"
             },
             "title": "Modifiers",
             "type": "array"
@@ -986,30 +1398,6 @@
         "title": "ModifierIn",
         "type": "object"
       },
-      "ModifierOut": {
-        "properties": {
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "price_delta_paise": {
-            "title": "Price Delta Paise",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "price_delta_paise"
-        ],
-        "title": "ModifierOut",
-        "type": "object"
-      },
       "OtpRequestIn": {
         "properties": {
           "phone": {
@@ -1043,6 +1431,24 @@
           "code"
         ],
         "title": "OtpVerifyIn",
+        "type": "object"
+      },
+      "PlaceOrderIn": {
+        "properties": {
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/CartLineIn"
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          }
+        },
+        "required": [
+          "lines"
+        ],
+        "title": "PlaceOrderIn",
         "type": "object"
       },
       "PriceRuleIn": {
@@ -1239,6 +1645,82 @@
         "title": "PriceRuleOut",
         "type": "object"
       },
+      "QrSessionIn": {
+        "properties": {
+          "device_fingerprint": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Fingerprint"
+          }
+        },
+        "title": "QrSessionIn",
+        "type": "object"
+      },
+      "QrSessionOut": {
+        "properties": {
+          "awaiting_waiter": {
+            "title": "Awaiting Waiter",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "outlet_id": {
+            "format": "uuid",
+            "title": "Outlet Id",
+            "type": "string"
+          },
+          "outlet_name": {
+            "title": "Outlet Name",
+            "type": "string"
+          },
+          "session_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Token"
+          },
+          "tab_id": {
+            "format": "uuid",
+            "title": "Tab Id",
+            "type": "string"
+          },
+          "tab_status": {
+            "title": "Tab Status",
+            "type": "string"
+          },
+          "table_label": {
+            "title": "Table Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_token",
+          "expires_at",
+          "outlet_id",
+          "outlet_name",
+          "table_label",
+          "tab_id",
+          "tab_status",
+          "awaiting_waiter"
+        ],
+        "title": "QrSessionOut",
+        "type": "object"
+      },
       "Role": {
         "description": "Mirrors `StaffRole.role` (docs/SPEC.md \u00a77.1).",
         "enum": [
@@ -1250,6 +1732,57 @@
         ],
         "title": "Role",
         "type": "string"
+      },
+      "RoundOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/LineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "placed_at": {
+            "format": "date-time",
+            "title": "Placed At",
+            "type": "string"
+          },
+          "seq_no": {
+            "title": "Seq No",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "undo_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Undo Until"
+          }
+        },
+        "required": [
+          "id",
+          "seq_no",
+          "status",
+          "placed_at",
+          "undo_until",
+          "lines"
+        ],
+        "title": "RoundOut",
+        "type": "object"
       },
       "RowErrorOut": {
         "properties": {
@@ -1281,6 +1814,64 @@
         "title": "RowErrorOut",
         "type": "object"
       },
+      "RuleBadgeOut": {
+        "properties": {
+          "ends_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "ends_at"
+        ],
+        "title": "RuleBadgeOut",
+        "type": "object"
+      },
+      "RuleRefOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "RuleRefOut",
+        "type": "object"
+      },
       "RuleScope": {
         "enum": [
           "item",
@@ -1297,6 +1888,67 @@
         ],
         "title": "RuleType",
         "type": "string"
+      },
+      "ServiceChargeIn": {
+        "properties": {
+          "removed": {
+            "title": "Removed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "removed"
+        ],
+        "title": "ServiceChargeIn",
+        "type": "object"
+      },
+      "ServiceRequestIn": {
+        "properties": {
+          "type": {
+            "enum": [
+              "waiter",
+              "water",
+              "bill"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "ServiceRequestIn",
+        "type": "object"
+      },
+      "ServiceRequestOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "tab_status": {
+            "title": "Tab Status",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "created_at",
+          "tab_status"
+        ],
+        "title": "ServiceRequestOut",
+        "type": "object"
       },
       "SettingsOut": {
         "properties": {
@@ -1818,6 +2470,68 @@
         "title": "StationOut",
         "type": "object"
       },
+      "TabOut": {
+        "properties": {
+          "awaiting_waiter": {
+            "title": "Awaiting Waiter",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "open_requests": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Open Requests",
+            "type": "array"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "rounds": {
+            "items": {
+              "$ref": "#/components/schemas/RoundOut"
+            },
+            "title": "Rounds",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "table_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Label"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/TotalsOut"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "table_label",
+          "awaiting_waiter",
+          "opened_at",
+          "rounds",
+          "totals",
+          "open_requests"
+        ],
+        "title": "TabOut",
+        "type": "object"
+      },
       "TableIn": {
         "properties": {
           "active": {
@@ -1982,6 +2696,69 @@
         "title": "TokenOut",
         "type": "object"
       },
+      "TotalsOut": {
+        "properties": {
+          "cgst_paise": {
+            "title": "Cgst Paise",
+            "type": "integer"
+          },
+          "estimated_total_paise": {
+            "title": "Estimated Total Paise",
+            "type": "integer"
+          },
+          "is_estimate": {
+            "default": true,
+            "title": "Is Estimate",
+            "type": "boolean"
+          },
+          "items_paise": {
+            "title": "Items Paise",
+            "type": "integer"
+          },
+          "liquor_vat_paise": {
+            "title": "Liquor Vat Paise",
+            "type": "integer"
+          },
+          "prices_include_tax": {
+            "title": "Prices Include Tax",
+            "type": "boolean"
+          },
+          "service_charge_bp": {
+            "title": "Service Charge Bp",
+            "type": "integer"
+          },
+          "service_charge_paise": {
+            "title": "Service Charge Paise",
+            "type": "integer"
+          },
+          "service_charge_removed": {
+            "title": "Service Charge Removed",
+            "type": "boolean"
+          },
+          "sgst_paise": {
+            "title": "Sgst Paise",
+            "type": "integer"
+          },
+          "taxable_value_paise": {
+            "title": "Taxable Value Paise",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items_paise",
+          "taxable_value_paise",
+          "cgst_paise",
+          "sgst_paise",
+          "liquor_vat_paise",
+          "service_charge_paise",
+          "service_charge_bp",
+          "service_charge_removed",
+          "estimated_total_paise",
+          "prices_include_tax"
+        ],
+        "title": "TotalsOut",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -2020,6 +2797,48 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "app__api__v1__menu__ModifierOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_delta_paise": {
+            "title": "Price Delta Paise",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price_delta_paise"
+        ],
+        "title": "ModifierOut",
+        "type": "object"
+      },
+      "app__api__v1__tabs__ModifierOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_delta_paise": {
+            "title": "Price Delta Paise",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "price_delta_paise"
+        ],
+        "title": "ModifierOut",
         "type": "object"
       }
     },
@@ -2559,6 +3378,95 @@
         "summary": "Update Category",
         "tags": [
           "menu"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/guest/menu": {
+      "get": {
+        "description": "Visible categories that are open now, with each item's price as of now and\nthe happy-hour badge when a rule applies. Sold-out items are listed, marked.",
+        "operationId": "guest_menu_v1_outlets__outlet_id__guest_menu_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestMenuOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Guest Menu",
+        "tags": [
+          "guest"
         ]
       }
     },
@@ -4328,7 +5236,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ModifierOut"
+                  "$ref": "#/components/schemas/app__api__v1__menu__ModifierOut"
                 }
               }
             },
@@ -4579,7 +5487,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ModifierOut"
+                  "$ref": "#/components/schemas/app__api__v1__menu__ModifierOut"
                 }
               }
             },
@@ -6622,6 +7530,724 @@
         ]
       }
     },
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}": {
+      "get": {
+        "description": "The live tab: rounds, per-line source and status, the running total.",
+        "operationId": "get_tab_v1_outlets__outlet_id__tabs__tab_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tab_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tab Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TabOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Tab",
+        "tags": [
+          "tabs"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/confirm": {
+      "post": {
+        "description": "Waiter-confirm mode: the guest can browse but not order until a waiter\nconfirms the table's tab.",
+        "operationId": "confirm_tab_v1_outlets__outlet_id__tabs__tab_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tab_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tab Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Tab",
+        "tags": [
+          "tabs"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/orders": {
+      "post": {
+        "description": "Places a round. Every name, price, tax class and modifier is copied onto the\nlines; safe to resend with the same `Idempotency-Key`.",
+        "operationId": "place_order_v1_outlets__outlet_id__tabs__tab_id__orders_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tab_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tab Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoundOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Place Order",
+        "tags": [
+          "tabs"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/orders/{order_id}/undo": {
+      "post": {
+        "description": "Cancels a round within 60 seconds, before it is accepted. After that only a\nmanager can void, with a reason.",
+        "operationId": "undo_order_v1_outlets__outlet_id__tabs__tab_id__orders__order_id__undo_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tab_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tab Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoundOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Undo Order",
+        "tags": [
+          "tabs"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/service-charge": {
+      "put": {
+        "description": "Removing service charge is the guest's right: not a void, no reason needed.",
+        "operationId": "set_service_charge_v1_outlets__outlet_id__tabs__tab_id__service_charge_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tab_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tab Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceChargeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TabOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Service Charge",
+        "tags": [
+          "tabs"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/service-requests": {
+      "post": {
+        "operationId": "create_service_request_v1_outlets__outlet_id__tabs__tab_id__service_requests_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tab_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tab Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceRequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Service Request",
+        "tags": [
+          "tabs"
+        ]
+      }
+    },
     "/v1/outlets/{outlet_id}/tax-classes": {
       "post": {
         "operationId": "create_tax_class_v1_outlets__outlet_id__tax_classes_post",
@@ -6965,6 +8591,104 @@
         "summary": "Update Tax Class",
         "tags": [
           "menu"
+        ]
+      }
+    },
+    "/v1/qr/{qr_token}/session": {
+      "post": {
+        "description": "Exchanges a table's QR token for a TabSession, joining the table's live\ntab or opening one. Anonymous: the QR token is the credential. Scanning again\nwith a still-valid session for the same tab returns that session's expiry\ninstead of minting another.",
+        "operationId": "open_session_v1_qr__qr_token__session_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "qr_token",
+            "required": true,
+            "schema": {
+              "title": "Qr Token",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QrSessionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QrSessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Open Session",
+        "tags": [
+          "guest"
         ]
       }
     },

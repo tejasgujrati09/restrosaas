@@ -88,3 +88,15 @@ def can_customer_cancel_order_line(order_status: OrderState, seconds_since_place
     if order_status != OrderState.PLACED:
         return False
     return seconds_since_placed <= _CUSTOMER_CANCEL_WINDOW_SECONDS
+
+
+def order_auto_accept_due(order_status: OrderState, seconds_since_placed: float) -> bool:
+    """In auto mode a round is accepted once the customer's undo window has
+    closed (docs/DECISIONS.md "Milestone 3 choices"). Strictly greater, so the
+    two rules never both hold at the same instant."""
+    if order_status != OrderState.PLACED:
+        return False
+    return seconds_since_placed > _CUSTOMER_CANCEL_WINDOW_SECONDS
+
+
+CUSTOMER_UNDO_WINDOW_SECONDS = _CUSTOMER_CANCEL_WINDOW_SECONDS

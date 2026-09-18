@@ -131,6 +131,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/outlets/{outlet_id}/guest/menu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Guest Menu
+         * @description Visible categories that are open now, with each item's price as of now and
+         *     the happy-hour badge when a rule applies. Sold-out items are listed, marked.
+         */
+        get: operations["guest_menu_v1_outlets__outlet_id__guest_menu_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/outlets/{outlet_id}/invites": {
         parameters: {
             query?: never;
@@ -618,6 +639,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tab
+         * @description The live tab: rounds, per-line source and status, the running total.
+         */
+        get: operations["get_tab_v1_outlets__outlet_id__tabs__tab_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Tab
+         * @description Waiter-confirm mode: the guest can browse but not order until a waiter
+         *     confirms the table's tab.
+         */
+        post: operations["confirm_tab_v1_outlets__outlet_id__tabs__tab_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Place Order
+         * @description Places a round. Every name, price, tax class and modifier is copied onto the
+         *     lines; safe to resend with the same `Idempotency-Key`.
+         */
+        post: operations["place_order_v1_outlets__outlet_id__tabs__tab_id__orders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/orders/{order_id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Undo Order
+         * @description Cancels a round within 60 seconds, before it is accepted. After that only a
+         *     manager can void, with a reason.
+         */
+        post: operations["undo_order_v1_outlets__outlet_id__tabs__tab_id__orders__order_id__undo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/service-charge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Service Charge
+         * @description Removing service charge is the guest's right: not a void, no reason needed.
+         */
+        put: operations["set_service_charge_v1_outlets__outlet_id__tabs__tab_id__service_charge_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/tabs/{tab_id}/service-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Service Request */
+        post: operations["create_service_request_v1_outlets__outlet_id__tabs__tab_id__service_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/outlets/{outlet_id}/tax-classes": {
         parameters: {
             query?: never;
@@ -648,6 +789,29 @@ export interface paths {
         post?: never;
         /** Delete Tax Class */
         delete: operations["delete_tax_class_v1_outlets__outlet_id__tax_classes__tax_class_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/qr/{qr_token}/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Open Session
+         * @description Exchanges a table's QR token for a TabSession, joining the table's live
+         *     tab or opening one. Anonymous: the QR token is the credential. Scanning again
+         *     with a still-valid session for the same tab returns that session's expiry
+         *     instead of minting another.
+         */
+        post: operations["open_session_v1_qr__qr_token__session_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -711,6 +875,20 @@ export interface components {
              */
             zone: string;
         };
+        /** CartLineIn */
+        CartLineIn: {
+            /**
+             * Menu Item Id
+             * Format: uuid
+             */
+            menu_item_id: string;
+            /** Modifier Ids */
+            modifier_ids?: string[];
+            /** Note */
+            note?: string | null;
+            /** Qty */
+            qty: number;
+        };
         /** CategoryIn */
         CategoryIn: {
             /** Available From */
@@ -748,6 +926,19 @@ export interface components {
             /** Visible */
             visible: boolean;
         };
+        /** ConfirmOut */
+        ConfirmOut: {
+            /**
+             * Confirmed At
+             * Format: date-time
+             */
+            confirmed_at: string;
+            /**
+             * Tab Id
+             * Format: uuid
+             */
+            tab_id: string;
+        };
         /** EffectivePriceOut */
         EffectivePriceOut: {
             /**
@@ -770,6 +961,86 @@ export interface components {
             } | null;
             /** Message */
             message: string;
+        };
+        /** GuestCategoryOut */
+        GuestCategoryOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Items */
+            items: components["schemas"]["GuestItemOut"][];
+            /** Name */
+            name: string;
+        };
+        /** GuestItemOut */
+        GuestItemOut: {
+            /** Available */
+            available: boolean;
+            /** Base Price Paise */
+            base_price_paise: number;
+            /** Description */
+            description: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Image Url */
+            image_url: string | null;
+            /** Is Liquor */
+            is_liquor: boolean;
+            /** Modifier Groups */
+            modifier_groups: components["schemas"]["GuestModifierGroupOut"][];
+            /** Name */
+            name: string;
+            /** Price Paise */
+            price_paise: number;
+            price_rule: components["schemas"]["RuleBadgeOut"] | null;
+            /** Self Orderable */
+            self_orderable: boolean;
+            /** Veg */
+            veg: boolean;
+        };
+        /** GuestMenuOut */
+        GuestMenuOut: {
+            /** Categories */
+            categories: components["schemas"]["GuestCategoryOut"][];
+            /** Outlet Name */
+            outlet_name: string;
+            /** Prices Include Tax */
+            prices_include_tax: boolean;
+            /** Service Charge Bp */
+            service_charge_bp: number;
+        };
+        /** GuestModifierGroupOut */
+        GuestModifierGroupOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Max Select */
+            max_select: number;
+            /** Min Select */
+            min_select: number;
+            /** Modifiers */
+            modifiers: components["schemas"]["GuestModifierOut"][];
+            /** Name */
+            name: string;
+        };
+        /** GuestModifierOut */
+        GuestModifierOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Price Delta Paise */
+            price_delta_paise: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -972,6 +1243,46 @@ export interface components {
             /** Veg Flag */
             veg_flag: boolean;
         };
+        /** LineOut */
+        LineOut: {
+            /** Acked At */
+            acked_at: string | null;
+            /** By You */
+            by_you: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Line Total Paise */
+            line_total_paise: number;
+            /** Modifiers */
+            modifiers: components["schemas"]["app__api__v1__tabs__ModifierOut"][];
+            /** Name */
+            name: string;
+            /** Needs Customer Ack */
+            needs_customer_ack: boolean;
+            /** Note */
+            note: string | null;
+            /**
+             * Placed By
+             * @enum {string}
+             */
+            placed_by: "customer" | "staff";
+            price_rule: components["schemas"]["RuleRefOut"] | null;
+            /** Qty */
+            qty: number;
+            /** Staff Name */
+            staff_name: string | null;
+            /** Status */
+            status: string;
+            /** Unit Price Paise */
+            unit_price_paise: number;
+            /** Void Reason */
+            void_reason: string | null;
+            /** Voided At */
+            voided_at: string | null;
+        };
         /** MenuCategoryOut */
         MenuCategoryOut: {
             /** Available From */
@@ -1037,7 +1348,7 @@ export interface components {
             /** Min Select */
             min_select: number;
             /** Modifiers */
-            modifiers: components["schemas"]["ModifierOut"][];
+            modifiers: components["schemas"]["app__api__v1__menu__ModifierOut"][];
             /** Name */
             name: string;
         };
@@ -1066,18 +1377,6 @@ export interface components {
              */
             price_delta_paise: number;
         };
-        /** ModifierOut */
-        ModifierOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Name */
-            name: string;
-            /** Price Delta Paise */
-            price_delta_paise: number;
-        };
         /** OtpRequestIn */
         OtpRequestIn: {
             /** Phone */
@@ -1089,6 +1388,11 @@ export interface components {
             code: string;
             /** Phone */
             phone: string;
+        };
+        /** PlaceOrderIn */
+        PlaceOrderIn: {
+            /** Lines */
+            lines: components["schemas"]["CartLineIn"][];
         };
         /** PriceRuleIn */
         PriceRuleIn: {
@@ -1159,12 +1463,66 @@ export interface components {
             /** Value */
             value: number;
         };
+        /** QrSessionIn */
+        QrSessionIn: {
+            /** Device Fingerprint */
+            device_fingerprint?: string | null;
+        };
+        /** QrSessionOut */
+        QrSessionOut: {
+            /** Awaiting Waiter */
+            awaiting_waiter: boolean;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Outlet Id
+             * Format: uuid
+             */
+            outlet_id: string;
+            /** Outlet Name */
+            outlet_name: string;
+            /** Session Token */
+            session_token: string | null;
+            /**
+             * Tab Id
+             * Format: uuid
+             */
+            tab_id: string;
+            /** Tab Status */
+            tab_status: string;
+            /** Table Label */
+            table_label: string;
+        };
         /**
          * Role
          * @description Mirrors `StaffRole.role` (docs/SPEC.md §7.1).
          * @enum {string}
          */
         Role: "waiter" | "kitchen" | "bar" | "manager" | "owner";
+        /** RoundOut */
+        RoundOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lines */
+            lines: components["schemas"]["LineOut"][];
+            /**
+             * Placed At
+             * Format: date-time
+             */
+            placed_at: string;
+            /** Seq No */
+            seq_no: number;
+            /** Status */
+            status: string;
+            /** Undo Until */
+            undo_until: string | null;
+        };
         /** RowErrorOut */
         RowErrorOut: {
             /** Column */
@@ -1173,6 +1531,28 @@ export interface components {
             message: string;
             /** Row */
             row: number;
+        };
+        /** RuleBadgeOut */
+        RuleBadgeOut: {
+            /** Ends At */
+            ends_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** RuleRefOut */
+        RuleRefOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string | null;
         };
         /**
          * RuleScope
@@ -1184,6 +1564,36 @@ export interface components {
          * @enum {string}
          */
         RuleType: "fixed" | "percent_off";
+        /** ServiceChargeIn */
+        ServiceChargeIn: {
+            /** Removed */
+            removed: boolean;
+        };
+        /** ServiceRequestIn */
+        ServiceRequestIn: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "waiter" | "water" | "bill";
+        };
+        /** ServiceRequestOut */
+        ServiceRequestOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Tab Status */
+            tab_status: string;
+            /** Type */
+            type: string;
+        };
         /** SettingsOut */
         SettingsOut: {
             /** Ack Threshold Paise */
@@ -1346,6 +1756,30 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** TabOut */
+        TabOut: {
+            /** Awaiting Waiter */
+            awaiting_waiter: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Open Requests */
+            open_requests: string[];
+            /**
+             * Opened At
+             * Format: date-time
+             */
+            opened_at: string;
+            /** Rounds */
+            rounds: components["schemas"]["RoundOut"][];
+            /** Status */
+            status: string;
+            /** Table Label */
+            table_label: string | null;
+            totals: components["schemas"]["TotalsOut"];
+        };
         /** TableIn */
         TableIn: {
             /**
@@ -1430,6 +1864,34 @@ export interface components {
              */
             token_type: string;
         };
+        /** TotalsOut */
+        TotalsOut: {
+            /** Cgst Paise */
+            cgst_paise: number;
+            /** Estimated Total Paise */
+            estimated_total_paise: number;
+            /**
+             * Is Estimate
+             * @default true
+             */
+            is_estimate: boolean;
+            /** Items Paise */
+            items_paise: number;
+            /** Liquor Vat Paise */
+            liquor_vat_paise: number;
+            /** Prices Include Tax */
+            prices_include_tax: boolean;
+            /** Service Charge Bp */
+            service_charge_bp: number;
+            /** Service Charge Paise */
+            service_charge_paise: number;
+            /** Service Charge Removed */
+            service_charge_removed: boolean;
+            /** Sgst Paise */
+            sgst_paise: number;
+            /** Taxable Value Paise */
+            taxable_value_paise: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -1442,6 +1904,25 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** ModifierOut */
+        app__api__v1__menu__ModifierOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Price Delta Paise */
+            price_delta_paise: number;
+        };
+        /** ModifierOut */
+        app__api__v1__tabs__ModifierOut: {
+            /** Name */
+            name: string;
+            /** Price Delta Paise */
+            price_delta_paise: number;
         };
     };
     responses: never;
@@ -1771,6 +2252,73 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    guest_menu_v1_outlets__outlet_id__guest_menu_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestMenuOut"];
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2964,7 +3512,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ModifierOut"];
+                    "application/json": components["schemas"]["app__api__v1__menu__ModifierOut"];
                 };
             };
             /** @description Unauthorized */
@@ -3039,7 +3587,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ModifierOut"];
+                    "application/json": components["schemas"]["app__api__v1__menu__ModifierOut"];
                 };
             };
             /** @description Unauthorized */
@@ -4430,6 +4978,437 @@ export interface operations {
             };
         };
     };
+    get_tab_v1_outlets__outlet_id__tabs__tab_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tab_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TabOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    confirm_tab_v1_outlets__outlet_id__tabs__tab_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                tab_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    place_order_v1_outlets__outlet_id__tabs__tab_id__orders_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                tab_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoundOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    undo_order_v1_outlets__outlet_id__tabs__tab_id__orders__order_id__undo_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                tab_id: string;
+                order_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoundOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    set_service_charge_v1_outlets__outlet_id__tabs__tab_id__service_charge_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                tab_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceChargeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TabOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    create_service_request_v1_outlets__outlet_id__tabs__tab_id__service_requests_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                tab_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequestOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     create_tax_class_v1_outlets__outlet_id__tax_classes_post: {
         parameters: {
             query?: never;
@@ -4597,6 +5576,77 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    open_session_v1_qr__qr_token__session_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                qr_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QrSessionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrSessionOut"];
+                };
             };
             /** @description Unauthorized */
             401: {

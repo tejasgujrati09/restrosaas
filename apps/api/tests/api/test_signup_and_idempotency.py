@@ -262,7 +262,7 @@ async def test_request_in_progress_marker_is_reported(
     async with owner_engine.begin() as conn:
         await conn.execute(
             text(
-                "INSERT INTO idempotency_key (restaurant_id, user_id, key, method, path, request_hash) "
+                "INSERT INTO idempotency_key (restaurant_id, actor_id, key, method, path, request_hash) "
                 "VALUES (:r, :u, :k, '', '', :h)"
             ),
             {

@@ -19,9 +19,10 @@ from app.api.v1.common import (
 )
 from app.audit import audit
 from app.core.permissions import Capability, assert_can
-from app.core.pricing import PricedItem, PriceRuleSpec, RuleScope, RuleType, effective_price
+from app.core.pricing import PricedItem, RuleScope, RuleType, effective_price
 from app.deps import OutletContext
 from app.domains.menu.models import MenuCategory, MenuItem, PriceRule
+from app.domains.menu.orderable import rule_spec
 from app.domains.tenant.models import Outlet
 
 router = APIRouter(prefix="/v1/outlets/{outlet_id}", tags=["price-rules"])
@@ -95,22 +96,6 @@ def _out(row: PriceRule) -> PriceRuleOut:
         rule_type=RuleType(row.rule_type),
         value=row.value,
         days_of_week=sorted(row.days_of_week),
-        start_time=row.start_time,
-        end_time=row.end_time,
-        valid_from=row.valid_from,
-        valid_to=row.valid_to,
-        active=row.active,
-    )
-
-
-def _spec(row: PriceRule) -> PriceRuleSpec:
-    return PriceRuleSpec(
-        id=row.id,
-        scope=RuleScope(row.scope),
-        target_id=row.target_id,
-        rule_type=RuleType(row.rule_type),
-        value=row.value,
-        days_of_week=frozenset(row.days_of_week),
         start_time=row.start_time,
         end_time=row.end_time,
         valid_from=row.valid_from,
@@ -207,7 +192,7 @@ async def effective_prices(
     outlet = await ctx.session.get(Outlet, ctx.outlet_id)
     assert outlet is not None
     rules = [
-        _spec(r)
+        rule_spec(r)
         for r in await ctx.session.scalars(
             select(PriceRule).where(PriceRule.outlet_id == ctx.outlet_id)
         )

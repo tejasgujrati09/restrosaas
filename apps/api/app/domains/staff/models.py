@@ -79,7 +79,8 @@ class IdempotencyKey(Base):
     __tablename__ = "idempotency_key"
 
     restaurant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("restaurant.id"), primary_key=True)
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("app_user.id"), primary_key=True)
+    # A staff user id or a guest TabSession id; deliberately no foreign key.
+    actor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     key: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     method: Mapped[str] = mapped_column(Text)
     path: Mapped[str] = mapped_column(Text)

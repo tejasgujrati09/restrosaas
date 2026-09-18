@@ -12,6 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.auth import OtpRateLimitedError
 from app.core.permissions import PermissionDeniedError
+from app.core.state import IllegalTransitionError
 
 logger = structlog.get_logger()
 
@@ -48,6 +49,15 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(PermissionDeniedError)
     async def _permission_denied(_: Request, exc: PermissionDeniedError) -> JSONResponse:
         return _response(403, "permission_denied", "You do not have access to this.")
+
+    @app.exception_handler(IllegalTransitionError)
+    async def _illegal_transition(_: Request, exc: IllegalTransitionError) -> JSONResponse:
+        return _response(
+            409,
+            "illegal_transition",
+            f"That is not possible while the {exc.entity} is {exc.current}.",
+            {"entity": exc.entity, "current": str(exc.current), "requested": str(exc.target)},
+        )
 
     @app.exception_handler(OtpRateLimitedError)
     async def _rate_limited(_: Request, exc: OtpRateLimitedError) -> JSONResponse:

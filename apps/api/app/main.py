@@ -12,6 +12,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.api.v1 import (
     auth,
+    guest,
     invites,
     menu,
     menu_import,
@@ -20,6 +21,7 @@ from app.api.v1 import (
     signup,
     staff,
     tables,
+    tabs,
 )
 from app.config import settings as app_settings
 from app.errors import install_error_handlers
@@ -31,7 +33,18 @@ logger = structlog.get_logger()
 app = FastAPI(title="RestoSaaS API", version="0.1.0")
 install_error_handlers(app)
 app.include_router(auth.router)
-for module in (signup, invites, settings, menu, menu_import, price_rules, tables, staff):
+for module in (
+    signup,
+    invites,
+    settings,
+    menu,
+    menu_import,
+    price_rules,
+    tables,
+    staff,
+    guest,
+    tabs,
+):
     app.include_router(module.router)
 
 

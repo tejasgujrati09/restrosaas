@@ -19,8 +19,8 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import TypeAdapter
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.deps import OutletContext
 from app.domains.staff.models import IdempotencyKey
 from app.errors import ApiError
 
@@ -31,20 +31,24 @@ def fingerprint(method: str, path: str, body: Any) -> str:
 
 
 async def run_idempotent[T](
-    ctx: OutletContext,
+    session: AsyncSession,
+    restaurant_id: UUID,
+    actor_id: UUID,
     key: UUID | None,
     request_hash: str,
     response_type: Any,
     produce: Callable[[], Awaitable[T]],
 ) -> T:
+    """`actor_id` is the staff user id, or the guest's TabSession id, so one
+    actor can never replay another's key and read a stored response."""
     if key is None:
         return await produce()
 
-    claimed = await ctx.session.execute(
+    claimed = await session.execute(
         insert(IdempotencyKey)
         .values(
-            restaurant_id=ctx.restaurant_id,
-            user_id=ctx.actor.user_id,
+            restaurant_id=restaurant_id,
+            actor_id=actor_id,
             key=key,
             method="",
             path="",
@@ -55,16 +59,16 @@ async def run_idempotent[T](
     )
     if claimed.scalar_one_or_none() is not None:
         result = await produce()
-        row = await ctx.session.get(IdempotencyKey, (ctx.restaurant_id, ctx.actor.user_id, key))
+        row = await session.get(IdempotencyKey, (restaurant_id, actor_id, key))
         assert row is not None
         row.response = {"result": jsonable_encoder(result)}
         row.status_code = 200
         return result
 
-    existing = await ctx.session.scalar(
+    existing = await session.scalar(
         select(IdempotencyKey).where(
-            IdempotencyKey.restaurant_id == ctx.restaurant_id,
-            IdempotencyKey.user_id == ctx.actor.user_id,
+            IdempotencyKey.restaurant_id == restaurant_id,
+            IdempotencyKey.actor_id == actor_id,
             IdempotencyKey.key == key,
         )
     )

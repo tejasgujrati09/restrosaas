@@ -125,7 +125,9 @@ async def update_settings(
 ) -> SettingsOut:
     assert_can(ctx.actor, Capability.EDIT_OUTLET_SETTINGS, ctx.outlet_id)
     return await run_idempotent(
-        ctx,
+        ctx.session,
+        ctx.restaurant_id,
+        ctx.actor.user_id,
         key,
         fingerprint("PATCH", f"settings/{ctx.outlet_id}", body.model_dump(exclude_unset=True)),
         SettingsOut,

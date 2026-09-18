@@ -6,6 +6,7 @@ from app.db.base import Base
 from app.db.session import anonymous_session
 from app.domains.menu import models as _menu  # noqa: F401
 from app.domains.staff import models as _staff  # noqa: F401
+from app.domains.tab import models as _tab  # noqa: F401
 from app.domains.tenant import models as _tenant  # noqa: F401
 
 

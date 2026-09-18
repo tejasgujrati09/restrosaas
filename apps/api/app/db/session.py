@@ -57,3 +57,13 @@ async def invite_session(token_hash: str) -> AsyncIterator[AsyncSession]:
             text("SELECT set_config('app.invite_token_hash', :h, true)"), {"h": token_hash}
         )
         yield session
+
+
+@asynccontextmanager
+async def qr_session(qr_token: str) -> AsyncIterator[AsyncSession]:
+    """Lets an unauthenticated guest read exactly the one `dining_table` row
+    whose QR token they hold (see the `dining_table_by_qr_token` policy). Used
+    only to learn which restaurant the QR belongs to."""
+    async with session_factory() as session, session.begin():
+        await session.execute(text("SELECT set_config('app.qr_token', :t, true)"), {"t": qr_token})
+        yield session
