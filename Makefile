@@ -1,10 +1,20 @@
-.PHONY: dev test-db check api-lint api-test migrations openapi-client web-lint guest-budget golden-flows secrets
+.PHONY: up down status dev test-db check api-lint api-test migrations openapi-client web-lint guest-budget golden-flows secrets
 
 # Runtime role (non-superuser, subject to RLS) and owner role (migrations, test seeding).
 RUNTIME_DB := postgresql+asyncpg://app:app@localhost:5432/app_dev
 OWNER_DB   := postgresql+asyncpg://postgres:postgres@localhost:5432/app_dev
 # DYLD_FALLBACK_LIBRARY_PATH lets WeasyPrint find Homebrew's Pango on macOS; harmless elsewhere.
 API_ENV    := DATABASE_URL=$(RUNTIME_DB) MIGRATION_DATABASE_URL=$(OWNER_DB) REDIS_URL=redis://localhost:6380/0 DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib
+
+# The whole local stack on the host (Postgres, Redis, migrations, API, guest/staff/admin apps, demo data).
+up:
+	scripts/dev.sh up
+
+down:
+	scripts/dev.sh down
+
+status:
+	scripts/dev.sh status
 
 # Boots Postgres + Redis + the API with autoreload.
 dev:

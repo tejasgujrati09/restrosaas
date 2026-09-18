@@ -5,7 +5,19 @@ Read `CLAUDE.md` (rules), `docs/SPEC.md` (product) and `docs/DECISIONS.md` (choi
 
 Python owns every business rule (`apps/api`); TypeScript only renders (`apps/guest`, `apps/staff`, `apps/admin`).
 
-## Setup
+## Quick start
+
+```bash
+scripts/dev.sh up        # or: make up. Starts everything and seeds a demo venue; prints the links
+scripts/dev.sh status    # URLs and what is running
+scripts/dev.sh logs api  # tail a service (api | guest | staff | admin)
+scripts/dev.sh down      # stop the apps (add --all to stop Postgres and Redis too)
+```
+
+Ports already in use by something else are skipped automatically. Sign in as the demo owner with phone
+`8888800001` and code `123456` (development only).
+
+## Setup (step by step)
 
 Needs Docker, [uv](https://docs.astral.sh/uv/), Node 22+ and pnpm.
 
