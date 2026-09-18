@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { BottomBar } from "@/components/bottom-bar";
+import { live } from "@/lib/live";
 import { useHydrated, useSession } from "@/lib/session";
 
 /** Every screen after the QR landing: needs a session, shows the bar. */
@@ -15,6 +16,14 @@ export default function Shell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (hydrated && !session) router.replace("/");
   }, [hydrated, session, router]);
+
+  const token = session?.ended ? null : (session?.token ?? null);
+  const outletId = session?.outlet_id ?? null;
+  useEffect(() => {
+    if (!token || !outletId) return;
+    live.start({ token, outlet_id: outletId });
+    return () => live.stop();
+  }, [token, outletId]);
 
   if (!hydrated || !session) return <main aria-busy="true" />;
   if (session.ended) {

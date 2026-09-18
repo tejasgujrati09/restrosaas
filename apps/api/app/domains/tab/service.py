@@ -36,6 +36,8 @@ from app.domains.menu.orderable import LoadedItem, load_items, load_price_rules
 from app.domains.tab.models import Order, OrderLine, ServiceRequest, Tab, TabEvent
 from app.domains.tenant.models import Outlet
 from app.errors import ApiError
+from app.realtime.hooks import remember_event
+from app.realtime.scheduler import schedule_auto_accept
 
 LIVE_TAB_STATES = (TabState.OPEN.value, TabState.BILL_REQUESTED.value)
 # Must be a literal, not bound parameters: Postgres only infers the partial unique
@@ -70,6 +72,7 @@ def record_event(
         reason=reason,
     )
     session.add(row)
+    remember_event(session, row)
     return row
 
 
@@ -97,13 +100,14 @@ async def lock_live_tab(session: AsyncSession, tab_id: UUID) -> Tab:
     return tab
 
 
-async def accept_due_orders(ctx: GuestContext, now: datetime) -> None:
+async def accept_due_orders(
+    session: AsyncSession, restaurant_id: UUID, tab_id: UUID, now: datetime
+) -> None:
     """Auto-accept rounds whose undo window has closed. The conditional UPDATE
     means concurrent readers accept each round, and log it, exactly once."""
-    session = ctx.session
     placed = (
         await session.scalars(
-            select(Order).where(Order.tab_id == ctx.tab_id, Order.status == OrderState.PLACED.value)
+            select(Order).where(Order.tab_id == tab_id, Order.status == OrderState.PLACED.value)
         )
     ).all()
     for order in placed:
@@ -127,8 +131,8 @@ async def accept_due_orders(ctx: GuestContext, now: datetime) -> None:
         )
         record_event(
             session,
-            restaurant_id=ctx.restaurant_id,
-            tab_id=ctx.tab_id,
+            restaurant_id=restaurant_id,
+            tab_id=tab_id,
             at=now,
             actor_type="system",
             event="order_accepted",
@@ -198,7 +202,7 @@ async def place_customer_order(
         raise ApiError(
             409, "awaiting_waiter", "Your waiter needs to confirm your table before you can order."
         )
-    await accept_due_orders(ctx, now)
+    await accept_due_orders(session, ctx.restaurant_id, ctx.tab_id, now)
 
     _, loaded, snapshots = await build_snapshots(ctx, cart, now)
 
@@ -286,12 +290,13 @@ async def place_customer_order(
     if TabState(tab.status) == TabState.BILL_REQUESTED:
         tab.status = transition_tab(TabState.BILL_REQUESTED, TabState.OPEN).value
         guest_event(ctx, now, "bill_request_cleared", {"order_id": str(order.id)})
+    schedule_auto_accept(session, ctx.restaurant_id, ctx.outlet_id, ctx.tab_id)
     return PlacedOrder(order, lines)
 
 
 async def undo_order(ctx: GuestContext, order_id: UUID, now: datetime) -> Order:
     session = ctx.session
-    await accept_due_orders(ctx, now)
+    await accept_due_orders(session, ctx.restaurant_id, ctx.tab_id, now)
     order = await session.scalar(
         select(Order).where(Order.id == order_id, Order.tab_id == ctx.tab_id)
     )

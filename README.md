@@ -22,6 +22,9 @@ pnpm --filter staff dev                           # owner and staff app on :3001
 Then open http://localhost:3001/signup. Sign-in and sign-up use a phone number and a one-time code;
 in development the code is printed in the API console (the `[dev] OTP for ...` line).
 
+Guests scan a table's QR (`http://localhost:3000/t/<token>`, printed from **Tables & QR**), order, and see their tab
+update live over a WebSocket. Redis must be running (it fans events out between API replicas).
+
 Owner path to printed QR codes: sign up, then **Setup** (GSTIN, tax classes), **Menu** (add items or import a CSV),
 **Tables & QR** (add tables, print the QR sheet), **Staff** (invite by WhatsApp link).
 
@@ -49,5 +52,5 @@ apps/api            FastAPI, SQLAlchemy 2 (async), Alembic (raw SQL revisions)
 apps/guest|staff|admin   Next.js PWAs
 packages/ui         shared components and the display-only INR formatter
 packages/api-client generated from openapi.json (committed; CI fails if stale)
-e2e                 Playwright (smoke now; golden flows from Milestone 5)
+e2e                 Playwright (smoke, owner setup, guest ordering; the full golden flows land in Milestone 5)
 ```

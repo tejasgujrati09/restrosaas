@@ -2,9 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, errorMessage } from "./api";
+import { useLive } from "./live";
 
-/** Loads `path` and, if `pollMs` is set, refreshes while the page is visible. */
-export function useResource<T>(path: string | null, pollMs?: number) {
+/**
+ * Loads `path` and, if `pollMs` is set, refreshes while the page is visible. With `live`,
+ * it also refetches whenever the server pushes a change, and polls a lot less often while
+ * the socket is up (the poll is only a safety net then).
+ */
+export function useResource<T>(path: string | null, pollMs?: number, live = false) {
+  const { tick: liveTick, connected } = useLive();
+  const pushed = live ? liveTick : 0;
+  const interval = pollMs && live && connected ? pollMs * 8 : pollMs;
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
@@ -24,15 +32,15 @@ export function useResource<T>(path: string | null, pollMs?: number) {
           if (!cancelled) setError(errorMessage(e));
         });
     void load();
-    if (!pollMs) return () => void (cancelled = true);
+    if (!interval) return () => void (cancelled = true);
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") void load();
-    }, pollMs);
+    }, interval);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [path, pollMs, tick]);
+  }, [path, interval, tick, pushed]);
 
   const reload = useCallback(() => setTick((t) => t + 1), []);
   return { data, error, reload, loading: data === null && error === null };

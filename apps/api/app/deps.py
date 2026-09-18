@@ -19,6 +19,7 @@ from app.domains.staff.models import StaffRole
 from app.domains.tab.models import Tab, TabSession
 from app.errors import ApiError
 from app.guest_auth import parse_session_token
+from app.realtime.hooks import bind_outlet, run_after_commit
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -70,22 +71,37 @@ async def get_outlet_context(
         restaurant_id=str(claim.restaurant_id), outlet_id=str(outlet_id)
     )
     async with tenant_session(claim.restaurant_id) as session:
-        db_roles = await session.scalars(
-            select(StaffRole.role).where(
-                StaffRole.user_id == auth.actor.user_id,
-                StaffRole.outlet_id == outlet_id,
-                StaffRole.active.is_(True),
-            )
-        )
-        roles = frozenset((outlet_id, Role(r)) for r in db_roles)
-        if not roles:
-            raise PermissionDeniedError(capability=None, outlet_id=outlet_id)
+        roles = await load_staff_roles(session, auth.actor.user_id, outlet_id)
+        bind_outlet(session, outlet_id)
         yield OutletContext(
             session=session,
-            actor=StaffActor(actor_type="staff", user_id=auth.actor.user_id, roles=roles),
+            actor=StaffActor(
+                actor_type="staff",
+                user_id=auth.actor.user_id,
+                roles=frozenset((outlet_id, r) for r in roles),
+            ),
             outlet_id=outlet_id,
             restaurant_id=claim.restaurant_id,
         )
+    await run_after_commit(session)
+
+
+async def load_staff_roles(
+    session: AsyncSession, user_id: UUID, outlet_id: UUID
+) -> frozenset[Role]:
+    """The user's active roles at the outlet, read from the database. Raises
+    PermissionDeniedError when there are none (deactivated, or never held any)."""
+    db_roles = await session.scalars(
+        select(StaffRole.role).where(
+            StaffRole.user_id == user_id,
+            StaffRole.outlet_id == outlet_id,
+            StaffRole.active.is_(True),
+        )
+    )
+    roles = frozenset(Role(r) for r in db_roles)
+    if not roles:
+        raise PermissionDeniedError(capability=None, outlet_id=outlet_id)
+    return roles
 
 
 @dataclass(frozen=True)
@@ -118,24 +134,8 @@ async def get_guest_context(
     except InvalidTokenError as exc:
         raise ApiError(401, "invalid_token", "Scan the QR code on your table again.") from exc
     async with tenant_session(restaurant_id) as session:
-        row = (
-            await session.execute(
-                select(TabSession, Tab)
-                .join(Tab, Tab.id == TabSession.tab_id)
-                .where(TabSession.token_hash == token_hash)
-            )
-        ).first()
-        if row is None:
-            raise _SESSION_ENDED
-        tab_session, tab = row._tuple()
-        if (
-            tab_session.revoked
-            or tab_session.expires_at <= clock.utcnow()
-            or tab.status not in ("open", "bill_requested")
-        ):
-            raise _SESSION_ENDED
-        if tab.outlet_id != outlet_id:
-            raise PermissionDeniedError(capability=None, outlet_id=outlet_id)
+        tab_session, tab = await load_guest_session(session, token_hash, outlet_id)
+        bind_outlet(session, outlet_id)
         structlog.contextvars.bind_contextvars(
             restaurant_id=str(restaurant_id), outlet_id=str(outlet_id), tab_id=str(tab.id)
         )
@@ -149,3 +149,30 @@ async def get_guest_context(
             tab_id=tab.id,
             tab_session_id=tab_session.id,
         )
+    await run_after_commit(session)
+
+
+async def load_guest_session(
+    session: AsyncSession, token_hash: str, outlet_id: UUID
+) -> tuple[TabSession, Tab]:
+    """The session must be unexpired, unrevoked and on a live tab of this outlet.
+    Raises ApiError 401 when it is over, PermissionDeniedError for another outlet."""
+    row = (
+        await session.execute(
+            select(TabSession, Tab)
+            .join(Tab, Tab.id == TabSession.tab_id)
+            .where(TabSession.token_hash == token_hash)
+        )
+    ).first()
+    if row is None:
+        raise _SESSION_ENDED
+    tab_session, tab = row._tuple()
+    if (
+        tab_session.revoked
+        or tab_session.expires_at <= clock.utcnow()
+        or tab.status not in ("open", "bill_requested")
+    ):
+        raise _SESSION_ENDED
+    if tab.outlet_id != outlet_id:
+        raise PermissionDeniedError(capability=None, outlet_id=outlet_id)
+    return tab_session, tab

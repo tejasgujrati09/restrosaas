@@ -26,6 +26,7 @@ from app.domains.tab.service import LIVE_TAB_INDEX_PREDICATE, LIVE_TAB_STATES, r
 from app.domains.tenant.models import DiningTable, Outlet, Restaurant
 from app.errors import ApiError
 from app.guest_auth import SESSION_TTL_HOURS, new_session_token, parse_session_token
+from app.realtime.hooks import bind_outlet, run_after_commit
 
 router = APIRouter(tags=["guest"])
 _optional_bearer = HTTPBearer(auto_error=False)
@@ -83,6 +84,7 @@ async def open_session(
         restaurant = await session.get(Restaurant, restaurant_id)
         outlet = await session.get(Outlet, table.outlet_id)
         assert restaurant is not None and outlet is not None
+        bind_outlet(session, outlet.id)
         if restaurant.status != "active":
             raise ApiError(403, "outlet_unavailable", "This venue is not taking orders right now.")
 
@@ -164,7 +166,7 @@ async def open_session(
                 event="opened",
                 payload={"table": table.label},
             )
-        return QrSessionOut(
+        result = QrSessionOut(
             session_token=new_token,
             expires_at=tab_session.expires_at,
             outlet_id=outlet.id,
@@ -174,6 +176,8 @@ async def open_session(
             tab_status=tab.status,
             awaiting_waiter=tab.confirmed_at is None,
         )
+    await run_after_commit(session)
+    return result
 
 
 class RuleBadgeOut(BaseModel):

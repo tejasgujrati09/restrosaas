@@ -163,21 +163,37 @@ test("golden flow 3: a happy-hour price stays locked after the rule ends and the
   await expect(page.getByRole("button", { name: /Paneer Tikka/ })).not.toContainText("Happy hour");
 });
 
-test("waiter-confirm mode lets a guest browse but blocks ordering until the waiter confirms", async ({ page, request }) => {
+test("waiter-confirm mode blocks ordering until the waiter confirms, and the guest hears about it at once", async ({ page, request }) => {
   const venue = await setUpVenue(request, { waiterConfirm: true });
   await page.goto(`${guest}/t/${venue.qrToken}`);
   await expect(page.getByText(/Waiting for your waiter to confirm/)).toBeVisible();
   await page.getByRole("button", { name: /Spring Roll/ }).click();
   await page.getByRole("button", { name: /Add to cart/ }).click();
-  await page.getByRole("link", { name: /View cart/ }).click();
-  await expect(page.getByRole("button", { name: "Place order" })).toBeDisabled();
 
-  // A waiter confirms the tab (waiter role via invite is Milestone 4's UI; the API is enough here).
+  // With the socket up the page only re-polls every 40 s, so a change within seconds is a push.
   const tabId = await page.evaluate(() => JSON.parse(localStorage.getItem("restosaas.guest") ?? "{}").tab_id as string);
   const confirm = await request.post(`${venue.base}/tabs/${tabId}/confirm`, { headers: venue.owner });
   expect(confirm.ok(), await confirm.text()).toBe(true);
-  await page.reload();
+  await expect(page.getByText(/Waiting for your waiter to confirm/)).toHaveCount(0, { timeout: 4_000 });
+
+  await page.getByRole("link", { name: /View cart/ }).click();
   await expect(page.getByRole("button", { name: "Place order" })).toBeEnabled();
+});
+
+test("a round accepted after the undo window shows up on the tab without a reload", async ({ page, request }) => {
+  test.setTimeout(120_000); // waits out the real 60-second undo window
+  const venue = await setUpVenue(request);
+  await page.goto(`${guest}/t/${venue.qrToken}`);
+  await page.getByRole("button", { name: /Spring Roll/ }).click();
+  await page.getByRole("button", { name: /Add to cart/ }).click();
+  await page.getByRole("link", { name: /View cart/ }).click();
+  await page.getByRole("button", { name: "Place order" }).click();
+  await page.getByRole("link", { name: "See my tab" }).click();
+  const round = page.getByRole("region", { name: "Round 1" });
+  await expect(round.getByText("Sent")).toBeVisible();
+  // The server's timer accepts the round 61 s after it was placed and pushes the change.
+  await expect(round.getByText("Accepted")).toBeVisible({ timeout: 75_000 });
+  await expect(round.getByRole("button", { name: /Undo/ })).toHaveCount(0);
 });
 
 test("a rotated or unknown QR code says so instead of ordering", async ({ page }) => {

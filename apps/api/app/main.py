@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import time
 import uuid
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 import structlog
 from fastapi import FastAPI
@@ -26,13 +28,24 @@ from app.api.v1 import (
 from app.config import settings as app_settings
 from app.errors import install_error_handlers
 from app.logging import configure_logging
+from app.realtime import gateway, scheduler
+from app.realtime.bus import bus
 
 configure_logging()
 logger = structlog.get_logger()
 
-app = FastAPI(title="RestoSaaS API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    yield
+    await scheduler.cancel_all()
+    await bus.close()
+
+
+app = FastAPI(title="RestoSaaS API", version="0.1.0", lifespan=lifespan)
 install_error_handlers(app)
 app.include_router(auth.router)
+app.include_router(gateway.router)
 for module in (
     signup,
     invites,

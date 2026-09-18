@@ -19,7 +19,7 @@ function source(line: Line): string {
 export default function TabPage() {
   const session = useSession();
   const path = session ? `/v1/outlets/${session.outlet_id}/tabs/${session.tab_id}` : null;
-  const tab = useResource<TabView>(path, 4_000);
+  const tab = useResource<TabView>(path, 4_000, true);
   const action = useAction();
   const [confirmingBill, setConfirmingBill] = useState(false);
   const undoable = tab.data?.rounds.some((r) => r.undo_until) ?? false;

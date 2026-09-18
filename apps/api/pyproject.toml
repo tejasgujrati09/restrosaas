@@ -15,6 +15,7 @@ dependencies = [
   "structlog>=24.4",
   "segno>=1.6.6",
   "weasyprint>=70.0",
+  "redis>=5.2",
 ]
 
 [dependency-groups]

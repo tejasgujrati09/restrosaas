@@ -375,7 +375,7 @@ async def _tab_out(ctx: GuestCtx, tab: Tab) -> TabOut:
 async def get_tab(tab_id: UUID, ctx: GuestCtx) -> TabOut:
     """The live tab: rounds, per-line source and status, the running total."""
     assert_can_write_own_tab(ctx.actor, tab_id)
-    await service.accept_due_orders(ctx, clock.utcnow())
+    await service.accept_due_orders(ctx.session, ctx.restaurant_id, ctx.tab_id, clock.utcnow())
     tab = await ctx.session.get(Tab, tab_id)
     assert tab is not None
     return await _tab_out(ctx, tab)

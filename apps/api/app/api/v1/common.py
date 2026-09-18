@@ -10,8 +10,11 @@ from app.deps import GuestContext, OutletContext, get_guest_context, get_outlet_
 from app.errors import ApiError, ErrorOut
 from app.idempotency import fingerprint, run_idempotent
 
-Ctx = Annotated[OutletContext, Depends(get_outlet_context)]
-GuestCtx = Annotated[GuestContext, Depends(get_guest_context)]
+# scope="function": the transaction commits (and connected clients are told) before the
+# response is sent. With the default scope FastAPI runs a `yield` dependency's exit code
+# after the response, so a client's very next request could arrive before the commit.
+Ctx = Annotated[OutletContext, Depends(get_outlet_context, scope="function")]
+GuestCtx = Annotated[GuestContext, Depends(get_guest_context, scope="function")]
 
 
 async def _idempotency_key(

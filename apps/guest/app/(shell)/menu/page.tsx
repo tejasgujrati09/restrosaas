@@ -15,7 +15,7 @@ export default function MenuPage() {
   const session = useSession();
   const base = session ? `/v1/outlets/${session.outlet_id}` : null;
   const menu = useResource<GuestMenu>(base && `${base}/guest/menu`, 30_000);
-  const tab = useResource<TabView>(session && base && `${base}/tabs/${session.tab_id}`, 5_000);
+  const tab = useResource<TabView>(session && base && `${base}/tabs/${session.tab_id}`, 5_000, true);
   const cart = useCart(session?.tab_id ?? null);
   const [vegOnly, setVegOnly] = useState(false);
   const [selected, setSelected] = useState<GuestItem | null>(null);
