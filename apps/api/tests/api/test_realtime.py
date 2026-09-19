@@ -15,7 +15,6 @@ from typing import Any
 import httpx
 import pytest
 import uvicorn
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 from websockets.asyncio.client import ClientConnection, connect
 from websockets.exceptions import ConnectionClosed
@@ -24,7 +23,7 @@ from app.core.permissions import Role
 from app.main import app
 from app.realtime import gateway, scheduler
 from app.realtime.bus import bus, outlet_channel
-from tests.api.guest_helpers import FakeClock, Guest, new_guest, one, scan, table_token
+from tests.api.guest_helpers import FakeClock, Guest, assign, new_guest, one, scan, table_token
 from tests.api.helpers import Menu
 from tests.conftest import Seed, hdr
 
@@ -125,7 +124,9 @@ async def test_each_role_sees_what_it_needs(
     client: httpx.AsyncClient, seed: Seed, env: Menu, ws_url: str
 ) -> None:
     guest = await new_guest(client, seed)
-    waiter = await open_socket(ws_url, seed.outlet_a, staff_token(seed, seed.waiter_a, Role.WAITER))
+    waiter = await open_socket(
+        ws_url, seed.outlet_a, staff_token(seed, seed.manager_a, Role.MANAGER)
+    )
     manager = await open_socket(
         ws_url, seed.outlet_a, staff_token(seed, seed.manager_a, Role.MANAGER)
     )
@@ -164,7 +165,7 @@ async def test_every_connection_to_an_outlet_gets_the_message(
 ) -> None:
     guest = await new_guest(client, seed)
     sockets = [
-        await open_socket(ws_url, seed.outlet_a, staff_token(seed, seed.waiter_a, Role.WAITER))
+        await open_socket(ws_url, seed.outlet_a, staff_token(seed, seed.manager_a, Role.MANAGER))
         for _ in range(3)
     ]
     for ws in sockets:
@@ -248,7 +249,9 @@ async def test_heartbeat_pings_and_ends_a_lapsed_guest_session(
 ) -> None:
     monkeypatch.setattr(gateway, "HEARTBEAT_SECONDS", 0.15)
     guest = await new_guest(client, seed)
-    waiter = await open_socket(ws_url, seed.outlet_a, staff_token(seed, seed.waiter_a, Role.WAITER))
+    waiter = await open_socket(
+        ws_url, seed.outlet_a, staff_token(seed, seed.manager_a, Role.MANAGER)
+    )
     ws = await open_socket(ws_url, guest.outlet_id, guest.token)
     await until_ready(ws)
     await until_ready(waiter)
@@ -264,7 +267,9 @@ async def test_a_guests_socket_closes_when_their_tab_ends(
 ) -> None:
     guest = await new_guest(client, seed)
     ws = await open_socket(ws_url, guest.outlet_id, guest.token)
-    waiter = await open_socket(ws_url, seed.outlet_a, staff_token(seed, seed.waiter_a, Role.WAITER))
+    waiter = await open_socket(
+        ws_url, seed.outlet_a, staff_token(seed, seed.manager_a, Role.MANAGER)
+    )
     await until_ready(ws)
     await until_ready(waiter)
     await bus.publish(
@@ -332,7 +337,7 @@ async def test_resume_applies_the_same_role_filter(
     await kitchen.close()
 
     waiter = await open_socket(
-        ws_url, seed.outlet_a, staff_token(seed, seed.waiter_a, Role.WAITER), last_event_id=0
+        ws_url, seed.outlet_a, staff_token(seed, seed.manager_a, Role.MANAGER), last_event_id=0
     )
     assert "service_requested" in {m["event"] for m in await until_ready(waiter)}
     await waiter.close()
@@ -407,65 +412,58 @@ async def test_the_undo_window_closing_pushes_order_accepted(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(scheduler, "ENABLED", True)
-    monkeypatch.setattr(scheduler, "DELAY_SECONDS", 0.1)
     guest = await new_guest(client, seed)
     kitchen = await open_socket(
         ws_url, seed.outlet_a, staff_token(seed, seed.kitchen_a, Role.KITCHEN)
     )
     await until_ready(kitchen)
     await place(guest, env)
-    fake_clock.advance(61)  # the undo window has closed by the time the timer fires
+    assert await scheduler.sweep_once() == 0  # nothing due yet: still inside the undo window
+    fake_clock.advance(61)
+    assert await scheduler.sweep_once() == 1
     accepted = await next_event(kitchen, "order_accepted")
     assert accepted["actor_type"] == "system" and accepted["payload"]["auto"] is True
-    await scheduler.cancel_all()
+    assert await scheduler.sweep_once() == 0  # claimed once, not again
     await kitchen.close()
 
 
-async def test_a_timer_that_fires_early_accepts_nothing(
-    client: httpx.AsyncClient,
-    seed: Seed,
-    env: Menu,
-    ws_url: str,
-    fake_clock: FakeClock,
-    owner_engine: AsyncEngine,
-    monkeypatch: pytest.MonkeyPatch,
+async def test_a_sweep_that_finds_a_broken_entry_carries_on(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, fake_clock: FakeClock
 ) -> None:
-    monkeypatch.setattr(scheduler, "ENABLED", True)
-    monkeypatch.setattr(scheduler, "DELAY_SECONDS", 0.05)
-    guest = await new_guest(client, seed)
-    placed = (await place(guest, env)).json()
-    await asyncio.sleep(0.4)  # timer has fired, but the clock never moved past 60 s
-    await scheduler.cancel_all()
-    async with owner_engine.connect() as conn:
-        status = await conn.scalar(
-            text("SELECT status FROM tab_order WHERE id = :o"), {"o": uuid.UUID(placed["id"])}
-        )
-    assert status == "placed"
+    await bus.schedule(scheduler._key(), "not-a-valid-member", 0)
+    await bus.schedule(scheduler._key(), f"{uuid.uuid4()}|{uuid.uuid4()}|{uuid.uuid4()}", 0)
+    assert await scheduler.sweep_once() == 1  # the unknown tab is a no-op, the junk is dropped
+    assert await scheduler.sweep_once() == 0
 
 
-async def test_a_failing_timer_is_survivable(
-    client: httpx.AsyncClient,
-    seed: Seed,
-    env: Menu,
-    monkeypatch: pytest.MonkeyPatch,
+async def test_the_sweep_loop_runs_until_cancelled(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    def broken(*_: Any, **__: Any) -> None:
-        raise RuntimeError("database went away")
+    monkeypatch.setattr(scheduler, "SWEEP_INTERVAL_SECONDS", 0.05)
+    calls = 0
 
-    monkeypatch.setattr(scheduler, "ENABLED", True)
-    monkeypatch.setattr(scheduler, "DELAY_SECONDS", 0.05)
-    monkeypatch.setattr(scheduler, "tenant_session", broken)
-    guest = await new_guest(client, seed)
-    await place(guest, env)
+    async def counting() -> int:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise RuntimeError("one bad sweep does not stop the loop")
+        return 0
+
+    monkeypatch.setattr(scheduler, "sweep_once", counting)
+    scheduler.start()
+    scheduler.start()  # a second start is a no-op
     await asyncio.sleep(0.3)
     await scheduler.cancel_all()
-    assert (await guest.tab())["rounds"][0]["status"] == "placed"
+    assert calls >= 3
+    await scheduler.cancel_all()  # safe when nothing is running
 
 
 async def test_qr_landing_announces_a_new_tab_to_staff(
     client: httpx.AsyncClient, seed: Seed, env: Menu, ws_url: str
 ) -> None:
-    waiter = await open_socket(ws_url, seed.outlet_a, staff_token(seed, seed.waiter_a, Role.WAITER))
+    waiter = await open_socket(
+        ws_url, seed.outlet_a, staff_token(seed, seed.manager_a, Role.MANAGER)
+    )
     await until_ready(waiter)
     r = await scan(client, await table_token(client, seed, "T2"))
     opened = await next_event(waiter, "opened")
@@ -485,7 +483,201 @@ async def test_confirming_a_tab_is_pushed_to_the_guest(
     ws = await open_socket(ws_url, guest.outlet_id, guest.token)
     await until_ready(ws)
     await client.post(
-        f"{guest.base}/confirm", headers=hdr(staff_token(seed, seed.waiter_a, Role.WAITER))
+        f"{guest.base}/confirm", headers=hdr(staff_token(seed, seed.manager_a, Role.MANAGER))
     )
     assert (await next_event(ws, "confirmed"))["actor_type"] == "staff"
     await ws.close()
+
+
+# --- Milestone 4: table scoping, signals, tickets ---------------------------------
+
+
+async def test_a_waiter_hears_only_about_their_assigned_tables(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, ws_url: str, owner_engine: AsyncEngine
+) -> None:
+    await assign(owner_engine, seed, "T1")
+    mine = await new_guest(client, seed, "T1")
+    theirs = await new_guest(client, seed, "T2")
+    ws = await open_socket(ws_url, seed.outlet_a, staff_token(seed, seed.waiter_a, Role.WAITER))
+    await until_ready(ws)
+    await place(theirs, env)
+    await client.post(
+        f"{theirs.base}/service-requests", json={"type": "waiter"}, headers=theirs.headers()
+    )
+    assert await silent(ws)  # not their table
+    await client.post(
+        f"{mine.base}/service-requests", json={"type": "water"}, headers=mine.headers()
+    )
+    heard = await next_event(ws, "service_requested")
+    assert heard["tab_id"] == mine.tab_id and heard["table_id"] is not None
+    await ws.close()
+
+
+async def test_a_waiter_replay_is_table_scoped_too(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, ws_url: str, owner_engine: AsyncEngine
+) -> None:
+    await assign(owner_engine, seed, "T1")
+    mine = await new_guest(client, seed, "T1")
+    theirs = await new_guest(client, seed, "T2")
+    ws = await open_socket(
+        ws_url, seed.outlet_a, staff_token(seed, seed.waiter_a, Role.WAITER), last_event_id=0
+    )
+    replay = await until_ready(ws)
+    assert {m["tab_id"] for m in replay} == {mine.tab_id}
+    assert theirs.tab_id not in json.dumps(replay)
+    await ws.close()
+
+
+async def test_changing_assignments_updates_a_connected_waiter_without_reconnecting(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, ws_url: str, owner_engine: AsyncEngine
+) -> None:
+    other = await new_guest(client, seed, "T2")
+    ws = await open_socket(ws_url, seed.outlet_a, staff_token(seed, seed.waiter_a, Role.WAITER))
+    await until_ready(ws)
+    await client.post(
+        f"{other.base}/service-requests", json={"type": "water"}, headers=other.headers()
+    )
+    assert await silent(ws)
+    tables = (
+        await client.get(
+            f"/v1/outlets/{seed.outlet_a}/table-assignments",
+            headers=hdr(staff_token(seed, seed.manager_a, Role.MANAGER)),
+        )
+    ).json()
+    t2 = next(t["table_id"] for t in tables if t["label"] == "T2")
+    r = await client.put(
+        f"/v1/outlets/{seed.outlet_a}/tables/{t2}/assignees",
+        json={"user_ids": [str(seed.waiter_a)]},
+        headers=hdr(staff_token(seed, seed.manager_a, Role.MANAGER)),
+    )
+    assert r.status_code == 200
+    signal = await next_message(ws)
+    assert signal == {"type": "signal", "name": "assignments_changed"}
+    await client.post(
+        f"{other.base}/service-requests", json={"type": "waiter"}, headers=other.headers()
+    )
+    assert (await next_event(ws, "service_requested"))["payload"]["type"] == "waiter"
+    await ws.close()
+
+
+async def test_signals_reach_who_they_should(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, ws_url: str
+) -> None:
+    guest = await new_guest(client, seed)
+    guest_ws = await open_socket(ws_url, guest.outlet_id, guest.token)
+    kitchen_ws = await open_socket(
+        ws_url, seed.outlet_a, staff_token(seed, seed.kitchen_a, Role.KITCHEN)
+    )
+    await until_ready(guest_ws)
+    await until_ready(kitchen_ws)
+    r = await client.put(
+        f"/v1/outlets/{seed.outlet_a}/items/{env.item['id']}/sold-out",
+        json={"sold_out": True},
+        headers=hdr(staff_token(seed, seed.kitchen_a, Role.KITCHEN)),
+    )
+    assert r.status_code == 200
+    for ws in (guest_ws, kitchen_ws):
+        assert await next_message(ws) == {"type": "signal", "name": "menu_changed"}
+    # Owner edits (a price change, say) tell open guest menus too.
+    await client.put(
+        f"{env.base}/items/{env.item['id']}",
+        json={
+            "category_id": env.category["id"],
+            "name": env.item["name"],
+            "base_price_paise": 35000,
+            "tax_class_id": env.tax_food["id"],
+        },
+        headers=hdr(staff_token(seed, seed.owner_a, Role.OWNER)),
+    )
+    assert (await next_message(guest_ws))["name"] == "menu_changed"
+    # A guest is never told about assignments.
+    tables = (
+        await client.get(
+            f"/v1/outlets/{seed.outlet_a}/table-assignments",
+            headers=hdr(staff_token(seed, seed.manager_a, Role.MANAGER)),
+        )
+    ).json()
+    await client.put(
+        f"/v1/outlets/{seed.outlet_a}/tables/{tables[0]['table_id']}/assignees",
+        json={"user_ids": []},
+        headers=hdr(staff_token(seed, seed.manager_a, Role.MANAGER)),
+    )
+    assert await silent(guest_ws)
+    assert (await next_message(kitchen_ws))["name"] == "menu_changed"  # the owner's price edit
+    assert (await next_message(kitchen_ws))["name"] == "assignments_changed"
+    await guest_ws.close()
+    await kitchen_ws.close()
+
+
+async def test_kitchen_hears_ticket_steps_without_prices(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, ws_url: str, fake_clock: FakeClock
+) -> None:
+    guest = await new_guest(client, seed)
+    ws = await open_socket(ws_url, seed.outlet_a, staff_token(seed, seed.kitchen_a, Role.KITCHEN))
+    await until_ready(ws)
+    await place(guest, env)
+    await next_event(ws, "order_placed")
+    fake_clock.advance(61)
+    kitchen_headers = hdr(staff_token(seed, seed.kitchen_a, Role.KITCHEN))
+    queue = (
+        await client.get(f"/v1/outlets/{seed.outlet_a}/tickets", headers=kitchen_headers)
+    ).json()
+    ticket_id = queue["queue"][0]["id"]
+    await next_event(ws, "order_accepted")
+    await client.post(
+        f"/v1/outlets/{seed.outlet_a}/tickets/{ticket_id}/start", headers=kitchen_headers
+    )
+    started = await next_event(ws, "ticket_started")
+    assert started["payload"]["table"] == "T1" and "price" not in json.dumps(started)
+    await client.post(
+        f"/v1/outlets/{seed.outlet_a}/tickets/{ticket_id}/ready", headers=kitchen_headers
+    )
+    assert (await next_event(ws, "ticket_ready"))["payload"]["ticket_id"] == ticket_id
+    await ws.close()
+
+
+async def test_a_transfer_reaches_the_waiters_of_both_tables(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, ws_url: str, owner_engine: AsyncEngine
+) -> None:
+    await assign(owner_engine, seed, "T1")
+    t2 = await assign(owner_engine, seed, "T2", seed.manager_a)  # manager also "serves" T2
+    guest = await new_guest(client, seed, "T1")
+    ws = await open_socket(ws_url, seed.outlet_a, staff_token(seed, seed.waiter_a, Role.WAITER))
+    await until_ready(ws)
+    r = await client.post(
+        f"/v1/outlets/{seed.outlet_a}/staff/tabs/{guest.tab_id}/transfer",
+        json={"table_id": str(t2)},
+        headers=hdr(staff_token(seed, seed.manager_a, Role.MANAGER)),
+    )
+    assert r.status_code == 200, r.text
+    moved = await next_event(ws, "transferred")
+    # The waiter of the table it left still hears about it, via from_table_id.
+    assert moved["payload"]["from"] == "T1" and moved["payload"]["to"] == "T2"
+    await ws.close()
+
+
+async def test_a_guest_whose_tab_is_merged_away_is_told_to_refresh(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, ws_url: str
+) -> None:
+    a = await new_guest(client, seed, "T1")
+    b = await new_guest(client, seed, "T2")
+    ws_a = await open_socket(ws_url, a.outlet_id, a.token)
+    ws_b = await open_socket(ws_url, b.outlet_id, b.token)
+    await until_ready(ws_a)
+    await until_ready(ws_b)
+    r = await client.post(
+        f"/v1/outlets/{seed.outlet_a}/staff/tabs/{a.tab_id}/merge",
+        json={"into_tab_id": b.tab_id},
+        headers=hdr(staff_token(seed, seed.manager_a, Role.MANAGER)),
+    )
+    assert r.status_code == 200
+    assert (await next_message(ws_a))["event"] == "merged"
+    assert await close_code(ws_a) == gateway.CLOSE_TAB_MOVED
+    assert (await next_message(ws_b))["event"] == "merged"  # the survivor stays connected
+    # Reconnecting with the same token now lands on the merged tab.
+    again = await open_socket(ws_url, a.outlet_id, a.token)
+    await until_ready(again)
+    await place(b, env)
+    assert (await next_event(again, "order_placed"))["tab_id"] == b.tab_id
+    await again.close()
+    await ws_b.close()

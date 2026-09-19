@@ -89,6 +89,45 @@ class OrderLine(Base):
     notes: Mapped[str | None] = mapped_column(Text)
     voided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     void_reason: Mapped[str | None] = mapped_column(Text)
+    ticket_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("ticket.id"))
+    disputed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Order within its round, so lines list the way they were entered.
+    position: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class Ticket(Base):
+    """The kitchen or bar's unit of work: one per station per round. `station_id`
+    is NULL for items with no station; every kitchen and bar user sees those."""
+
+    __tablename__ = "ticket"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    restaurant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("restaurant.id"))
+    outlet_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("outlet.id"))
+    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tab_order.id"))
+    tab_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tab.id"))
+    station_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("station.id"))
+    status: Mapped[str] = mapped_column(Text, default="queued")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    started_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("app_user.id"))
+    ready_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ready_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("app_user.id"))
+    printed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    bumped_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("app_user.id"))
+
+
+class TableAssignment(Base):
+    __tablename__ = "table_assignment"
+
+    restaurant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("restaurant.id"))
+    outlet_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("outlet.id"))
+    table_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("dining_table.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("app_user.id"), primary_key=True)
+    assigned_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("app_user.id"))
+    assigned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
 class TabEvent(Base):
@@ -106,6 +145,8 @@ class TabEvent(Base):
     event: Mapped[str] = mapped_column(Text)
     payload: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     reason: Mapped[str | None] = mapped_column(Text)
+    # The table the tab was at when this happened, for the live channel's role filter.
+    table_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("dining_table.id"))
 
 
 class ServiceRequest(Base):

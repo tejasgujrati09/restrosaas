@@ -50,6 +50,20 @@ class EventBus:
             await pubsub.unsubscribe(channel)
             await pubsub.aclose()  # type: ignore[no-untyped-call]
 
+    async def schedule(self, key: str, member: str, due_ts: float) -> None:
+        """Remember `member` to be handled at `due_ts` (a sorted set scored by time)."""
+        await self._redis().zadd(key, {member: due_ts})
+
+    async def claim_due(self, key: str, now_ts: float, limit: int = 50) -> list[str]:
+        """Members due by `now_ts`. Each is claimed with ZREM, so when several API
+        replicas sweep at once exactly one of them gets a given member."""
+        claimed: list[str] = []
+        for member in await self._redis().zrangebyscore(key, "-inf", now_ts, start=0, num=limit):
+            name = str(member)
+            if await self._redis().zrem(key, name):
+                claimed.append(name)
+        return claimed
+
     async def close(self) -> None:
         if self._client is not None:
             await self._client.aclose()

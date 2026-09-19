@@ -6,6 +6,7 @@ which the API layer maps to HTTP 409 with the current state.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from enum import StrEnum
 
 
@@ -100,3 +101,63 @@ def order_auto_accept_due(order_status: OrderState, seconds_since_placed: float)
 
 
 CUSTOMER_UNDO_WINDOW_SECONDS = _CUSTOMER_CANCEL_WINDOW_SECONDS
+
+
+class TicketState(StrEnum):
+    QUEUED = "queued"
+    PREPARING = "preparing"
+    READY = "ready"
+    BUMPED = "bumped"
+    CANCELLED = "cancelled"
+
+
+# ready -> preparing is "recall": the last bumped ticket comes back while nothing on it is served.
+_TICKET_TRANSITIONS: dict[TicketState, frozenset[TicketState]] = {
+    TicketState.QUEUED: frozenset({TicketState.PREPARING, TicketState.CANCELLED}),
+    TicketState.PREPARING: frozenset({TicketState.READY, TicketState.CANCELLED}),
+    TicketState.READY: frozenset({TicketState.PREPARING, TicketState.BUMPED}),
+    TicketState.BUMPED: frozenset(),
+    TicketState.CANCELLED: frozenset(),
+}
+
+
+def transition_ticket(current: TicketState, target: TicketState) -> TicketState:
+    if target not in _TICKET_TRANSITIONS[current]:
+        raise IllegalTransitionError("ticket", current, target)
+    return target
+
+
+def ticket_startable(order_status: OrderState) -> bool:
+    """A ticket shows in the queue the moment a round is placed, but the kitchen may
+    only start it once the guest's undo window has closed and the round is accepted."""
+    return order_status not in (OrderState.PLACED, OrderState.CANCELLED)
+
+
+_ORDER_RANK = {
+    OrderState.PLACED: 0,
+    OrderState.ACCEPTED: 1,
+    OrderState.PREPARING: 2,
+    OrderState.READY: 3,
+    OrderState.SERVED: 4,
+}
+
+
+def derive_order_status(current: OrderState, line_statuses: Sequence[str]) -> OrderState:
+    """A round's status follows its active lines: preparing once any line is being made,
+    ready when every line is ready or served, served when all are served. It never moves
+    backwards (a recalled ticket returns a line to preparing without undoing 'ready' for
+    lines already served), and rounds outside the dine-in path are left alone."""
+    if current not in _ORDER_RANK:
+        return current
+    active = [s for s in line_statuses if s not in ("cancelled", "voided")]
+    if not active:
+        return current
+    if all(s == "served" for s in active):
+        target = OrderState.SERVED
+    elif all(s in ("ready", "served") for s in active):
+        target = OrderState.READY
+    elif any(s in ("preparing", "ready", "served") for s in active):
+        target = OrderState.PREPARING
+    else:
+        return current
+    return target if _ORDER_RANK[target] > _ORDER_RANK[current] else current

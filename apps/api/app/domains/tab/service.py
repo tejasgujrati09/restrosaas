@@ -21,6 +21,7 @@ from app.core.ordering import (
     LineSnapshot,
     OutletOrderRules,
     build_line_snapshot,
+    decide_staff_line_ack,
 )
 from app.core.pricing import PricedItem, effective_price
 from app.core.state import (
@@ -31,12 +32,13 @@ from app.core.state import (
     transition_order,
     transition_tab,
 )
-from app.deps import GuestContext
+from app.deps import GuestContext, OutletContext
 from app.domains.menu.orderable import LoadedItem, load_items, load_price_rules
-from app.domains.tab.models import Order, OrderLine, ServiceRequest, Tab, TabEvent
+from app.domains.tab.events import Actor, emit, record_event  # noqa: F401
+from app.domains.tab.models import Order, OrderLine, ServiceRequest, Tab, TabEvent, TabSession
+from app.domains.tab.tickets import cancel_order_tickets, create_tickets
 from app.domains.tenant.models import Outlet
 from app.errors import ApiError
-from app.realtime.hooks import remember_event
 from app.realtime.scheduler import schedule_auto_accept
 
 LIVE_TAB_STATES = (TabState.OPEN.value, TabState.BILL_REQUESTED.value)
@@ -47,45 +49,20 @@ LIVE_TAB_INDEX_PREDICATE = text("status IN ('open', 'bill_requested')")
 _UNPROCESSABLE_CART_CODES = {"invalid_modifiers", "invalid_quantity", "unknown_item"}
 
 
-def record_event(
-    session: AsyncSession,
-    *,
-    restaurant_id: UUID,
-    tab_id: UUID,
-    at: datetime,
-    actor_type: str,
-    event: str,
-    actor_user_id: UUID | None = None,
-    actor_session_id: UUID | None = None,
-    payload: dict[str, Any] | None = None,
-    reason: str | None = None,
-) -> TabEvent:
-    row = TabEvent(
-        restaurant_id=restaurant_id,
-        tab_id=tab_id,
-        at=at,
-        actor_type=actor_type,
-        actor_user_id=actor_user_id,
-        actor_session_id=actor_session_id,
-        event=event,
-        payload=payload or {},
-        reason=reason,
-    )
-    session.add(row)
-    remember_event(session, row)
-    return row
+def guest_actor(ctx: GuestContext) -> Actor:
+    return Actor("customer", session_id=ctx.tab_session_id)
 
 
 def guest_event(
     ctx: GuestContext, at: datetime, event: str, payload: dict[str, Any] | None = None
 ) -> TabEvent:
-    return record_event(
+    return emit(
         ctx.session,
         restaurant_id=ctx.restaurant_id,
         tab_id=ctx.tab_id,
+        table_id=ctx.table_id,
         at=at,
-        actor_type="customer",
-        actor_session_id=ctx.tab_session_id,
+        actor=guest_actor(ctx),
         event=event,
         payload=payload,
     )
@@ -141,25 +118,31 @@ async def accept_due_orders(
 
 
 async def build_snapshots(
-    ctx: GuestContext, cart: list[CartLine], now: datetime
+    session: AsyncSession,
+    outlet_id: UUID,
+    cart: list[CartLine],
+    now: datetime,
+    *,
+    by_staff: bool = False,
+    approval_granted: bool = False,
 ) -> tuple[Outlet, dict[UUID, LoadedItem], list[LineSnapshot]]:
     """Validates a cart against the live menu and prices it as of `now`. Shared
     by placing an order and by the cart preview, so what a guest is quoted is
-    exactly what gets snapshotted."""
-    session = ctx.session
-    outlet = await session.get(Outlet, ctx.outlet_id)
+    exactly what gets snapshotted. `approval_granted` (a manager or owner adding
+    the line) satisfies the outlet's liquor-approval rule."""
+    outlet = await session.get(Outlet, outlet_id)
     assert outlet is not None
     tz = ZoneInfo(outlet.timezone)
     local_now = now.astimezone(tz).time()
     rules = OutletOrderRules(
         liquor_licensed=outlet.liquor_licensed,
-        liquor_approval_required=outlet.liquor_approval_required,
+        liquor_approval_required=outlet.liquor_approval_required and not approval_granted,
         prices_include_tax=outlet.prices_include_tax,
     )
     loaded = await load_items(
-        session, ctx.outlet_id, outlet.liquor_vat_rate_bp, {c.menu_item_id for c in cart}
+        session, outlet_id, outlet.liquor_vat_rate_bp, {c.menu_item_id for c in cart}
     )
-    price_rules, rule_names = await load_price_rules(session, ctx.outlet_id)
+    price_rules, rule_names = await load_price_rules(session, outlet_id)
 
     snapshots: list[LineSnapshot] = []
     try:
@@ -182,6 +165,13 @@ async def build_snapshots(
                 build_line_snapshot(found.orderable, cart_line, rules, price, name, local_now)
             )
     except CartError as exc:
+        if by_staff and exc.code == "needs_waiter":
+            raise ApiError(
+                409,
+                "needs_manager",
+                "A manager must approve this item before it can be added.",
+                exc.details,
+            ) from exc
         status = 422 if exc.code in _UNPROCESSABLE_CART_CODES else 409
         raise ApiError(status, exc.code, exc.message, exc.details) from exc
     return outlet, loaded, snapshots
@@ -191,6 +181,148 @@ async def build_snapshots(
 class PlacedOrder:
     order: Order
     lines: list[OrderLine]
+
+
+async def create_round(
+    session: AsyncSession,
+    *,
+    restaurant_id: UUID,
+    outlet_id: UUID,
+    tab: Tab,
+    snapshots: list[LineSnapshot],
+    notes: dict[int, str | None],
+    loaded: dict[UUID, LoadedItem],
+    actor: Actor,
+    now: datetime,
+    outlet: Outlet,
+) -> PlacedOrder:
+    """A round of lines, its tickets and its events. A guest's round waits out the
+    undo window as `placed`; a waiter's is accepted at once and lines above the ack
+    threshold need the guest's tap (or, with nobody on the tab to ask, are waived)."""
+    by_staff = actor.actor_type == "staff"
+    seq_no = (
+        await session.scalar(select(func.max(Order.seq_no)).where(Order.tab_id == tab.id))
+    ) or 0
+    status = OrderState.ACCEPTED if by_staff else OrderState.PLACED
+    order = Order(
+        restaurant_id=restaurant_id,
+        outlet_id=outlet_id,
+        tab_id=tab.id,
+        seq_no=seq_no + 1,
+        status=status.value,
+        fulfillment_type="dine_in",
+        placed_at=now,
+        placed_by_user_id=actor.user_id if by_staff else None,
+        placed_by_session_id=None if by_staff else actor.session_id,
+        source="waiter" if by_staff else "customer",
+        accepted_at=now if by_staff else None,
+    )
+    session.add(order)
+    await session.flush()
+
+    has_live_session = False
+    if by_staff:
+        live = await session.scalar(
+            select(func.count())
+            .select_from(TabSession)
+            .where(
+                TabSession.tab_id == tab.id,
+                TabSession.revoked.is_(False),
+                TabSession.expires_at > now,
+            )
+        )
+        has_live_session = bool(live)
+
+    lines: list[OrderLine] = []
+    acks = []
+    for index, snap in enumerate(snapshots):
+        ack = (
+            decide_staff_line_ack(
+                line_total_paise=snap.line_total_paise,
+                threshold_paise=outlet.ack_threshold_paise,
+                has_live_session=has_live_session,
+            )
+            if by_staff
+            else None
+        )
+        acks.append(ack)
+        line = OrderLine(
+            restaurant_id=restaurant_id,
+            order_id=order.id,
+            tab_id=tab.id,
+            menu_item_id=snap.menu_item_id,
+            item_name_snapshot=snap.item_name,
+            qty=snap.qty,
+            unit_price_snapshot=snap.unit_price_paise,
+            price_rule_id=snap.price_rule_id,
+            price_rule_name_snapshot=snap.price_rule_name,
+            tax_class_snapshot=snap.tax_class,
+            modifiers_snapshot=list(snap.modifiers),
+            line_total=snap.line_total_paise,
+            status=status.value,
+            placed_by="staff" if by_staff else "customer",
+            staff_user_id=actor.user_id if by_staff else None,
+            needs_customer_ack=bool(ack and ack.needs_customer_ack),
+            notes=notes.get(index),
+            position=index,
+        )
+        session.add(line)
+        lines.append(line)
+    await session.flush()
+    await create_tickets(session, restaurant_id, outlet_id, order, lines, loaded, now)
+
+    def log(event: str, payload: dict[str, Any]) -> None:
+        emit(
+            session,
+            restaurant_id=restaurant_id,
+            tab_id=tab.id,
+            table_id=tab.table_id,
+            at=now,
+            actor=actor,
+            event=event,
+            payload=payload,
+        )
+
+    for snap, line, ack in zip(snapshots, lines, acks, strict=True):
+        payload: dict[str, Any] = {
+            "order_id": str(order.id),
+            "line_id": str(line.id),
+            "item": snap.item_name,
+            "qty": snap.qty,
+            "unit_price_paise": snap.unit_price_paise,
+            "line_total_paise": snap.line_total_paise,
+            "modifiers": [m["name"] for m in snap.modifiers],
+        }
+        if by_staff and ack is not None:
+            payload["needs_customer_ack"] = ack.needs_customer_ack
+            if ack.ack_waived:
+                payload["ack_waived"] = True
+        log("line_added", payload)
+        if snap.price_rule_id is not None:
+            log(
+                "price_rule_applied",
+                {
+                    "line_id": str(line.id),
+                    "price_rule_id": str(snap.price_rule_id),
+                    "price_rule_name": snap.price_rule_name,
+                    "base_price_paise": loaded[snap.menu_item_id].row.base_price_paise,
+                    "unit_price_paise": snap.unit_price_paise,
+                },
+            )
+    log(
+        "order_placed",
+        {
+            "order_id": str(order.id),
+            "seq_no": order.seq_no,
+            "line_count": len(lines),
+            "total_paise": sum(line.line_total for line in lines),
+            "source": order.source,
+        },
+    )
+    if TabState(tab.status) == TabState.BILL_REQUESTED:
+        tab.status = transition_tab(TabState.BILL_REQUESTED, TabState.OPEN).value
+        log("bill_request_cleared", {"order_id": str(order.id)})
+    return PlacedOrder(order, lines)
 
 
 async def place_customer_order(
@@ -203,95 +335,48 @@ async def place_customer_order(
             409, "awaiting_waiter", "Your waiter needs to confirm your table before you can order."
         )
     await accept_due_orders(session, ctx.restaurant_id, ctx.tab_id, now)
-
-    _, loaded, snapshots = await build_snapshots(ctx, cart, now)
-
-    seq_no = (
-        await session.scalar(select(func.max(Order.seq_no)).where(Order.tab_id == ctx.tab_id))
-    ) or 0
-    order = Order(
+    outlet, loaded, snapshots = await build_snapshots(session, ctx.outlet_id, cart, now)
+    placed = await create_round(
+        session,
         restaurant_id=ctx.restaurant_id,
         outlet_id=ctx.outlet_id,
-        tab_id=ctx.tab_id,
-        seq_no=seq_no + 1,
-        status=OrderState.PLACED.value,
-        fulfillment_type="dine_in",
-        placed_at=now,
-        placed_by_session_id=ctx.tab_session_id,
-        source="customer",
+        tab=tab,
+        snapshots=snapshots,
+        notes=notes,
+        loaded=loaded,
+        actor=guest_actor(ctx),
+        now=now,
+        outlet=outlet,
     )
-    session.add(order)
-    await session.flush()
+    schedule_auto_accept(session, ctx.restaurant_id, ctx.outlet_id, ctx.tab_id, now)
+    return placed
 
-    lines: list[OrderLine] = []
-    for index, snap in enumerate(snapshots):
-        line = OrderLine(
-            restaurant_id=ctx.restaurant_id,
-            order_id=order.id,
-            tab_id=ctx.tab_id,
-            menu_item_id=snap.menu_item_id,
-            item_name_snapshot=snap.item_name,
-            qty=snap.qty,
-            unit_price_snapshot=snap.unit_price_paise,
-            price_rule_id=snap.price_rule_id,
-            price_rule_name_snapshot=snap.price_rule_name,
-            tax_class_snapshot=snap.tax_class,
-            modifiers_snapshot=list(snap.modifiers),
-            line_total=snap.line_total_paise,
-            status=OrderState.PLACED.value,
-            placed_by="customer",
-            needs_customer_ack=False,
-            notes=notes.get(index),
-        )
-        session.add(line)
-        lines.append(line)
-    await session.flush()
 
-    for snap, line in zip(snapshots, lines, strict=True):
-        guest_event(
-            ctx,
-            now,
-            "line_added",
-            {
-                "order_id": str(order.id),
-                "line_id": str(line.id),
-                "item": snap.item_name,
-                "qty": snap.qty,
-                "unit_price_paise": snap.unit_price_paise,
-                "line_total_paise": snap.line_total_paise,
-                "modifiers": [m["name"] for m in snap.modifiers],
-            },
-        )
-        if snap.price_rule_id is not None:
-            guest_event(
-                ctx,
-                now,
-                "price_rule_applied",
-                {
-                    "line_id": str(line.id),
-                    "price_rule_id": str(snap.price_rule_id),
-                    "price_rule_name": snap.price_rule_name,
-                    "base_price_paise": loaded[snap.menu_item_id].row.base_price_paise,
-                    "unit_price_paise": snap.unit_price_paise,
-                },
-            )
-    guest_event(
-        ctx,
-        now,
-        "order_placed",
-        {
-            "order_id": str(order.id),
-            "seq_no": order.seq_no,
-            "line_count": len(lines),
-            "total_paise": sum(line.line_total for line in lines),
-        },
+async def place_staff_order(
+    ctx: OutletContext,
+    tab: Tab,
+    cart: list[CartLine],
+    notes: dict[int, str | None],
+    now: datetime,
+    *,
+    approval_granted: bool,
+) -> PlacedOrder:
+    """A waiter adds a round for the guest. `tab` is already locked and access-checked."""
+    outlet, loaded, snapshots = await build_snapshots(
+        ctx.session, ctx.outlet_id, cart, now, by_staff=True, approval_granted=approval_granted
     )
-
-    if TabState(tab.status) == TabState.BILL_REQUESTED:
-        tab.status = transition_tab(TabState.BILL_REQUESTED, TabState.OPEN).value
-        guest_event(ctx, now, "bill_request_cleared", {"order_id": str(order.id)})
-    schedule_auto_accept(session, ctx.restaurant_id, ctx.outlet_id, ctx.tab_id)
-    return PlacedOrder(order, lines)
+    return await create_round(
+        ctx.session,
+        restaurant_id=ctx.restaurant_id,
+        outlet_id=ctx.outlet_id,
+        tab=tab,
+        snapshots=snapshots,
+        notes=notes,
+        loaded=loaded,
+        actor=Actor("staff", user_id=ctx.actor.user_id),
+        now=now,
+        outlet=outlet,
+    )
 
 
 async def undo_order(ctx: GuestContext, order_id: UUID, now: datetime) -> Order:
@@ -327,6 +412,7 @@ async def undo_order(ctx: GuestContext, order_id: UUID, now: datetime) -> Order:
     await session.execute(
         update(OrderLine).where(OrderLine.order_id == order.id).values(status="cancelled")
     )
+    await cancel_order_tickets(session, order.id)
     await session.refresh(order)
     guest_event(
         ctx,

@@ -13,6 +13,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import clock
 from app.api.v1.common import ERRORS, GuestCtx
@@ -21,8 +22,9 @@ from app.core.ordering import category_is_open
 from app.core.pricing import PricedItem, effective_price, next_boundary
 from app.db.session import qr_session, tenant_session
 from app.domains.menu.orderable import load_items, load_price_rules
+from app.domains.tab.events import record_event
 from app.domains.tab.models import Tab, TabSession
-from app.domains.tab.service import LIVE_TAB_INDEX_PREDICATE, LIVE_TAB_STATES, record_event
+from app.domains.tab.service import LIVE_TAB_INDEX_PREDICATE, LIVE_TAB_STATES
 from app.domains.tenant.models import DiningTable, Outlet, Restaurant
 from app.errors import ApiError
 from app.guest_auth import SESSION_TTL_HOURS, new_session_token, parse_session_token
@@ -164,6 +166,7 @@ async def open_session(
                 actor_type="customer",
                 actor_session_id=tab_session.id,
                 event="opened",
+                table_id=table.id,
                 payload={"table": table.label},
             )
         result = QrSessionOut(
@@ -230,18 +233,17 @@ class GuestMenuOut(BaseModel):
     categories: list[GuestCategoryOut]
 
 
-@router.get("/v1/outlets/{outlet_id}/guest/menu", responses=ERRORS)
-async def guest_menu(ctx: GuestCtx) -> GuestMenuOut:
+async def build_guest_menu(session: AsyncSession, outlet_id: UUID, now: datetime) -> GuestMenuOut:
     """Visible categories that are open now, with each item's price as of now and
-    the happy-hour badge when a rule applies. Sold-out items are listed, marked."""
-    now = clock.utcnow()
-    outlet = await ctx.session.get(Outlet, ctx.outlet_id)
+    the happy-hour badge when a rule applies. Sold-out items are listed, marked.
+    Used for guests and for a waiter adding items, so both see the same menu."""
+    outlet = await session.get(Outlet, outlet_id)
     assert outlet is not None
     tz = ZoneInfo(outlet.timezone)
     local_now = now.astimezone(tz).time()
-    rules, names = await load_price_rules(ctx.session, ctx.outlet_id)
+    rules, names = await load_price_rules(session, outlet_id)
     rules_by_id = {r.id: r for r in rules}
-    loaded = await load_items(ctx.session, ctx.outlet_id, outlet.liquor_vat_rate_bp)
+    loaded = await load_items(session, outlet_id, outlet.liquor_vat_rate_bp)
 
     categories: dict[UUID, GuestCategoryOut] = {}
     for entry in loaded.values():
@@ -300,4 +302,31 @@ async def guest_menu(ctx: GuestCtx) -> GuestMenuOut:
         prices_include_tax=outlet.prices_include_tax,
         service_charge_bp=outlet.service_charge_bp,
         categories=ordered,
+    )
+
+
+@router.get("/v1/outlets/{outlet_id}/guest/menu", responses=ERRORS)
+async def guest_menu(ctx: GuestCtx) -> GuestMenuOut:
+    return await build_guest_menu(ctx.session, ctx.outlet_id, clock.utcnow())
+
+
+class GuestSessionOut(BaseModel):
+    tab_id: UUID
+    table_label: str | None
+    tab_status: str
+    awaiting_waiter: bool
+
+
+@router.get("/v1/outlets/{outlet_id}/guest/session", responses=ERRORS)
+async def guest_session(ctx: GuestCtx) -> GuestSessionOut:
+    """Which tab this phone is on now. It changes when a waiter merges the table's tab
+    into another, so the app asks again after a merge instead of trusting what it stored."""
+    tab = await ctx.session.get(Tab, ctx.tab_id)
+    assert tab is not None
+    table = await ctx.session.get(DiningTable, tab.table_id) if tab.table_id else None
+    return GuestSessionOut(
+        tab_id=tab.id,
+        table_label=table.label if table else None,
+        tab_status=tab.status,
+        awaiting_waiter=tab.confirmed_at is None,
     )

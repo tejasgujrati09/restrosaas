@@ -122,3 +122,65 @@ def test_undo_and_auto_accept_never_both_hold() -> None:
             can_customer_cancel_order_line(OrderState.PLACED, seconds)
             and order_auto_accept_due(OrderState.PLACED, seconds)
         )
+
+
+def test_ticket_transitions() -> None:
+    from app.core.state import TicketState, transition_ticket
+
+    legal = [
+        (TicketState.QUEUED, TicketState.PREPARING),
+        (TicketState.QUEUED, TicketState.CANCELLED),
+        (TicketState.PREPARING, TicketState.READY),
+        (TicketState.PREPARING, TicketState.CANCELLED),
+        (TicketState.READY, TicketState.PREPARING),  # recall
+        (TicketState.READY, TicketState.BUMPED),
+    ]
+    for current, target in legal:
+        assert transition_ticket(current, target) == target
+    illegal = [
+        (TicketState.QUEUED, TicketState.READY),
+        (TicketState.READY, TicketState.CANCELLED),
+        (TicketState.BUMPED, TicketState.PREPARING),
+        (TicketState.CANCELLED, TicketState.QUEUED),
+    ]
+    for current, target in illegal:
+        with pytest.raises(IllegalTransitionError):
+            transition_ticket(current, target)
+
+
+def test_a_ticket_can_start_only_after_the_undo_window() -> None:
+    from app.core.state import ticket_startable
+
+    assert not ticket_startable(OrderState.PLACED)
+    assert not ticket_startable(OrderState.CANCELLED)
+    for status in (OrderState.ACCEPTED, OrderState.PREPARING, OrderState.READY, OrderState.SERVED):
+        assert ticket_startable(status)
+
+
+@pytest.mark.parametrize(
+    ("current", "lines", "expected"),
+    [
+        (OrderState.ACCEPTED, ["accepted", "accepted"], OrderState.ACCEPTED),
+        (OrderState.ACCEPTED, ["preparing", "accepted"], OrderState.PREPARING),
+        (OrderState.ACCEPTED, ["ready", "accepted"], OrderState.PREPARING),
+        (OrderState.PREPARING, ["ready", "preparing"], OrderState.PREPARING),
+        (OrderState.PREPARING, ["ready", "ready"], OrderState.READY),
+        (OrderState.PREPARING, ["served", "ready"], OrderState.READY),
+        (OrderState.PREPARING, ["served", "preparing"], OrderState.PREPARING),
+        (OrderState.READY, ["served", "served"], OrderState.SERVED),
+        (OrderState.READY, ["served", "ready"], OrderState.READY),
+        # A recall sends a line back to preparing; the round does not step backwards.
+        (OrderState.READY, ["served", "preparing"], OrderState.READY),
+        (OrderState.PREPARING, ["ready", "cancelled"], OrderState.READY),
+        (OrderState.PREPARING, ["cancelled", "voided"], OrderState.PREPARING),
+        (OrderState.PLACED, ["placed"], OrderState.PLACED),
+        (OrderState.CANCELLED, ["served"], OrderState.CANCELLED),
+        (OrderState.DISPATCHED, ["served"], OrderState.DISPATCHED),
+    ],
+)
+def test_round_status_follows_its_lines(
+    current: OrderState, lines: list[str], expected: OrderState
+) -> None:
+    from app.core.state import derive_order_status
+
+    assert derive_order_status(current, lines) == expected

@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     # Owner role for Alembic and test seeding; falls back to database_url.
     migration_database_url: str | None = None
     redis_url: str = "redis://localhost:6379/0"
+    # Namespaces our Redis keys so stacks (or a test run) sharing one Redis never drain each other.
+    redis_key_prefix: str = "restosaas"
     jwt_secret: str = "dev-only-change-me-not-for-production-0123456789"
     jwt_issuer: str = "restosaas-api"
     jwt_access_token_ttl_seconds: int = 3600

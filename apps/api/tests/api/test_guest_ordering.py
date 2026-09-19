@@ -20,6 +20,7 @@ from app.db.session import qr_session, tenant_session
 from tests.api.guest_helpers import (
     FakeClock,
     Guest,
+    assign,
     events,
     new_guest,
     one,
@@ -845,6 +846,7 @@ async def test_waiter_confirm_mode_blocks_ordering_until_a_waiter_confirms(
         f"{env.base}/settings", json={"waiter_confirm_mode": True}, headers=owner(seed)
     )
     g = await new_guest(client, seed)
+    await assign(owner_engine, seed, "T1")
     assert (await g.tab())["awaiting_waiter"] is True
     assert (await g.menu())["categories"]  # browsing is allowed
     blocked = await g.order([one(env.item)])
@@ -896,6 +898,7 @@ async def test_confirming_a_closed_tab_is_refused(
     client: httpx.AsyncClient, seed: Seed, env: Menu, owner_engine: AsyncEngine
 ) -> None:
     g = await new_guest(client, seed)
+    await assign(owner_engine, seed, "T1")
     async with owner_engine.begin() as conn:
         await conn.execute(
             text("UPDATE tab SET status = 'closed' WHERE id = :t"), {"t": uuid.UUID(g.tab_id)}

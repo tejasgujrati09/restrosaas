@@ -111,6 +111,7 @@ class GuestContext:
     outlet_id: UUID
     restaurant_id: UUID
     tab_id: UUID
+    table_id: UUID | None
     tab_session_id: UUID
 
 
@@ -147,6 +148,7 @@ async def get_guest_context(
             outlet_id=outlet_id,
             restaurant_id=restaurant_id,
             tab_id=tab.id,
+            table_id=tab.table_id,
             tab_session_id=tab_session.id,
         )
     await run_after_commit(session)

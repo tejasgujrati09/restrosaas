@@ -9,8 +9,10 @@ Protocol (JSON text frames)
       {"type": "ready"}                      subscribed; safe to fetch current state over REST
       {"type": "event", "id", "tab_id", "at", "event", "actor_type", "payload"}
       {"type": "resync"}                     too much was missed; refetch state
+      {"type": "signal", "name"}            outlet-wide nudge: menu_changed, assignments_changed
       {"type": "ping"}                       keep-alive every 25 s
-  close codes: 4400 bad first frame, 4401 not authorised or session over, 4410 tab ended.
+  close codes: 4400 bad first frame, 4401 not authorised or session over, 4410 tab ended,
+  4411 the guest's tab was merged into another (fetch the new tab, then reconnect).
 
 Delivery is "signal plus resume": the database is the source of truth. A client that
 reconnects sends the last event id it saw and is replayed everything newer that its
@@ -33,11 +35,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import clock
 from app.auth import InvalidTokenError, decode_token
-from app.core.permissions import PermissionDeniedError
-from app.core.realtime import TAB_ENDING_EVENTS, Audience, may_receive, redact
+from app.core.permissions import PermissionDeniedError, Role
+from app.core.realtime import (
+    SIGNAL_ASSIGNMENTS_CHANGED,
+    TAB_ENDING_EVENTS,
+    Audience,
+    may_receive,
+    may_receive_signal,
+    redact,
+)
 from app.db.session import tenant_session
 from app.deps import load_guest_session, load_staff_roles
-from app.domains.tab.models import Tab, TabEvent
+from app.domains.tab.models import Tab, TabEvent, TableAssignment
 from app.errors import ApiError
 from app.guest_auth import parse_session_token
 from app.realtime.bus import bus, outlet_channel
@@ -53,14 +62,18 @@ REPLAY_LIMIT = 500
 CLOSE_BAD_FRAME = 4400
 CLOSE_UNAUTHORISED = 4401
 CLOSE_TAB_ENDED = 4410
+# The guest's tab was merged into another: ask the app to learn its new tab and reconnect.
+CLOSE_TAB_MOVED = 4411
 
 
-@dataclass(frozen=True)
+@dataclass
 class Connection:
     restaurant_id: UUID
     audience: Audience
     # Guests only: when their session lapses. Checked on every heartbeat.
     expires_at: datetime | None
+    # Staff only: whose assignments to reload when they change.
+    user_id: UUID | None
 
 
 async def _authenticate(token: str, outlet_id: UUID) -> Connection | None:
@@ -79,7 +92,14 @@ async def _authenticate(token: str, outlet_id: UUID) -> Connection | None:
                 roles = await load_staff_roles(session, user_id, outlet_id)
         except PermissionDeniedError:
             return None
-        return Connection(claim.restaurant_id, Audience(tab_id=None, roles=roles), None)
+        async with tenant_session(claim.restaurant_id) as session:
+            tables = await _assigned_tables(session, user_id, outlet_id, roles)
+        return Connection(
+            claim.restaurant_id,
+            Audience(tab_id=None, roles=roles, assigned_tables=tables),
+            None,
+            user_id,
+        )
 
     try:
         restaurant_id, token_hash = parse_session_token(token)
@@ -88,8 +108,22 @@ async def _authenticate(token: str, outlet_id: UUID) -> Connection | None:
     except (InvalidTokenError, ApiError, PermissionDeniedError):
         return None
     return Connection(
-        restaurant_id, Audience(tab_id=tab.id, roles=frozenset()), tab_session.expires_at
+        restaurant_id, Audience(tab_id=tab.id, roles=frozenset()), tab_session.expires_at, None
     )
+
+
+async def _assigned_tables(
+    session: AsyncSession, user_id: UUID, outlet_id: UUID, roles: frozenset[Role]
+) -> frozenset[UUID]:
+    """A waiter's own tables. Managers and owners see every table, so need none."""
+    if Role.WAITER not in roles:
+        return frozenset()
+    rows = await session.scalars(
+        select(TableAssignment.table_id).where(
+            TableAssignment.user_id == user_id, TableAssignment.outlet_id == outlet_id
+        )
+    )
+    return frozenset(rows)
 
 
 async def _replay(
@@ -108,12 +142,17 @@ async def _replay(
 
 
 def _deliverable(audience: Audience, message: dict[str, Any]) -> dict[str, Any] | None:
-    if not may_receive(audience, message["event"], UUID(message["tab_id"])):
+    payload = message["payload"]
+    tables = [
+        UUID(t) for t in (message.get("table_id"), payload.get("from_table_id")) if t is not None
+    ]
+    if not may_receive(audience, message["event"], UUID(message["tab_id"]), tables):
         return None
     return {
         "type": "event",
         **{k: message[k] for k in ("id", "tab_id", "at", "event", "actor_type")},
-        "payload": redact(audience, message["payload"]),
+        "table_id": message.get("table_id"),
+        "payload": redact(audience, payload),
     }
 
 
@@ -161,6 +200,17 @@ async def outlet_socket(ws: WebSocket, outlet_id: UUID) -> None:
             async def pump() -> None:
                 nonlocal highest
                 async for message in messages:
+                    if message.get("kind") == "signal":
+                        name = message["name"]
+                        if name == SIGNAL_ASSIGNMENTS_CHANGED and conn.user_id is not None:
+                            async with tenant_session(conn.restaurant_id) as session:
+                                tables = await _assigned_tables(
+                                    session, conn.user_id, outlet_id, conn.audience.roles
+                                )
+                            conn.audience = Audience(None, conn.audience.roles, tables)
+                        if may_receive_signal(conn.audience, name):
+                            await ws.send_json({"type": "signal", "name": name})
+                        continue
                     if message["id"] <= highest:
                         continue
                     highest = message["id"]
@@ -170,6 +220,13 @@ async def outlet_socket(ws: WebSocket, outlet_id: UUID) -> None:
                     await ws.send_json(out)
                     if conn.audience.is_guest and message["event"] in TAB_ENDING_EVENTS:
                         await ws.close(CLOSE_TAB_ENDED)
+                        return
+                    if (
+                        conn.audience.is_guest
+                        and message["event"] == "merged"
+                        and message["payload"].get("from_tab_id") == message["tab_id"]
+                    ):
+                        await ws.close(CLOSE_TAB_MOVED)
                         return
 
             async def listen() -> None:

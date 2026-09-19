@@ -31,9 +31,11 @@ async def wipe_tabs(owner_engine: AsyncEngine, seed: Seed) -> None:
             "tab_event",
             "service_request",
             "order_line",
+            "ticket",
             "tab_order",
             "tab_session",
             "tab",
+            "table_assignment",
         ):
             await conn.execute(
                 text(f"DELETE FROM {table} WHERE restaurant_id = :r"), {"r": seed.restaurant_a}
@@ -117,3 +119,50 @@ async def events(owner_engine: AsyncEngine, tab_id: str) -> list[tuple[str, str]
             {"t": uuid.UUID(tab_id)},
         )
         return [(r[0], r[1]) for r in rows]
+
+
+async def assign(
+    owner_engine: AsyncEngine, seed: Seed, label: str, user_id: uuid.UUID | None = None
+) -> uuid.UUID:
+    """Makes `user_id` (default: the seed waiter) a waiter of table `label` in outlet A."""
+    async with owner_engine.begin() as conn:
+        table_id = await conn.scalar(
+            text("SELECT id FROM dining_table WHERE outlet_id = :o AND label = :l"),
+            {"o": seed.outlet_a, "l": label},
+        )
+        await conn.execute(
+            text(
+                "INSERT INTO table_assignment (restaurant_id, outlet_id, table_id, user_id, "
+                "assigned_by, assigned_at) VALUES (:r, :o, :t, :u, :by, now()) "
+                "ON CONFLICT DO NOTHING"
+            ),
+            {
+                "r": seed.restaurant_a,
+                "o": seed.outlet_a,
+                "t": table_id,
+                "u": user_id or seed.waiter_a,
+                "by": seed.owner_a,
+            },
+        )
+    assert isinstance(table_id, uuid.UUID)
+    return table_id
+
+
+def staff(seed: Seed, user: uuid.UUID, role: Role) -> dict[str, str]:
+    return hdr(seed.token(user, role))
+
+
+def waiter(seed: Seed) -> dict[str, str]:
+    return staff(seed, seed.waiter_a, Role.WAITER)
+
+
+def manager(seed: Seed) -> dict[str, str]:
+    return staff(seed, seed.manager_a, Role.MANAGER)
+
+
+def kitchen(seed: Seed) -> dict[str, str]:
+    return staff(seed, seed.kitchen_a, Role.KITCHEN)
+
+
+def floor(seed: Seed) -> str:
+    return f"/v1/outlets/{seed.outlet_a}/staff"

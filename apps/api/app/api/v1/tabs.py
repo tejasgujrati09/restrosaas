@@ -12,6 +12,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import clock
 from app.api.v1.common import (
@@ -29,6 +30,8 @@ from app.core.state import CUSTOMER_UNDO_WINDOW_SECONDS, OrderState
 from app.core.tab_totals import TabTotals, TotalsLine, compute_tab_totals
 from app.domains.staff.models import AppUser
 from app.domains.tab import service
+from app.domains.tab.access import require_table_access
+from app.domains.tab.events import record_event
 from app.domains.tab.models import Order, OrderLine, ServiceRequest, Tab
 from app.domains.tenant.models import DiningTable, Outlet
 from app.errors import ApiError
@@ -73,6 +76,9 @@ class LineOut(BaseModel):
     price_rule: RuleRefOut | None
     needs_customer_ack: bool
     acked_at: datetime | None
+    disputed_at: datetime | None
+    # not_needed | awaiting | acked | disputed (staff-added lines above the threshold only)
+    ack_state: str
     note: str | None
     voided_at: datetime | None
     void_reason: str | None
@@ -152,8 +158,16 @@ class ConfirmOut(BaseModel):
     confirmed_at: datetime
 
 
+def _ack_state(line: OrderLine) -> str:
+    if not line.needs_customer_ack:
+        return "not_needed"
+    if line.disputed_at is not None:
+        return "disputed"
+    return "acked" if line.acked_at is not None else "awaiting"
+
+
 def _line_out(
-    line: OrderLine, order: Order, ctx_session_id: UUID, staff_names: dict[UUID, str | None]
+    line: OrderLine, order: Order, ctx_session_id: UUID | None, staff_names: dict[UUID, str | None]
 ) -> LineOut:
     return LineOut(
         id=line.id,
@@ -167,7 +181,7 @@ def _line_out(
         line_total_paise=line.line_total,
         status=line.status,
         placed_by="staff" if line.placed_by == "staff" else "customer",
-        by_you=order.placed_by_session_id == ctx_session_id,
+        by_you=ctx_session_id is not None and order.placed_by_session_id == ctx_session_id,
         staff_name=staff_names.get(line.staff_user_id) if line.staff_user_id else None,
         price_rule=(
             RuleRefOut(id=line.price_rule_id, name=line.price_rule_name_snapshot)
@@ -176,6 +190,8 @@ def _line_out(
         ),
         needs_customer_ack=line.needs_customer_ack,
         acked_at=line.acked_at,
+        disputed_at=line.disputed_at,
+        ack_state=_ack_state(line),
         note=line.notes,
         voided_at=line.voided_at,
         void_reason=line.void_reason,
@@ -183,7 +199,10 @@ def _line_out(
 
 
 def _round_out(
-    order: Order, lines: list[OrderLine], session_id: UUID, staff_names: dict[UUID, str | None]
+    order: Order,
+    lines: list[OrderLine],
+    session_id: UUID | None,
+    staff_names: dict[UUID, str | None],
 ) -> RoundOut:
     undo_until = (
         order.placed_at + timedelta(seconds=CUSTOMER_UNDO_WINDOW_SECONDS)
@@ -236,7 +255,9 @@ async def quote_cart(tab_id: UUID, ctx: GuestCtx, body: PlaceOrderIn) -> QuoteOu
     assert_can_write_own_tab(ctx.actor, tab_id)
     tab = await service.lock_live_tab(ctx.session, tab_id)
     cart = [CartLine(c.menu_item_id, c.qty, tuple(c.modifier_ids)) for c in body.lines]
-    outlet, _, snapshots = await service.build_snapshots(ctx, cart, clock.utcnow())
+    outlet, _, snapshots = await service.build_snapshots(
+        ctx.session, ctx.outlet_id, cart, clock.utcnow()
+    )
     totals = compute_tab_totals(
         [
             TotalsLine(
@@ -287,7 +308,11 @@ async def undo_order(
     async def produce() -> RoundOut:
         order = await service.undo_order(ctx, order_id, clock.utcnow())
         lines = (
-            await ctx.session.scalars(select(OrderLine).where(OrderLine.order_id == order.id))
+            await ctx.session.scalars(
+                select(OrderLine)
+                .where(OrderLine.order_id == order.id)
+                .order_by(OrderLine.position, OrderLine.id)
+            )
         ).all()
         return _round_out(order, list(lines), ctx.tab_session_id, {})
 
@@ -311,9 +336,11 @@ def _totals_out(totals: TabTotals, outlet: Outlet, tab: Tab) -> TotalsOut:
     )
 
 
-async def _tab_out(ctx: GuestCtx, tab: Tab) -> TabOut:
-    session = ctx.session
-    outlet = await session.get(Outlet, ctx.outlet_id)
+async def build_tab_out(
+    session: AsyncSession, outlet_id: UUID, tab: Tab, viewer_session_id: UUID | None
+) -> TabOut:
+    """The live tab as one viewer sees it: a guest's phone (`viewer_session_id`) or staff (None)."""
+    outlet = await session.get(Outlet, outlet_id)
     assert outlet is not None
     table_label = None
     if tab.table_id is not None:
@@ -325,7 +352,9 @@ async def _tab_out(ctx: GuestCtx, tab: Tab) -> TabOut:
     ).all()
     lines = (
         await session.scalars(
-            select(OrderLine).where(OrderLine.tab_id == tab.id).order_by(OrderLine.id)
+            select(OrderLine)
+            .where(OrderLine.tab_id == tab.id)
+            .order_by(OrderLine.position, OrderLine.id)
         )
     ).all()
     lines_by_order: dict[UUID, list[OrderLine]] = {}
@@ -364,7 +393,7 @@ async def _tab_out(ctx: GuestCtx, tab: Tab) -> TabOut:
         awaiting_waiter=tab.confirmed_at is None,
         opened_at=tab.opened_at,
         rounds=[
-            _round_out(o, lines_by_order.get(o.id, []), ctx.tab_session_id, names) for o in orders
+            _round_out(o, lines_by_order.get(o.id, []), viewer_session_id, names) for o in orders
         ],
         totals=_totals_out(totals, outlet, tab),
         open_requests=sorted(open_requests),
@@ -378,7 +407,7 @@ async def get_tab(tab_id: UUID, ctx: GuestCtx) -> TabOut:
     await service.accept_due_orders(ctx.session, ctx.restaurant_id, ctx.tab_id, clock.utcnow())
     tab = await ctx.session.get(Tab, tab_id)
     assert tab is not None
-    return await _tab_out(ctx, tab)
+    return await build_tab_out(ctx.session, ctx.outlet_id, tab, ctx.tab_session_id)
 
 
 @router.put("/service-charge", responses=ERRORS)
@@ -390,7 +419,7 @@ async def set_service_charge(
 
     async def produce() -> TabOut:
         tab = await service.set_service_charge_removed(ctx, body.removed, clock.utcnow())
-        return await _tab_out(ctx, tab)
+        return await build_tab_out(ctx.session, ctx.outlet_id, tab, ctx.tab_session_id)
 
     return await guest_idempotent_write(
         ctx, key, f"PUT tabs/{tab_id}/service-charge", body, TabOut, produce
@@ -416,6 +445,56 @@ async def create_service_request(
     )
 
 
+class AckIn(BaseModel):
+    answer: Literal["ours", "not_ours"]
+
+
+@router.post("/lines/{line_id}/ack", responses=ERRORS)
+async def answer_ack(
+    tab_id: UUID, line_id: UUID, ctx: GuestCtx, key: IdempotencyKeyHeader, body: AckIn
+) -> LineOut:
+    """The guest's answer to a staff-added line: "Yes, ours" or "Not ours". Neither
+    removes the line; "Not ours" raises an alert for a manager, who can void it."""
+    assert_can_write_own_tab(ctx.actor, tab_id)
+
+    async def produce() -> LineOut:
+        now = clock.utcnow()
+        line = await ctx.session.scalar(
+            select(OrderLine).where(OrderLine.id == line_id, OrderLine.tab_id == tab_id)
+        )
+        if line is None:
+            raise not_found("Line")
+        order = await ctx.session.get(Order, line.order_id)
+        assert order is not None
+        if not line.needs_customer_ack:
+            raise ApiError(409, "no_ack_needed", "This item doesn't need your OK.")
+        if line.acked_at is not None or line.disputed_at is not None:
+            raise ApiError(409, "already_answered", "You've already answered for this item.")
+        if body.answer == "ours":
+            line.acked_at = now
+            event = "line_acked"
+        else:
+            line.disputed_at = now
+            event = "line_disputed"
+        service.guest_event(
+            ctx,
+            now,
+            event,
+            {
+                "line_id": str(line.id),
+                "item": line.item_name_snapshot,
+                "line_total_paise": line.line_total,
+                "staff_user_id": str(line.staff_user_id) if line.staff_user_id else None,
+            },
+        )
+        names = await _staff_names(ctx.session, [line])
+        return _line_out(line, order, ctx.tab_session_id, names)
+
+    return await guest_idempotent_write(
+        ctx, key, f"POST tabs/{tab_id}/lines/{line_id}/ack", body, LineOut, produce
+    )
+
+
 @router.post("/confirm", responses=ERRORS)
 async def confirm_tab(tab_id: UUID, ctx: Ctx, key: IdempotencyKeyHeader) -> ConfirmOut:
     """Waiter-confirm mode: the guest can browse but not order until a waiter
@@ -428,6 +507,7 @@ async def confirm_tab(tab_id: UUID, ctx: Ctx, key: IdempotencyKeyHeader) -> Conf
         )
         if tab is None:
             raise not_found("Tab")
+        await require_table_access(ctx, tab.table_id)
         if tab.status not in service.LIVE_TAB_STATES:
             raise ApiError(
                 409, "tab_not_open", "This tab is already closed.", {"status": tab.status}
@@ -435,7 +515,7 @@ async def confirm_tab(tab_id: UUID, ctx: Ctx, key: IdempotencyKeyHeader) -> Conf
         now = clock.utcnow()
         if tab.confirmed_at is None:
             tab.confirmed_at = now
-            service.record_event(
+            record_event(
                 ctx.session,
                 restaurant_id=ctx.restaurant_id,
                 tab_id=tab.id,
@@ -443,6 +523,7 @@ async def confirm_tab(tab_id: UUID, ctx: Ctx, key: IdempotencyKeyHeader) -> Conf
                 actor_type="staff",
                 actor_user_id=ctx.actor.user_id,
                 event="confirmed",
+                table_id=tab.table_id,
             )
         return ConfirmOut(tab_id=tab.id, confirmed_at=tab.confirmed_at)
 

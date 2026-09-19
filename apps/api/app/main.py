@@ -13,9 +13,12 @@ from starlette.datastructures import Headers, MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.api.v1 import (
+    assignments,
     auth,
+    floor,
     guest,
     invites,
+    kitchen,
     menu,
     menu_import,
     price_rules,
@@ -37,6 +40,7 @@ logger = structlog.get_logger()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    scheduler.start()
     yield
     await scheduler.cancel_all()
     await bus.close()
@@ -57,6 +61,9 @@ for module in (
     staff,
     guest,
     tabs,
+    assignments,
+    floor,
+    kitchen,
 ):
     app.include_router(module.router)
 

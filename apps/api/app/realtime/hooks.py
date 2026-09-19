@@ -33,6 +33,22 @@ def after_commit(session: AsyncSession, callback: Callable[[], Awaitable[None]])
     session.info.setdefault(_CALLBACKS, []).append(callback)
 
 
+def signal(session: AsyncSession, name: str) -> None:
+    """An outlet-wide nudge with no tab attached ("the menu changed", "assignments
+    changed"), sent after commit like events. Asking twice in one request sends once."""
+    sent: set[str] = session.info.setdefault("signals", set())
+    if name in sent:
+        return
+    sent.add(name)
+
+    async def send() -> None:
+        outlet_id: UUID | None = session.info.get(_OUTLET)
+        if outlet_id is not None:
+            await bus.publish(outlet_channel(outlet_id), {"kind": "signal", "name": name})
+
+    after_commit(session, send)
+
+
 def event_message(row: TabEvent) -> dict[str, Any]:
     return {
         "id": row.id,
@@ -40,6 +56,7 @@ def event_message(row: TabEvent) -> dict[str, Any]:
         "at": row.at.isoformat(),
         "event": row.event,
         "actor_type": row.actor_type,
+        "table_id": str(row.table_id) if row.table_id else None,
         "payload": row.payload,
     }
 
@@ -59,5 +76,6 @@ async def run_after_commit(session: AsyncSession) -> None:
             await callback()
         except Exception:
             logger.warning("after_commit_callback_failed")
+    session.info.pop("signals", None)
     session.info.pop(_EVENTS, None)
     session.info.pop(_CALLBACKS, None)
