@@ -8,6 +8,7 @@ from app.domains.menu import models as _menu  # noqa: F401
 from app.domains.staff import models as _staff  # noqa: F401
 from app.domains.tab import models as _tab  # noqa: F401
 from app.domains.tenant import models as _tenant  # noqa: F401
+from app.domains.voice import models as _voice  # noqa: F401
 
 
 async def test_orm_models_match_migrated_tables() -> None:

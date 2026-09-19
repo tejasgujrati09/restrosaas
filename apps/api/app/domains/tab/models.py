@@ -61,6 +61,12 @@ class Order(Base):
     source: Mapped[str] = mapped_column(Text)
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Voice orders (docs/DECISIONS.md "Voice ordering agent"): who called, which saved
+    # address was used, a snapshot of it, and the Gupshup call. All NULL for QR and waiter orders.
+    customer_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    address_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    delivery_address_snapshot: Mapped[str | None] = mapped_column(Text)
+    external_call_id: Mapped[str | None] = mapped_column(Text)
 
 
 class OrderLine(Base):
