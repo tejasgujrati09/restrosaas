@@ -2,11 +2,11 @@
 
 Record of choices made where `docs/SPEC.md` was silent and the answer affects the schema or a public API. Newest first. Each entry: date, decision, reason, impact.
 
-## 2026-09-19 — Voice ordering agent (Gupshup VoiceAI) — **proposal, needs human review (CLAUDE.md §9)**
+## 2026-09-19 — Voice ordering agent (Gupshup VoiceAI) — **approved by a human (CLAUDE.md §9); in progress**
 
-Requested by a human: an owner can switch on a phone ordering agent for their restaurant. Callers phone a number, the agent takes an order, and it appears in the existing staff and kitchen views. Gupshup VoiceAI runs the whole call (telephony, STT, LLM, TTS); we only call its API and serve the agent's tools. Nothing below is built yet; this entry is the sign-off record.
+Requested by a human: an owner can switch on a phone ordering agent for their restaurant. Callers phone a number, the agent takes an order, and it appears in the existing staff and kitchen views. Gupshup VoiceAI runs the whole call (telephony, STT, LLM, TTS); we only call its API and serve the agent's tools. The four §9 items below were approved by a human on 2026-09-19. Built so far: the schema and capability (migration 0008) and the `VoicePlatform` interface, Gupshup adapter and fake. Not yet built: tool endpoints, provisioning and the owner enable flow.
 
-**Needs an explicit human yes (each is a §9 stop-and-ask item):**
+**Approved (each was a §9 stop-and-ask item):**
 
 1. **New external service: Gupshup VoiceAI.** Called only from `app/domains/voice/gupshup.py`, behind one vendor-neutral `VoicePlatform` interface (`platform.py`) with a fake for tests (`tests/voice_fakes.py`). `httpx` moves from dev to runtime dependencies for this (already in the lockfile; no new package). Tool parameters use the platform's `llm_prompt`, `static` and `dynamic` value types, confirmed from the platform's own source. Credentials `GUPSHUP_API_KEY` and `GUPSHUP_BASE_URL` come from the environment (`apps/api/.env`, gitignored); never committed. Local base URL is `http://localhost:3005`.
 2. **Machine authentication for tool calls.** Gupshup calls our tool endpoints with a per-agent secret in an `X-Voice-Key` header (stored on Gupshup as a secret header, hashed on our side). Key shape is `<restaurant_id>.<random>`, the same pattern as the TabSession token, so the restaurant id opens a normal tenant session and **no new cross-tenant RLS policy is needed**. The caller's phone is never taken from the LLM: it is bound to a dynamic variable in the tool config.
