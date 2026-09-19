@@ -2,6 +2,40 @@
 
 Record of choices made where `docs/SPEC.md` was silent and the answer affects the schema or a public API. Newest first. Each entry: date, decision, reason, impact.
 
+## 2026-09-19 — Voice ordering agent (Gupshup VoiceAI) — **proposal, needs human review (CLAUDE.md §9)**
+
+Requested by a human: an owner can switch on a phone ordering agent for their restaurant. Callers phone a number, the agent takes an order, and it appears in the existing staff and kitchen views. Gupshup VoiceAI runs the whole call (telephony, STT, LLM, TTS); we only call its API and serve the agent's tools. Nothing below is built yet; this entry is the sign-off record.
+
+**Needs an explicit human yes (each is a §9 stop-and-ask item):**
+
+1. **New external service: Gupshup VoiceAI.** Called only from `app/domains/voice/`, behind one `GupshupClient` interface with a fake for tests. Credentials `GUPSHUP_API_KEY` and `GUPSHUP_BASE_URL` come from the environment (`apps/api/.env`, gitignored); never committed. Local base URL is `http://localhost:3005`.
+2. **Machine authentication for tool calls.** Gupshup calls our tool endpoints with a per-agent secret in an `X-Voice-Key` header (stored on Gupshup as a secret header, hashed on our side). Key shape is `<restaurant_id>.<random>`, the same pattern as the TabSession token, so the restaurant id opens a normal tenant session and **no new cross-tenant RLS policy is needed**. The caller's phone is never taken from the LLM: it is bound to a dynamic variable in the tool config.
+3. **Schema.** New `customer` and `customer_address` (per restaurant, keyed by phone) and `voice_agent` (outlet, Gupshup `agent_id`, SR number and plan, status, key hash), all with RLS. Two CHECK widenings: `tab.opened_by` gains `'voice'`; `tab_order.source` gains `'voice'`. **Orders link to the customer and the address used:** `tab_order` gains nullable `customer_id` and `address_id` (foreign keys, same restaurant, covered by RLS) and `delivery_address_snapshot` (text, copied at placement). It sits on the round because `fulfillment_type` already does, and a caller can use a different saved address on each order. The snapshot follows the price-lock rule (§3): editing or deleting a saved address never changes an existing order. `address_id` is set only for delivery; pickup leaves it NULL. QR and waiter orders leave all three NULL and are unaffected. Also `tab_order.external_call_id` (the Gupshup `call_id`) for audit and idempotency, unique per restaurant when set. Voice lines use `placed_by='customer'` with no staff user, so that constraint needs no change. Tab events for voice actions use `actor_type='system'` with `channel` and `call_id` in the payload.
+4. **Permission matrix.** One new capability, `ENABLE_VOICE_AGENT`, **owner only** (a human said the owner who onboards the restaurant enables it). SPEC §6 gets a matching row. Additive; no existing capability changes.
+
+**Other choices (reversible):**
+
+- **Fulfilment.** The agent asks pickup or delivery and records it in the existing `fulfillment_type`, plus the address for delivery. The restaurant handles everything after that. No delivery UI, no dispatch (CLAUDE.md §8 stays in force).
+- **Orders reuse the existing pipeline.** A phone order opens a tab with no table and places a round through the same validation and snapshot code as guest orders, so prices, tax and totals come from the restaurant's own menu, computed in Python. The LLM never supplies a price or a total. Placement takes an `Idempotency-Key` derived from the Gupshup `call_id`.
+- **Menu reaches the agent by prompt injection.** The menu is rendered into the agent's system prompt when voice is enabled and re-synced when the menu changes. `place_order` still validates every item id and availability on the server and returns a clear refusal for anything stale or unknown.
+- **The agent must never claim success it did not get.** In the spike the LLM said "your order is placed" with no such tool. The prompt forbids confirming an order unless `place_order` returned success, and the tool result carries the exact wording to speak.
+- **Provisioning is three Gupshup calls:** create the agent, link it to an SR number (`sr/numbers/link-agent`), then set the SIP metadata template (`sr/numbers/metadata`) so the caller number reaches the agent. Disabling voice unlinks and deactivates; it does not delete call history.
+- **Ports.** Gupshup's local backend uses `:8000`; run this API on another port (`:8001`).
+
+**Verified in a spike (2026-09-19, local platform, throwaway agent, since deleted):**
+
+- A custom tool bound to a dynamic variable (`phone={{caller}}`) received the real value on a live web call, with the secret header intact, and the agent spoke the tool's result back.
+- The text `chat` runtime does **not** bind parameters or expose tool results, so it cannot be used to test tools. The `tools/test` endpoint blocks private addresses, so tool webhooks must be publicly reachable to be tested that way.
+
+**Open (do not assume):**
+
+- **SR number supply and cost.** `POST /sr/numbers/buy` has no documented body and presumably spends money; it must not be called until a human confirms what it costs. Only two numbers exist on the demo tenant.
+- **Metadata to dynamic variable mapping.** Whether the SR `sip_metadata` keys arrive under the variable names we declare is unverified; the web-call test could not exercise it. First real SR call decides. Fallback: read `from_number` from `GET /calls/{call_id}` with the same API key.
+- **Latency.** Turn latencies in the spike were 3 to 7.6 s against a 1.5 s target. Not yet attributable (tunnel, staging LiveKit, model); measure once the API is hosted.
+- **Order-to-customer/address links are optional.** A human said they are wanted if easy, not mandatory: they are additive nullable columns and ship in the same migration as the customer tables, but nothing else depends on them.
+- **Personal-data deletion (DPDP, SPEC §9) is deferred.** Customers and addresses are personal data, and `delivery_address_snapshot` keeps an address on old orders. Proposed handling when built: deleting a customer nulls `customer_id` and `address_id` and blanks the snapshot, keeping lines and totals for billing. Not implemented in the pilot; confirm with a CA before real customer data is stored beyond it.
+- **Recording consent, hosting, and languages** are undecided.
+
 ## 2026-09-19 — GSTIN is optional at setup
 
 Requested by a human: onboarding will later fetch GSTIN details (registered name, address) from an external GST lookup, so GSTIN is no longer a go-live blocker. When supplied it is still checksum-validated and must match the state code; a blank value clears it.
