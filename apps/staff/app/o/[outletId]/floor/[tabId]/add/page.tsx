@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { formatInr, ItemSheet } from "@restosaas/ui";
 import { ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
-import { api, ApiError } from "@/lib/api";
-import type { Round, ServeItem, ServeMenu } from "@/lib/types";
+import { act } from "@/lib/offline";
+import type { ServeItem, ServeMenu } from "@/lib/types";
 
 type Entry = { key: string; item: ServeItem; qty: number; modifier_ids: string[]; note: string };
 
@@ -19,30 +19,24 @@ export default function AddItemsPage() {
   const menu = useResource<ServeMenu>(`${base}/staff/menu`, 30_000, true);
   const [selected, setSelected] = useState<ServeItem | null>(null);
   const [cart, setCart] = useState<Entry[]>([]);
+  const [saved, setSaved] = useState<string | null>(null);
   const send = useAction();
-  // One key per attempt: a double tap or a retry after a dropped connection sends the same
-  // key, so the round is placed once. It resets when the cart changes.
-  const key = useRef<string | null>(null);
-
   if (!menu.data) return <ErrorBanner message={menu.error} />;
 
-  const update = (next: Entry[]) => {
-    key.current = null;
-    setCart(next);
-  };
+  const update = setCart;
 
+  /** Sends the round now, or keeps it on this device if there is no connection and sends
+   * it when there is (with the same idempotency key, so it cannot be placed twice). */
   async function place() {
-    key.current ??= crypto.randomUUID();
     const lines = cart.map((e) => ({ menu_item_id: e.item.id, qty: e.qty, modifier_ids: e.modifier_ids, note: e.note || null }));
-    const round = await send.call(async () => {
-      try {
-        return await api<Round>(`${base}/staff/tabs/${tabId}/orders`, { method: "POST", body: { lines }, idempotencyKey: key.current ?? undefined });
-      } catch (e) {
-        if (e instanceof ApiError && e.status < 500) key.current = null;
-        throw e;
-      }
-    });
-    if (round) router.replace(`/o/${outletId}/floor/${tabId}`);
+    const summary = cart.map((e) => `${e.qty} × ${e.item.name}`).join(", ");
+    const outcome = await send.call(() => act("POST", `${base}/staff/tabs/${tabId}/orders`, { lines }, `Add ${summary}`));
+    if (outcome === "sent") router.replace(`/o/${outletId}/floor/${tabId}`);
+    if (outcome === "queued") {
+      // Stay put: with no connection, going to another screen may not load.
+      setCart([]);
+      setSaved(summary);
+    }
   }
 
   return (
@@ -50,6 +44,12 @@ export default function AddItemsPage() {
       <p><Link href={`/o/${outletId}/floor/${tabId}`}>← Back to the table</Link></p>
       <h1>Add items</h1>
       <ErrorBanner message={send.error ?? menu.error} />
+      {saved ? (
+        <p className="banner" role="status">
+          Saved on this device: {saved}. It will be sent as soon as you are back online.{" "}
+          <Link href={`/o/${outletId}/floor/${tabId}`}>Back to the table</Link>
+        </p>
+      ) : null}
       {cart.length > 0 ? (
         <section className="card" aria-label="This round">
           <h2>This round</h2>

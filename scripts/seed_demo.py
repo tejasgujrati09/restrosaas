@@ -128,9 +128,32 @@ if not tables:
     send("POST", "/tables/bulk", {"zone": "floor", "labels": ["T1", "T2", "T3", "T4"], "seats": 4})
     tables = get("/tables")
 
+def staff_member(phone: str, role: str, name: str) -> None:
+    """Invites and accepts a staff member, unless they already work here."""
+    client.post("/v1/auth/otp/request", json={"phone": phone})
+    login = client.post("/v1/auth/otp/verify", json={"phone": phone, "code": CODE})
+    if login.status_code == 200 and claims(login.json()["access_token"]).get("roles"):
+        return
+    invite = send("POST", "/invites", {"phone": phone, "role": role})
+    token = invite["link"].rsplit("/", 1)[1]
+    ok(client.post("/v1/invites/otp", json={"token": token}))
+    ok(client.post("/v1/invites/accept", json={"token": token, "code": CODE, "name": name}))
+
+
+WAITER, KITCHEN = "+918888800002", "+918888800003"
+staff_member(WAITER, "waiter", "Ravi (waiter)")
+staff_member(KITCHEN, "kitchen", "Kitchen")
+client.post("/v1/auth/otp/request", json={"phone": WAITER})
+waiter_id = claims(ok(client.post("/v1/auth/otp/verify", json={"phone": WAITER, "code": CODE}))["access_token"])["sub"]
+by_label = {row["label"]: row["table_id"] for row in get("/table-assignments")}
+for label in ("T1", "T2"):
+    send("PUT", f"/tables/{by_label[label]}/assignees", {"user_ids": [waiter_id]})
+
 lines = [
     "Demo venue (created by scripts/seed_demo.py)",
-    f"  Owner sign-in   {STAFF}/login   phone 8888800001, code {CODE}",
+    f"  Owner sign-in    {STAFF}/login   phone 8888800001, code {CODE}   (also acts as manager)",
+    f"  Waiter sign-in   same page, phone 8888800002: sees only tables T1 and T2",
+    f"  Kitchen sign-in  same page, phone 8888800003: the ticket queue",
     "  Guest links (open on a phone-sized window):",
     *[f"    Table {t['label']:<3} {t['qr_url']}" for t in tables],
     "  Happy hour: Craft Beer is Rs 200 between 4 PM and 8 PM, otherwise Rs 300.",

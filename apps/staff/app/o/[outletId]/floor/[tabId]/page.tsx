@@ -7,6 +7,7 @@ import { formatInr } from "@restosaas/ui";
 import { Card, ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
+import { act } from "@/lib/offline";
 import { lineStatus, timeOf } from "@/lib/floor";
 import type { Line, RequestRow, Round, StaffTab, TableMap } from "@/lib/types";
 
@@ -40,7 +41,7 @@ export default function TablePage() {
   }
 
   const serve = (round: Round, lineId?: string) =>
-    run(() => api(`${base}/staff/tabs/${tabId}/orders/${round.id}/serve`, { method: "POST", body: lineId ? { line_ids: [lineId] } : {} }));
+    run(() => act("POST", `${base}/staff/tabs/${tabId}/orders/${round.id}/serve`, lineId ? { line_ids: [lineId] } : {}, `Serve round ${round.seq_no} at ${view.table_label ?? "a table"}`));
 
   return (
     <>
@@ -55,7 +56,7 @@ export default function TablePage() {
       {view.awaiting_waiter ? (
         <p className="card">
           The guest is waiting for you to confirm this table.{" "}
-          <button type="button" disabled={action.busy} onClick={() => run(() => api(`${base}/tabs/${tabId}/confirm`, { method: "POST" }))}>
+          <button type="button" disabled={action.busy} onClick={() => run(() => act("POST", `${base}/tabs/${tabId}/confirm`, undefined, `Confirm table ${view.table_label ?? ""}`))}>
             Confirm table
           </button>
         </p>
@@ -65,7 +66,7 @@ export default function TablePage() {
           {mine.map((r) => (
             <div key={r.id} className="line-row">
               <span className="grow">{r.type} · since {timeOf(r.created_at)}</span>
-              <button type="button" disabled={action.busy} onClick={() => run(() => api(`${base}/staff/service-requests/${r.id}/resolve`, { method: "POST" }))}>Done</button>
+              <button type="button" disabled={action.busy} onClick={() => run(() => act("POST", `${base}/staff/service-requests/${r.id}/resolve`, undefined, `Finish ${r.type} request at ${view.table_label ?? "a table"}`))}>Done</button>
             </div>
           ))}
         </Card>

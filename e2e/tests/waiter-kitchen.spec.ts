@@ -112,3 +112,60 @@ test("a manager assigns a table and the waiter's map gains it without reloading"
   await expect(waiter.getByText("You have no tables yet")).toHaveCount(0);
   await expect(waiter.getByText("T1", { exact: true })).toHaveCount(0);
 });
+
+test("a waiter adds items with no connection; they are kept and sent once when it returns", async ({ browser, request }) => {
+  const venue = await setUpVenue(request);
+  const waiterToken = await addStaff(request, venue, "waiter");
+  await assignTable(request, venue, "T1", waiterToken);
+  const guest = await guestPage(browser, venue.qrToken);
+  const { staffPage } = await import("./helpers");
+  const waiter = await staffPage(browser, waiterToken);
+  await waiter.goto(`${staffApp}/o/${venue.outletId}/floor`);
+  await waiter.getByRole("link", { name: /T1/ }).click();
+  await waiter.getByRole("link", { name: "Add items" }).click();
+  await waiter.locator(".line-row", { hasText: "Spring Roll" }).getByRole("button", { name: "Add" }).click();
+  await waiter.getByRole("button", { name: /Add to cart/ }).click();
+
+  await waiter.context().setOffline(true);
+  await waiter.getByRole("button", { name: "Send to the kitchen" }).click();
+  await expect(waiter.getByText("Saved on this device")).toBeVisible();
+  await expect(waiter.locator(".offline")).toContainText("Add 1 × Spring Roll");
+
+  await waiter.context().setOffline(false);
+  await expect(waiter.locator(".offline")).toHaveCount(0, { timeout: 20_000 });
+  await waiter.getByRole("link", { name: "Back to the table", exact: true }).click();
+  await expect(waiter.getByText("1 × Spring Roll")).toBeVisible({ timeout: 10_000 });
+  await expect(waiter.getByText(/^Round \d/)).toHaveCount(1); // placed once, not per attempt
+  await guest.getByRole("link", { name: "My tab" }).click();
+  await expect(guest.getByText("1 × Spring Roll")).toBeVisible({ timeout: 6_000 });
+});
+
+test("an action the server refuses after reconnecting is shown for review, not lost or forced", async ({ browser, request }) => {
+  const venue = await setUpVenue(request);
+  const waiterToken = await addStaff(request, venue, "waiter");
+  const kitchenToken = await addStaff(request, venue, "kitchen");
+  await assignTable(request, venue, "T1", waiterToken);
+  await guestPage(browser, venue.qrToken);
+  const { staffPage } = await import("./helpers");
+  const waiter = await staffPage(browser, waiterToken);
+  await waiter.goto(`${staffApp}/o/${venue.outletId}/floor`);
+  await waiter.getByRole("link", { name: /T1/ }).click();
+  await waiter.getByRole("link", { name: "Add items" }).click();
+  await waiter.locator(".line-row", { hasText: "Spring Roll" }).getByRole("button", { name: "Add" }).click();
+  await waiter.getByRole("button", { name: /Add to cart/ }).click();
+  await waiter.context().setOffline(true);
+  await waiter.getByRole("button", { name: "Send to the kitchen" }).click();
+  await expect(waiter.locator(".offline")).toContainText("1 action");
+
+  // While the waiter is offline the kitchen runs out of it.
+  const items = (await (await request.get(`${venue.base}/menu`, { headers: venue.owner })).json()) as { categories: { items: { id: string; name: string }[] }[] };
+  const roll = items.categories.flatMap((c) => c.items).find((i) => i.name === "Spring Roll")!;
+  expect((await request.put(`${venue.base}/items/${roll.id}/sold-out`, { headers: { Authorization: `Bearer ${kitchenToken}` }, data: { sold_out: true } })).ok()).toBe(true);
+
+  await waiter.context().setOffline(false);
+  const notice = waiter.locator(".offline .warn");
+  await expect(notice).toContainText("Add 1 × Spring Roll", { timeout: 20_000 });
+  await expect(notice).toContainText("not available");
+  await notice.getByRole("button", { name: "Discard" }).click();
+  await expect(waiter.locator(".offline")).toHaveCount(0);
+});

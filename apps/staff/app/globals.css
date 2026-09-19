@@ -64,3 +64,5 @@ nav.top a[aria-current="page"] { background: #e8f0ff; color: var(--accent); font
 .stations button[aria-pressed="true"] { background: var(--accent); color: #fff; }
 .matrix th, .matrix td { text-align: center; }
 .matrix th:first-child, .matrix td:first-child { text-align: left; }
+.offline { background: #fffaeb; border-bottom: 1px solid #fedf89; padding: 6px 16px; }
+.offline p { margin: 4px 0; }

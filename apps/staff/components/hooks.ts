@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, errorMessage } from "@/lib/api";
 import { useLive } from "@/lib/live";
+import { useOffline } from "@/lib/offline";
 
 /**
  * `live` refetches whenever the server pushes a change and, with `pollMs`, polls far less
@@ -10,7 +11,9 @@ import { useLive } from "@/lib/live";
  */
 export function useResource<T>(path: string | null, pollMs?: number, live = false) {
   const { tick: liveTick, connected } = useLive();
-  const pushed = live ? liveTick : 0;
+  const { synced } = useOffline();
+  // A queued action reaching the server changes what is on screen just like a push does.
+  const pushed = live ? liveTick + synced : 0;
   const interval = pollMs && live && connected ? pollMs * 8 : pollMs;
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);

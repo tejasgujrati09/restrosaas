@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
+import { act } from "@/lib/offline";
 import { api } from "@/lib/api";
 import { ageClass, minutesSince, secondsUntil } from "@/lib/floor";
 import { useStored } from "@/lib/stored";
@@ -25,7 +26,7 @@ export default function KitchenPage() {
   if (!queue.data) return <ErrorBanner message={queue.error} />;
 
   async function move(t: Ticket, verb: "start" | "ready" | "recall") {
-    if (await action.run(() => api(`${base}/tickets/${t.id}/${verb}`, { method: "POST" }))) queue.reload();
+    if (await action.run(() => act("POST", `${base}/tickets/${t.id}/${verb}`, undefined, `${verb[0]?.toUpperCase()}${verb.slice(1)} ticket for table ${t.table_label ?? "?"}`))) queue.reload();
   }
 
   async function soldOut(itemId: string, name: string, sold: boolean) {

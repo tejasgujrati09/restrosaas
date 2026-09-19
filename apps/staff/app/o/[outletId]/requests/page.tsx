@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
-import { api } from "@/lib/api";
+import { act } from "@/lib/offline";
 import { ageClass, minutesSince, timeOf } from "@/lib/floor";
 import type { RequestRow } from "@/lib/types";
 import { useNow } from "@/lib/use-now";
@@ -41,7 +41,7 @@ export default function RequestsPage() {
                 type="button"
                 disabled={action.busy}
                 onClick={async () => {
-                  if (await action.run(() => api(`${base}/service-requests/${r.id}/resolve`, { method: "POST" }))) feed.reload();
+                  if (await action.run(() => act("POST", `${base}/service-requests/${r.id}/resolve`, undefined, `Finish ${LABELS[r.type] ?? r.type} request at ${r.table_label ?? "a table"}`))) feed.reload();
                 }}
               >
                 Done

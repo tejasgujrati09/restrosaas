@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, type ReactNode } from "react";
 import { useResource } from "@/components/hooks";
+import { OfflineBanner } from "@/components/offline-banner";
 import { live, socketUrl, useLive } from "@/lib/live";
 import { clearSession, getToken, rolesAt } from "@/lib/session";
 import { useToken } from "@/lib/use-token";
@@ -62,12 +63,13 @@ export default function OutletLayout({ children }: { children: ReactNode }) {
             </li>
           ))}
           <li className="spacer" />
-          <li className={connected ? "muted" : "warn"} role="status">{connected ? "Live" : "Reconnecting…"}</li>
+          <li className={connected ? "muted" : "warn"} title="Connection to the server">{connected ? "Live" : "Reconnecting…"}</li>
           <li>
             <button type="button" className="secondary" onClick={() => { clearSession(); router.replace("/login"); }}>Sign out</button>
           </li>
         </ul>
       </nav>
+      <OfflineBanner />
       <main>{children}</main>
     </>
   );
