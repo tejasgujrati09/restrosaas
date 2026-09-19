@@ -98,7 +98,8 @@ async def _tickets_out(ctx: OutletContext, rows: list[Ticket]) -> list[TicketOut
     for ticket in rows:
         order = orders[ticket.order_id]
         tab = tabs[ticket.tab_id]
-        holding = order.status == OrderState.PLACED.value
+        # A phone order waits for a person, not a timer: no countdown, and can_start stays false.
+        holding = order.status == OrderState.PLACED.value and order.source != "voice"
         out.append(
             TicketOut(
                 id=ticket.id,

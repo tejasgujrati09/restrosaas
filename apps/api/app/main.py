@@ -27,6 +27,7 @@ from app.api.v1 import (
     staff,
     tables,
     tabs,
+    voice_orders,
 )
 from app.config import settings as app_settings
 from app.errors import install_error_handlers
@@ -64,6 +65,7 @@ for module in (
     assignments,
     floor,
     kitchen,
+    voice_orders,
 ):
     app.include_router(module.router)
 

@@ -50,6 +50,7 @@ class Capability(StrEnum):
     MANAGE_SUBSCRIPTION_BILLING = "manage_subscription_billing"
     # Not in the original docs/SPEC.md §6; see docs/DECISIONS.md "Voice ordering agent".
     ENABLE_VOICE_AGENT = "enable_voice_agent"
+    ACCEPT_VOICE_ORDERS = "accept_voice_orders"
 
 
 # Capability -> the outlet-scoped staff roles that hold it. A role missing
@@ -82,6 +83,7 @@ CAPABILITY_MATRIX: dict[Capability, frozenset[Role]] = {
     Capability.EXPORT_INTEGRATIONS: frozenset({Role.OWNER}),
     Capability.MANAGE_SUBSCRIPTION_BILLING: frozenset({Role.OWNER}),
     Capability.ENABLE_VOICE_AGENT: frozenset({Role.OWNER}),
+    Capability.ACCEPT_VOICE_ORDERS: frozenset({Role.MANAGER, Role.OWNER}),
 }
 
 

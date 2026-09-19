@@ -84,7 +84,12 @@ async def accept_due_orders(
     means concurrent readers accept each round, and log it, exactly once."""
     placed = (
         await session.scalars(
-            select(Order).where(Order.tab_id == tab_id, Order.status == OrderState.PLACED.value)
+            select(Order).where(
+                Order.tab_id == tab_id,
+                Order.status == OrderState.PLACED.value,
+                # A phone order is accepted by a person, never by the clock.
+                Order.source != "voice",
+            )
         )
     ).all()
     for order in placed:
@@ -183,6 +188,19 @@ class PlacedOrder:
     lines: list[OrderLine]
 
 
+@dataclass(frozen=True)
+class OrderOrigin:
+    """An order that did not come from a table: a phone call. Its round waits for a
+    manager or owner to accept it (docs/DECISIONS.md "Voice ordering agent")."""
+
+    source: str
+    fulfillment_type: str
+    customer_id: UUID | None = None
+    address_id: UUID | None = None
+    delivery_address_snapshot: str | None = None
+    external_call_id: str | None = None
+
+
 async def create_round(
     session: AsyncSession,
     *,
@@ -195,6 +213,7 @@ async def create_round(
     actor: Actor,
     now: datetime,
     outlet: Outlet,
+    origin: OrderOrigin | None = None,
 ) -> PlacedOrder:
     """A round of lines, its tickets and its events. A guest's round waits out the
     undo window as `placed`; a waiter's is accepted at once and lines above the ack
@@ -210,12 +229,16 @@ async def create_round(
         tab_id=tab.id,
         seq_no=seq_no + 1,
         status=status.value,
-        fulfillment_type="dine_in",
+        fulfillment_type=origin.fulfillment_type if origin else "dine_in",
         placed_at=now,
         placed_by_user_id=actor.user_id if by_staff else None,
         placed_by_session_id=None if by_staff else actor.session_id,
-        source="waiter" if by_staff else "customer",
+        source=origin.source if origin else ("waiter" if by_staff else "customer"),
         accepted_at=now if by_staff else None,
+        customer_id=origin.customer_id if origin else None,
+        address_id=origin.address_id if origin else None,
+        delivery_address_snapshot=origin.delivery_address_snapshot if origin else None,
+        external_call_id=origin.external_call_id if origin else None,
     )
     session.add(order)
     await session.flush()
@@ -309,16 +332,17 @@ async def create_round(
                     "unit_price_paise": snap.unit_price_paise,
                 },
             )
-    log(
-        "order_placed",
-        {
-            "order_id": str(order.id),
-            "seq_no": order.seq_no,
-            "line_count": len(lines),
-            "total_paise": sum(line.line_total for line in lines),
-            "source": order.source,
-        },
-    )
+    placed_payload: dict[str, Any] = {
+        "order_id": str(order.id),
+        "seq_no": order.seq_no,
+        "line_count": len(lines),
+        "total_paise": sum(line.line_total for line in lines),
+        "source": order.source,
+    }
+    if origin is not None:
+        placed_payload["channel"] = origin.source
+        placed_payload["call_id"] = origin.external_call_id
+    log("order_placed", placed_payload)
     if TabState(tab.status) == TabState.BILL_REQUESTED:
         tab.status = transition_tab(TabState.BILL_REQUESTED, TabState.OPEN).value
         log("bill_request_cleared", {"order_id": str(order.id)})
@@ -491,3 +515,90 @@ async def create_service_request(
             ctx, now, "service_requested", {"request_id": str(request.id), "type": request_type}
         )
     return request
+
+
+async def _pending_voice_order(session: AsyncSession, outlet_id: UUID, order_id: UUID) -> Order:
+    order = await session.scalar(
+        select(Order)
+        .where(Order.id == order_id, Order.outlet_id == outlet_id, Order.source == "voice")
+        .with_for_update()
+    )
+    if order is None:
+        raise ApiError(404, "not_found", "Order not found.")
+    if order.status != OrderState.PLACED.value:
+        raise ApiError(
+            409,
+            "order_not_pending",
+            "This order is no longer waiting for acceptance.",
+            {"status": order.status},
+        )
+    return order
+
+
+async def accept_voice_order(
+    ctx: OutletContext, order_id: UUID, now: datetime
+) -> tuple[Order, list[OrderLine]]:
+    """A manager or owner accepts a phone order: it becomes `accepted`, so the kitchen can
+    start its ticket. Conditional on still being `placed`, so a double tap accepts once."""
+    session = ctx.session
+    order = await _pending_voice_order(session, ctx.outlet_id, order_id)
+    target = transition_order(OrderState.PLACED, OrderState.ACCEPTED)
+    order.status = target.value
+    order.accepted_at = now
+    await session.execute(
+        update(OrderLine)
+        .where(OrderLine.order_id == order.id, OrderLine.status == OrderState.PLACED.value)
+        .values(status=target.value)
+    )
+    emit(
+        session,
+        restaurant_id=ctx.restaurant_id,
+        tab_id=order.tab_id,
+        table_id=None,
+        at=now,
+        actor=Actor("staff", user_id=ctx.actor.user_id),
+        event="order_accepted",
+        payload={"order_id": str(order.id), "seq_no": order.seq_no, "auto": False},
+    )
+    lines = list(
+        await session.scalars(
+            select(OrderLine)
+            .where(OrderLine.order_id == order.id)
+            .order_by(OrderLine.position, OrderLine.id)
+        )
+    )
+    return order, lines
+
+
+async def reject_voice_order(
+    ctx: OutletContext, order_id: UUID, reason: str, now: datetime
+) -> tuple[Order, list[OrderLine]]:
+    """A manager or owner declines a phone order. The round is cancelled with a reason and
+    its kitchen ticket is withdrawn. The tab stays open for the restaurant to close."""
+    session = ctx.session
+    order = await _pending_voice_order(session, ctx.outlet_id, order_id)
+    order.status = transition_order(OrderState.PLACED, OrderState.CANCELLED).value
+    order.cancelled_at = now
+    await session.execute(
+        update(OrderLine).where(OrderLine.order_id == order.id).values(status="cancelled")
+    )
+    await cancel_order_tickets(session, order.id)
+    emit(
+        session,
+        restaurant_id=ctx.restaurant_id,
+        tab_id=order.tab_id,
+        table_id=None,
+        at=now,
+        actor=Actor("staff", user_id=ctx.actor.user_id),
+        event="order_cancelled",
+        payload={"order_id": str(order.id), "seq_no": order.seq_no, "by": "staff"},
+        reason=reason,
+    )
+    lines = list(
+        await session.scalars(
+            select(OrderLine)
+            .where(OrderLine.order_id == order.id)
+            .order_by(OrderLine.position, OrderLine.id)
+        )
+    )
+    return order, lines
