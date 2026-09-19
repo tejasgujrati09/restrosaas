@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { formatInr } from "@restosaas/ui";
+import { Badge, EmptyState, formatInr, Icon, PageHeader, Skeleton } from "@restosaas/ui";
 import { Card, ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
 import { act } from "@/lib/offline";
-import { lineStatus, timeOf } from "@/lib/floor";
+import { lineStatus, statusTone, timeOf } from "@/lib/floor";
 import type { Line, RequestRow, Round, StaffTab, TableMap } from "@/lib/types";
 
 function source(line: Line): string {
@@ -25,7 +25,7 @@ export default function TablePage() {
   const action = useAction();
   const [panel, setPanel] = useState<"transfer" | "merge" | null>(null);
 
-  if (!tab.data) return <ErrorBanner message={tab.error} />;
+  if (!tab.data) return tab.error ? <ErrorBanner message={tab.error} /> : <Skeleton what="this table" lines={4} block />;
   const view = tab.data.tab;
   const mine = (requests.data ?? []).filter((r) => r.tab_id === tabId);
   const freeTables = (map.data?.tables ?? []).filter((t) => t.active && t.state === "empty");
@@ -45,12 +45,35 @@ export default function TablePage() {
 
   return (
     <>
-      <p><Link href={`/o/${outletId}/floor`}>← All tables</Link></p>
-      <h1>Table {view.table_label ?? "?"}</h1>
-      <p className="muted">
-        {tab.data.opened_by === "waiter" ? "Opened by a waiter" : "Opened by the guest"} · {tab.data.guest_sessions} phone{tab.data.guest_sessions === 1 ? "" : "s"} on this tab
-        {view.status === "bill_requested" ? " · Bill requested" : ""}
-      </p>
+      <Link className="back" href={`/o/${outletId}/floor`}>
+        <Icon name="back" size={16} />
+        All tables
+      </Link>
+      <PageHeader
+        title={`Table ${view.table_label ?? "?"}`}
+        subtitle={
+          <>
+            {tab.data.opened_by === "waiter" ? "Opened by a waiter" : "Opened by the guest"} · {tab.data.guest_sessions} phone
+            {tab.data.guest_sessions === 1 ? "" : "s"} on this tab
+            {view.status === "bill_requested" ? " · Bill requested" : ""}
+          </>
+        }
+        actions={
+          live ? (
+            <>
+              <Link className="button" href={`/o/${outletId}/floor/${tabId}/add`}>
+                Add items
+              </Link>
+              <button type="button" className="secondary" onClick={() => setPanel(panel === "transfer" ? null : "transfer")}>
+                Move to another table
+              </button>
+              <button type="button" className="secondary" onClick={() => setPanel(panel === "merge" ? null : "merge")}>
+                Merge into another tab
+              </button>
+            </>
+          ) : undefined
+        }
+      />
       <ErrorBanner message={action.error ?? tab.error} />
       {view.status !== "open" && view.status !== "bill_requested" ? <p className="error">This tab is {view.status}.</p> : null}
       {view.awaiting_waiter ? (
@@ -70,13 +93,6 @@ export default function TablePage() {
             </div>
           ))}
         </Card>
-      ) : null}
-      {live ? (
-        <div className="inline" style={{ marginBottom: 16 }}>
-          <Link className="button" href={`/o/${outletId}/floor/${tabId}/add`}>Add items</Link>
-          <button type="button" className="secondary" onClick={() => setPanel(panel === "transfer" ? null : "transfer")}>Move to another table</button>
-          <button type="button" className="secondary" onClick={() => setPanel(panel === "merge" ? null : "merge")}>Merge into another tab</button>
-        </div>
       ) : null}
       {panel === "transfer" ? (
         <Card title="Move to which table?">
@@ -111,7 +127,11 @@ export default function TablePage() {
           </div>
         </Card>
       ) : null}
-      {view.rounds.length === 0 ? <p>Nothing ordered yet.</p> : null}
+      {view.rounds.length === 0 ? (
+        <EmptyState title="Nothing ordered yet">
+          {live ? "Rounds show up here as the guest orders. Use Add items to order for them." : "Nothing was ordered on this tab."}
+        </EmptyState>
+      ) : null}
       {view.rounds.map((round) => {
         const anyReady = round.lines.some((l) => l.status === "ready");
         return (
@@ -125,12 +145,17 @@ export default function TablePage() {
                     {line.modifiers.length ? <div className="muted">{line.modifiers.map((m) => m.name).join(", ")}</div> : null}
                     {line.note ? <div className="muted">“{line.note}”</div> : null}
                     <div className="muted">
-                      {source(line)} · {lineStatus(line.status)}
+                      {source(line)}
                       {line.price_rule ? ` · ${line.price_rule.name ?? "special price"}` : ""}
                     </div>
-                    {line.ack_state === "awaiting" ? <div className="warn">Awaiting the guest&apos;s OK</div> : null}
-                    {line.ack_state === "acked" ? <div className="ok">Guest confirmed</div> : null}
-                    {line.ack_state === "disputed" ? <div className="warn">Guest says this isn&apos;t theirs. A manager will check.</div> : null}
+                    <div className="badges">
+                      <Badge tone={statusTone(line.status)}>{lineStatus(line.status)}</Badge>
+                      {line.ack_state === "awaiting" ? <Badge tone="warn">Awaiting the guest&apos;s OK</Badge> : null}
+                      {line.ack_state === "acked" ? <Badge tone="ok">Guest confirmed</Badge> : null}
+                      {line.ack_state === "disputed" ? (
+                        <Badge tone="danger">Guest says this isn&apos;t theirs. A manager will check.</Badge>
+                      ) : null}
+                    </div>
                     {line.void_reason ? <div className="muted">Removed: {line.void_reason}</div> : null}
                   </div>
                   <div>

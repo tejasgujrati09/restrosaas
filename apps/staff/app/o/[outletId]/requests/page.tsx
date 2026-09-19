@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { EmptyState, PageHeader, Skeleton } from "@restosaas/ui";
 import { ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { act } from "@/lib/offline";
@@ -19,12 +20,14 @@ export default function RequestsPage() {
   const action = useAction();
   const now = useNow();
 
-  if (!feed.data) return <ErrorBanner message={feed.error} />;
+  if (!feed.data) return feed.error ? <ErrorBanner message={feed.error} /> : <Skeleton what="requests" lines={3} block />;
   return (
     <>
-      <h1>Requests</h1>
+      <PageHeader title="Requests" subtitle={feed.data.length > 0 ? `${feed.data.length} waiting, oldest first` : undefined} />
       <ErrorBanner message={action.error ?? feed.error} />
-      {feed.data.length === 0 ? <p>Nothing waiting.</p> : null}
+      {feed.data.length === 0 ? (
+        <EmptyState title="Nothing waiting.">Water, waiter and bill requests from guests will appear here as they come in.</EmptyState>
+      ) : null}
       {feed.data.map((r) => {
         const waited = minutesSince(r.created_at, now);
         return (

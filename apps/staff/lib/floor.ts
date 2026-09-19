@@ -15,6 +15,22 @@ const LINE_STATUS: Record<string, string> = {
   voided: "Removed",
 };
 
+/** How loud a line or round status should be: waiting on the kitchen is amber, ready and
+ *  served are green, the rest is neutral. Words always accompany the colour. */
+export function statusTone(status: string): "neutral" | "info" | "warn" | "ok" {
+  switch (status) {
+    case "placed":
+      return "info";
+    case "preparing":
+      return "warn";
+    case "ready":
+    case "served":
+      return "ok";
+    default:
+      return "neutral";
+  }
+}
+
 export function lineStatus(status: string): string {
   return LINE_STATUS[status] ?? status;
 }

@@ -419,7 +419,7 @@
     gap: var(--s-3);
     margin-bottom: var(--s-5);
   }
-  .page-head > div {
+  .page-head > div:first-child {
     display: flex;
     flex-direction: column;
     gap: var(--s-1);

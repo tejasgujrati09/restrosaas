@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { formatInr, ItemSheet } from "@restosaas/ui";
+import { formatInr, Icon, ItemSheet, Notice, PageHeader, Skeleton } from "@restosaas/ui";
 import { ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { act } from "@/lib/offline";
@@ -21,7 +21,7 @@ export default function AddItemsPage() {
   const [cart, setCart] = useState<Entry[]>([]);
   const [saved, setSaved] = useState<string | null>(null);
   const send = useAction();
-  if (!menu.data) return <ErrorBanner message={menu.error} />;
+  if (!menu.data) return menu.error ? <ErrorBanner message={menu.error} /> : <Skeleton what="the menu" lines={6} />;
 
   const update = setCart;
 
@@ -41,14 +41,17 @@ export default function AddItemsPage() {
 
   return (
     <>
-      <p><Link href={`/o/${outletId}/floor/${tabId}`}>← Back to the table</Link></p>
-      <h1>Add items</h1>
+      <Link className="back" href={`/o/${outletId}/floor/${tabId}`} aria-label="Back to table">
+        <Icon name="back" size={16} />
+        Table
+      </Link>
+      <PageHeader title="Add items" subtitle="Your name goes on each item. Items of ₹500 or more ask the guest to confirm." />
       <ErrorBanner message={send.error ?? menu.error} />
       {saved ? (
-        <p className="banner" role="status">
+        <Notice>
           Saved on this device: {saved}. It will be sent as soon as you are back online.{" "}
           <Link href={`/o/${outletId}/floor/${tabId}`}>Back to the table</Link>
-        </p>
+        </Notice>
       ) : null}
       {cart.length > 0 ? (
         <section className="card" aria-label="This round">
@@ -60,32 +63,43 @@ export default function AddItemsPage() {
                 {e.modifier_ids.length ? <div className="muted">{e.item.modifier_groups.flatMap((g) => g.modifiers).filter((m) => e.modifier_ids.includes(m.id)).map((m) => m.name).join(", ")}</div> : null}
                 {e.note ? <div className="muted">“{e.note}”</div> : null}
               </div>
-              <div className="inline">
-                <button type="button" className="secondary" aria-label={`One less ${e.item.name}`} onClick={() => update(cart.flatMap((c) => (c.key !== e.key ? [c] : c.qty > 1 ? [{ ...c, qty: c.qty - 1 }] : [])))}>
-                  {e.qty === 1 ? "Remove" : "−"}
+              <div className="qty" role="group" aria-label={`Quantity of ${e.item.name}`}>
+                <button
+                  type="button"
+                  className="secondary icon-btn"
+                  aria-label={e.qty === 1 ? `Remove ${e.item.name}` : `One less ${e.item.name}`}
+                  onClick={() => update(cart.flatMap((c) => (c.key !== e.key ? [c] : c.qty > 1 ? [{ ...c, qty: c.qty - 1 }] : [])))}
+                >
+                  <Icon name={e.qty === 1 ? "close" : "minus"} />
                 </button>
                 <output>{e.qty}</output>
-                <button type="button" className="secondary" aria-label={`One more ${e.item.name}`} onClick={() => update(cart.map((c) => (c.key === e.key ? { ...c, qty: Math.min(50, c.qty + 1) } : c)))}>+</button>
+                <button
+                  type="button"
+                  className="secondary icon-btn"
+                  aria-label={`One more ${e.item.name}`}
+                  onClick={() => update(cart.map((c) => (c.key === e.key ? { ...c, qty: Math.min(50, c.qty + 1) } : c)))}
+                >
+                  <Icon name="plus" />
+                </button>
               </div>
             </div>
           ))}
-          <button type="button" disabled={send.busy} onClick={place}>{send.busy ? "Sending…" : "Send to the kitchen"}</button>
-          <p className="hint">Your name goes on each item. Items of ₹500 or more ask the guest to confirm.</p>
+          <button type="button" className="btn-lg wide cta" disabled={send.busy} onClick={place}>{send.busy ? "Sending…" : "Send to the kitchen"}</button>
         </section>
       ) : null}
       {menu.data.categories.map((c) => (
         <section key={c.id} className="card">
           <h2>{c.name}</h2>
           {c.items.map((item) => (
-            <div key={item.id} className="line-row">
+            <div key={item.id} className="line-row center">
               <div className="grow">
                 {item.name}
                 {item.price_rule ? <div className="warn">{item.price_rule.name}</div> : null}
                 {!item.available ? <div className="muted">Sold out</div> : !item.self_orderable ? <div className="muted">Needs a manager</div> : null}
               </div>
               <div className="inline">
-                <span>{formatInr(item.price_paise)}</span>
-                <button type="button" disabled={!item.available} onClick={() => setSelected(item)}>Add</button>
+                <span className="money">{formatInr(item.price_paise)}</span>
+                <button type="button" className="secondary" disabled={!item.available} onClick={() => setSelected(item)}>Add</button>
               </div>
             </div>
           ))}

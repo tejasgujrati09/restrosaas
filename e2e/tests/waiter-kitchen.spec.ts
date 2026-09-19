@@ -89,7 +89,7 @@ test("marking an item sold out in the kitchen greys it on the guest's menu at on
   await expect(guest.getByRole("button", { name: /Spring Roll/ })).toBeEnabled();
 
   await kitchen.getByLabel("Find an item").fill("spring");
-  await kitchen.getByRole("button", { name: "Sold out", exact: true }).first().click();
+  await kitchen.getByRole("button", { name: "Mark sold out" }).first().click();
   await expect(kitchen.getByRole("status").filter({ hasText: "marked sold out" })).toBeVisible();
   await expect(guest.getByRole("button", { name: /Spring Roll/ })).toBeDisabled({ timeout: 4_000 });
   await expect(guest.getByRole("button", { name: /Spring Roll/ })).toContainText("Sold out");
