@@ -12,6 +12,7 @@ export {
   Skeleton,
   type Tone,
 } from "./components";
+export { Icon, type IconName } from "./icons";
 export { ItemSheet } from "./item-sheet";
 export { Sheet } from "./sheet";
 export {

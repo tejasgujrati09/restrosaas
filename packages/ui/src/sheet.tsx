@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { Icon } from "./icons";
 
 /** A bottom sheet on the native <dialog> element: focus trap, Escape and backdrop for free. */
 export function Sheet({
@@ -35,8 +36,8 @@ export function Sheet({
         <div className="sheet-body">
           <div className="sheet-head">
             <h2 id="sheet-title">{title}</h2>
-            <button type="button" className="secondary" onClick={onClose} aria-label="Close">
-              ✕
+            <button type="button" className="secondary icon-btn" onClick={onClose} aria-label="Close">
+              <Icon name="close" />
             </button>
           </div>
           {children}

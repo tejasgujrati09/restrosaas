@@ -127,14 +127,14 @@ Audit date 2026-09-19, from screenshots of 24 screens at 390 and 1280 px against
 | # | Area | Finding | Status |
 | --- | --- | --- | --- |
 | 1 | Nav | Staff nav: 9 equal links wrap to 3–4 rows on a phone; no grouping; Sign out styled like a page action | open |
-| 2 | Guest menu | Rows do not look tappable (no add control); no venue brand | open |
+| 2 | Guest menu | Rows do not look tappable (no add control); no venue brand | done (UI-2) |
 | 3 | Staff menu | Page overflows sideways at 390 px; Edit/Delete clipped; 4-line item names | open |
 | 4 | Kitchen | Every sold-out button reads "Sold out" (action looks like state); list flush under tickets | open |
 | 5 | Buttons | Everything solid or outlined blue; no primary/secondary/destructive hierarchy | open |
 | 6 | Setup | Ten stacked full-width cards; one Save mid-page covers only some sections | open |
 | 7 | Menu page | Daily tasks and rare tasks (options, CSV) at one level; about 1,900 px tall | open |
-| 8 | Guest tab | Round-level status only; "Request bill" below totals, not sticky | open (line status: check API) |
-| 9 | Copy | "Included in prices: CGST/SGST/VAT" on guest screens | open |
+| 8 | Guest tab | Round-level status only; "Request bill" below totals, not sticky | done (UI-2): sticky "Request the bill · ₹", running total, per-item progress (the API already sends line status) |
+| 9 | Copy | "Included in prices: CGST/SGST/VAT" on guest screens | done (UI-2): "Taxes are already in your prices." |
 | 10 | States | "Loading…", "Nothing waiting.", a red paragraph; no skeletons, no next step | partly done: `Skeleton` and `EmptyState` exist; screens adopt them per slice |
 | 11 | Styles | Two near-identical `globals.css`; `.check`/`.grow` defined 3×; ~15 hard-coded hex | done (UI-1): one `tokens.css` + `components.css`; app CSS is token-only |
 | 12 | Type/motion | System font only; no focus, transition or dark rules | done (UI-1): self-hosted Manrope + Fraunces with ₹, transitions, reduced-motion |
@@ -149,6 +149,6 @@ Audit date 2026-09-19, from screenshots of 24 screens at 390 and 1280 px against
 | Slice | Screens | Status |
 | --- | --- | --- |
 | UI-1 Foundation | tokens, fonts, shared components, focus, shrink both `globals.css` | **done** (branch `ui/design-system`) |
-| UI-2 Guest | QR landing/errors, menu, item sheet, cart, tab, call sheet | open |
+| UI-2 Guest | QR landing/errors, menu, item sheet, cart, tab, call sheet | **done** |
 | UI-3 Staff service | shell + nav, floor, table view, add items, requests, kitchen | open |
 | UI-4 Owner admin | sign-in/sign-up/invite, outlet picker, setup, menu, tables & QR, staff, happy hours, assignments | open |

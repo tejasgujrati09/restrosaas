@@ -136,6 +136,13 @@
     color: var(--on-accent);
   }
 
+  /* Square icon-only button; give it an aria-label. */
+  .icon-btn {
+    width: var(--hit);
+    padding: 0;
+    flex: none;
+  }
+
   .btn-lg {
     min-height: var(--hit-cta);
     padding: 0 var(--s-5);
@@ -235,6 +242,12 @@
     align-items: center;
     gap: var(--s-3);
     min-height: var(--hit);
+  }
+  .group .check {
+    border-bottom: 1px solid var(--border);
+  }
+  .group .check:last-child {
+    border-bottom: 0;
   }
 
   .field {

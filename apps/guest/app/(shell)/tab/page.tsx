@@ -1,15 +1,29 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { formatInr } from "@restosaas/ui";
+import { Badge, formatInr, Sheet, type Tone } from "@restosaas/ui";
 import { TotalsTable } from "@/components/totals";
-import { ErrorBanner, Skeleton } from "@/components/ui";
+import { EmptyState, ErrorBanner, Notice, Skeleton } from "@/components/ui";
 import { api } from "@/lib/api";
 import { secondsUntil, statusLabel, timeOf } from "@/lib/format";
 import { useSession } from "@/lib/session";
 import type { Line, Round, TabView } from "@/lib/types";
 import { useNow } from "@/lib/use-now";
 import { useAction, useResource } from "@/lib/use-resource";
+
+const STATUS_TONE: Record<string, Tone> = {
+  placed: "info",
+  accepted: "neutral",
+  preparing: "warn",
+  ready: "ok",
+  served: "ok",
+  cancelled: "neutral",
+  voided: "neutral",
+};
+
+/** Kitchen progress worth showing per item; earlier and final states are on the round. */
+const LINE_PROGRESS = new Set(["preparing", "ready", "served"]);
 
 function source(line: Line): string {
   if (line.placed_by === "staff") return `${line.staff_name ?? "Staff"} (waiter)`;
@@ -39,16 +53,35 @@ export default function TabPage() {
 
   return (
     <>
-      <h1>My tab</h1>
-      <p className="muted">Table {data.table_label ?? session.table_label}</p>
+      <header className="g-head">
+        <div>
+          <h1>My tab</h1>
+          <p className="sub">Table {data.table_label ?? session.table_label}</p>
+        </div>
+        {data.rounds.length > 0 ? (
+          <div className="running">
+            <span className="sub">Running total</span>
+            <strong className="money">{formatInr(data.totals.estimated_total_paise)}</strong>
+          </div>
+        ) : null}
+      </header>
       <ErrorBanner message={action.error ?? tab.error} />
       {data.status === "bill_requested" ? (
-        <p className="banner" role="status">
-          Bill requested. A waiter will bring it shortly. You can still order more.
-        </p>
+        <Notice tone="info">Bill requested. A waiter will bring it shortly. You can still order more.</Notice>
       ) : null}
-      {data.awaiting_waiter ? <p className="banner">Waiting for your waiter to confirm this table.</p> : null}
-      {data.rounds.length === 0 ? <p>Nothing ordered yet.</p> : null}
+      {data.awaiting_waiter ? <Notice>Waiting for your waiter to confirm this table.</Notice> : null}
+      {data.rounds.length === 0 ? (
+        <EmptyState
+          title="Nothing ordered yet"
+          action={
+            <Link className="button" href="/menu">
+              Browse the menu
+            </Link>
+          }
+        >
+          Your rounds will show up here as soon as you place an order.
+        </EmptyState>
+      ) : null}
       {data.rounds.map((round) => {
         const left = round.undo_until ? secondsUntil(round.undo_until, now) : 0;
         return (
@@ -56,7 +89,7 @@ export default function TabPage() {
             <div className="round-head">
               <h2>Round {round.seq_no}</h2>
               <span className="muted">{timeOf(round.placed_at)}</span>
-              <span className="status">{statusLabel(round.status)}</span>
+              <Badge tone={STATUS_TONE[round.status] ?? "neutral"}>{statusLabel(round.status)}</Badge>
             </div>
             {round.lines.map((line) => {
               const gone = line.status === "cancelled" || line.status === "voided";
@@ -71,13 +104,18 @@ export default function TabPage() {
                       {source(line)}
                       {line.price_rule ? ` · ${line.price_rule.name ?? "Special price"}` : ""}
                     </div>
+                    {LINE_PROGRESS.has(line.status) ? (
+                      <div>
+                        <Badge tone={STATUS_TONE[line.status] ?? "neutral"}>{statusLabel(line.status)}</Badge>
+                      </div>
+                    ) : null}
                     {line.ack_state === "awaiting" ? (
-                      <div role="group" aria-label={`Is ${line.name} yours?`}>
-                        <div className="deal">Your waiter added this. Is it yours?</div>
+                      <div className="ack" role="group" aria-label={`Is ${line.name} yours?`}>
+                        <p>Your waiter added this. Is it yours?</p>
                         <div className="inline">
                           <button type="button" disabled={action.busy} onClick={() => answer(line, "ours")}>
                             Yes, ours
-                          </button>{" "}
+                          </button>
                           <button type="button" className="secondary" disabled={action.busy} onClick={() => answer(line, "not_ours")}>
                             Not ours
                           </button>
@@ -113,32 +151,32 @@ export default function TabPage() {
         </section>
       ) : null}
       {data.rounds.length > 0 && data.status === "open" ? (
-        <button type="button" className="wide" disabled={action.busy} onClick={() => setConfirmingBill(true)}>
-          Request the bill
+        <button type="button" className="btn-lg cta" disabled={action.busy} onClick={() => setConfirmingBill(true)}>
+          <span>Request the bill</span>
+          <span>{formatInr(data.totals.estimated_total_paise)}</span>
         </button>
       ) : null}
-      {confirmingBill ? (
-        <div className="banner" role="alertdialog" aria-label="Request the bill">
-          <p>Ask for the bill now? You can still order more afterwards.</p>
-          <div className="inline">
-            <button
-              type="button"
-              disabled={action.busy}
-              onClick={async () => {
-                if (await action.run(() => api(`${path}/service-requests`, { method: "POST", body: { type: "bill" } }))) {
-                  setConfirmingBill(false);
-                  tab.reload();
-                }
-              }}
-            >
-              Yes, request it
-            </button>{" "}
-            <button type="button" className="secondary" onClick={() => setConfirmingBill(false)}>
-              Not yet
-            </button>
-          </div>
+      <Sheet open={confirmingBill} onClose={() => setConfirmingBill(false)} title="Ask for the bill?">
+        <p className="muted">You can still order more afterwards.</p>
+        <div className="stack">
+          <button
+            type="button"
+            className="btn-lg"
+            disabled={action.busy}
+            onClick={async () => {
+              if (await action.run(() => api(`${path}/service-requests`, { method: "POST", body: { type: "bill" } }))) {
+                setConfirmingBill(false);
+                tab.reload();
+              }
+            }}
+          >
+            Yes, request it
+          </button>
+          <button type="button" className="secondary btn-lg" onClick={() => setConfirmingBill(false)}>
+            Not yet
+          </button>
         </div>
-      ) : null}
+      </Sheet>
     </>
   );
 }

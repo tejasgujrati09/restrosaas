@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { components } from "api-client";
 import { formatInr } from "./format-inr";
+import { Icon } from "./icons";
 import { Sheet } from "./sheet";
 
 type GuestItem = components["schemas"]["GuestItemOut"];
@@ -98,15 +99,15 @@ function ItemForm({
         <input value={note} maxLength={200} placeholder="Less spicy, no onion…" onChange={(e) => setNote(e.target.value)} />
       </label>
       <div className="stepper" role="group" aria-label="Quantity">
-        <button type="button" className="secondary" aria-label="One less" disabled={qty <= 1} onClick={() => setQty(qty - 1)}>
-          −
+        <button type="button" className="secondary icon-btn" aria-label="One less" disabled={qty <= 1} onClick={() => setQty(qty - 1)}>
+          <Icon name="minus" />
         </button>
         <output aria-live="polite">{qty}</output>
-        <button type="button" className="secondary" aria-label="One more" disabled={qty >= 50} onClick={() => setQty(qty + 1)}>
-          +
+        <button type="button" className="secondary icon-btn" aria-label="One more" disabled={qty >= 50} onClick={() => setQty(qty + 1)}>
+          <Icon name="plus" />
         </button>
       </div>
-      <button type="submit" className="wide" disabled={!groupsValid || !item.available || !item.self_orderable}>
+      <button type="submit" className="wide btn-lg" disabled={!groupsValid || !item.available || !item.self_orderable}>
         {!item.available
           ? "Sold out"
           : !item.self_orderable

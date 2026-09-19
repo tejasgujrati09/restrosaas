@@ -2,14 +2,27 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { formatInr, ItemSheet } from "@restosaas/ui";
+import { formatInr, Icon, ItemSheet, Notice } from "@restosaas/ui";
 
-import { ErrorBanner, Skeleton } from "@/components/ui";
+import { EmptyState, ErrorBanner, Skeleton } from "@/components/ui";
 import { addToCart, useCart } from "@/lib/cart-store";
 import { timeOf } from "@/lib/format";
 import { useSession } from "@/lib/session";
 import type { GuestItem, GuestMenu, TabView } from "@/lib/types";
 import { useResource } from "@/lib/use-resource";
+
+/** "Happy hour until 8:00 PM", from the first item the API says has a price rule on. */
+function dealLine(menu: GuestMenu): string | null {
+  for (const category of menu.categories) {
+    for (const item of category.items) {
+      if (item.price_rule) {
+        const until = item.price_rule.ends_at ? ` until ${timeOf(item.price_rule.ends_at)}` : "";
+        return `${item.price_rule.name}${until}`;
+      }
+    }
+  }
+  return null;
+}
 
 export default function MenuPage() {
   const session = useSession();
@@ -25,18 +38,24 @@ export default function MenuPage() {
 
   const awaiting = tab.data?.awaiting_waiter ?? false;
   const count = cart.reduce((n, e) => n + e.qty, 0);
+  const deal = dealLine(menu.data);
   const categories = menu.data.categories
     .map((c) => ({ ...c, items: c.items.filter((i) => !vegOnly || i.veg) }))
     .filter((c) => c.items.length > 0);
 
   return (
     <>
-      <h1>{menu.data.outlet_name}</h1>
-      <p className="muted">Table {session.table_label}</p>
+      <header className="g-head">
+        <div>
+          <h1>{menu.data.outlet_name}</h1>
+          {deal ? <p className="deal-line">{deal}</p> : null}
+        </div>
+        <span className="table-pill">Table {session.table_label}</span>
+      </header>
       {awaiting ? (
-        <p className="banner" role="status">
+        <Notice>
           Waiting for your waiter to confirm this table. You can look at the menu, but ordering opens once they confirm.
-        </p>
+        </Notice>
       ) : null}
       <ErrorBanner message={menu.error} />
       <div className="chips" role="group" aria-label="Filter and jump to a section">
@@ -49,7 +68,20 @@ export default function MenuPage() {
           </a>
         ))}
       </div>
-      {categories.length === 0 ? <p>Nothing to show right now.</p> : null}
+      {categories.length === 0 ? (
+        <EmptyState
+          title={vegOnly ? "No veg dishes right now" : "Nothing to show right now"}
+          action={
+            vegOnly ? (
+              <button type="button" className="secondary" onClick={() => setVegOnly(false)}>
+                Show everything
+              </button>
+            ) : undefined
+          }
+        >
+          {vegOnly ? "Turn the filter off to see the full menu." : "The menu is being updated. Please ask your waiter."}
+        </EmptyState>
+      ) : null}
       {categories.map((c) => (
         <section key={c.id} id={`cat-${c.id}`} aria-labelledby={`h-${c.id}`}>
           <h2 id={`h-${c.id}`}>{c.name}</h2>
@@ -58,26 +90,28 @@ export default function MenuPage() {
               <span className={item.veg ? "dot" : "dot nonveg"} role="img" aria-label={item.veg ? "Veg" : "Non-veg"} />
               <span className="grow">
                 <span className="name">{item.name}</span>
+                {item.description ? <span className="desc">{item.description}</span> : null}
                 {item.price_rule ? (
-                  <span className="deal" style={{ display: "block" }}>
+                  <span className="deal">
                     {item.price_rule.name}
                     {item.price_rule.ends_at ? ` until ${timeOf(item.price_rule.ends_at)}` : ""}
                   </span>
                 ) : null}
                 {!item.available ? (
-                  <span className="muted" style={{ display: "block" }}>
-                    Sold out
-                  </span>
+                  <span className="desc">Sold out</span>
                 ) : !item.self_orderable ? (
-                  <span className="muted" style={{ display: "block" }}>
-                    Ask your waiter
-                  </span>
+                  <span className="desc">Ask your waiter</span>
                 ) : null}
               </span>
-              <span>
+              <span className="price">
                 {item.price_rule ? <span className="was">{formatInr(item.base_price_paise)}</span> : null}
                 {formatInr(item.price_paise)}
               </span>
+              {item.available && item.self_orderable ? (
+                <span className="add" aria-hidden="true">
+                  <Icon name="plus" />
+                </span>
+              ) : null}
             </button>
           ))}
         </section>
@@ -92,8 +126,11 @@ export default function MenuPage() {
         }}
       />
       {count > 0 ? (
-        <Link className="button float" href="/cart">
-          View cart · {count}
+        <Link className="button btn-lg cta" href="/cart">
+          <span>View cart</span>
+          <span>
+            {count} {count === 1 ? "item" : "items"}
+          </span>
         </Link>
       ) : null}
     </>

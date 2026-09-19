@@ -29,10 +29,10 @@ export default function Shell({ children }: { children: ReactNode }) {
   if (!hydrated || !session) return <main aria-busy="true" />;
   if (session.ended) {
     return (
-      <main>
+      <main className="center">
         <h1>Your visit has ended</h1>
-        <p>Thank you! To order again, start a new visit at this table.</p>
-        <Link className="button" href={`/t/${encodeURIComponent(session.qr_token)}`}>
+        <p className="muted">Thank you! To order again, start a new visit at this table.</p>
+        <Link className="button btn-lg" href={`/t/${encodeURIComponent(session.qr_token)}`}>
           Start a new order
         </Link>
       </main>
