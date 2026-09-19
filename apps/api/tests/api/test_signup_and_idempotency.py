@@ -58,7 +58,7 @@ async def test_signup_creates_a_working_isolated_tenant(
         "29",
         "INV",
     )
-    assert body["ready_to_go_live"] is False  # no GSTIN or tax class yet
+    assert body["ready_to_go_live"] is False  # no tax class yet
     # Full owner powers in their own outlet, none in anyone else's.
     assert (
         await client.post(

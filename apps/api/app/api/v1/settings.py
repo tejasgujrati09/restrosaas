@@ -86,8 +86,6 @@ async def build_settings(ctx: OutletContext) -> SettingsOut:
         select(func.count()).select_from(TaxClass).where(TaxClass.outlet_id == outlet.id)
     )
     blockers = []
-    if not restaurant.gstin:
-        blockers.append("Add your GSTIN.")
     if not tax_classes:
         blockers.append("Add at least one tax class.")
     return SettingsOut(
@@ -143,8 +141,9 @@ async def _apply(ctx: OutletContext, body: SettingsPatchIn) -> SettingsOut:
     before = {name: getattr(_owner(restaurant, outlet, name), _column(name)) for name in changes}
 
     if "gstin" in changes and changes["gstin"] is not None:
-        changes["gstin"] = changes["gstin"].strip().upper()
-        if not is_valid_gstin(changes["gstin"]):
+        # Optional for now: a blank value clears it. When given it must still be valid.
+        changes["gstin"] = changes["gstin"].strip().upper() or None
+        if changes["gstin"] is not None and not is_valid_gstin(changes["gstin"]):
             raise invalid("gstin", "That GSTIN is not valid. Check it and try again.")
     if "timezone" in changes:
         try:

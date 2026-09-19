@@ -136,7 +136,7 @@ Reading: setup runs B → C → D → E → F in order with a progress checklist
 
 **Screen notes**
 
-- Outlet setup blocks go-live until GSTIN and tax classes are filled; the invoice preview renders live as fields change.
+- Outlet setup blocks go-live until a tax class exists (GSTIN is optional for now, see DECISIONS.md); the invoice preview renders live as fields change.
 - Menu editor: spreadsheet-like table with inline edit, bulk price change, drag-to-reorder, and a diff view before publishing so a price typo is caught.
 - Tables: grid of labels with zone; "regenerate QR" per table invalidates the old print.
 - Staff: role chips; a waiter's invite is a WhatsApp deep link; deactivation is one tap for high-turnover venues.

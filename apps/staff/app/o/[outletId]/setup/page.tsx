@@ -86,7 +86,7 @@ function SetupForm({ base, s, reload, menu }: {
         <Card title="Business">
           <Field label="Registered business name"><input required value={form.legal_name} onChange={(e) => set("legal_name", e.target.value)} /></Field>
           <Field label="Restaurant name"><input required value={form.brand_name} onChange={(e) => set("brand_name", e.target.value)} /></Field>
-          <Field label="GSTIN" hint="15 characters. The first two digits must match your state.">
+          <Field label="GSTIN" hint="Optional for now, needed for GST invoices. 15 characters; the first two digits must match your state.">
             <input value={form.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} maxLength={15} />
           </Field>
         </Card>

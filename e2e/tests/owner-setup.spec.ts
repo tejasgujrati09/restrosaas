@@ -32,9 +32,9 @@ test("an owner goes from sign-up to a menu, tables, staff and a happy hour", asy
   await page.getByLabel("Outlet name").fill("Indiranagar");
   await page.getByRole("button", { name: "Create restaurant" }).click();
 
-  // Setup: the checklist blocks go-live until GSTIN and a tax class exist.
+  // Setup: the checklist blocks go-live until a tax class exists; GSTIN is optional.
   await expect(page.getByRole("heading", { name: "Outlet setup" })).toBeVisible();
-  await expect(page.getByText("Add your GSTIN.")).toBeVisible();
+  await expect(page.getByText("Add your GSTIN.")).toHaveCount(0);
   await expect(page.getByText("Add at least one tax class.")).toBeVisible();
   await page.getByLabel("GSTIN").fill(GSTIN);
   await page.getByRole("button", { name: "Save", exact: true }).click();

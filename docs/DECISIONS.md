@@ -2,6 +2,13 @@
 
 Record of choices made where `docs/SPEC.md` was silent and the answer affects the schema or a public API. Newest first. Each entry: date, decision, reason, impact.
 
+## 2026-09-19 — GSTIN is optional at setup
+
+Requested by a human: onboarding will later fetch GSTIN details (registered name, address) from an external GST lookup, so GSTIN is no longer a go-live blocker. When supplied it is still checksum-validated and must match the state code; a blank value clears it.
+
+- **Impact on billing (Milestone 5).** A tax invoice needs the outlet GSTIN (CLAUDE.md §4). What an outlet without one may issue (a "bill of supply", or issuing blocked until it is set) is a tax question and is **open**; it must be answered before Milestone 5 issues bills.
+- **External lookup** is a new external service (CLAUDE.md §9): provider, credentials and cost are undecided. It should be optional and off the billing path.
+
 ## 2026-09-19 — Milestone 4 choices (waiter and kitchen)
 
 Confirmed by a human: kitchen tickets show at once with Start locked during the undo window; merged tabs take the source's guest phones with them; **waiters see only assigned tables** (chosen over the recommended "all tables").

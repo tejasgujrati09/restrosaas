@@ -47,12 +47,12 @@ async def test_only_owner_can_edit_settings(client: httpx.AsyncClient, seed: See
         assert r.status_code == 403
 
 
-async def test_owner_updates_settings_and_readiness_tracks_gstin_and_tax_class(
+async def test_owner_updates_settings_and_readiness_tracks_tax_class_only(
     client: httpx.AsyncClient, seed: Seed
 ) -> None:
     before = (await _patch(client, seed, {"state_code": "29"})).json()
     assert before["ready_to_go_live"] is False
-    assert set(before["go_live_blockers"]) == {"Add your GSTIN.", "Add at least one tax class."}
+    assert before["go_live_blockers"] == ["Add at least one tax class."]  # GSTIN is optional
 
     r = await _patch(
         client,
@@ -82,6 +82,15 @@ async def test_invalid_gstin_is_rejected(client: httpx.AsyncClient, seed: Seed) 
     r = await _patch(client, seed, {"gstin": bad})
     assert (r.status_code, r.json()["code"]) == (422, "validation_error")
     assert r.json()["details"]["field"] == "gstin"
+
+
+async def test_gstin_is_optional_and_can_be_cleared(client: httpx.AsyncClient, seed: Seed) -> None:
+    assert (await _patch(client, seed, {"gstin": _gstin("29")})).json()["gstin"] == _gstin("29")
+    for blank in (None, "", "  "):
+        await _patch(client, seed, {"gstin": _gstin("29")})
+        r = await _patch(client, seed, {"gstin": blank})
+        assert r.status_code == 200
+        assert r.json()["gstin"] is None
 
 
 async def test_gstin_state_must_match_outlet_state_code(
