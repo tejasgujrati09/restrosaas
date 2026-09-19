@@ -1,7 +1,7 @@
 # CLAUDE.md — rules for AI agents working in this repo
 
 You are building a multi-tenant QR ordering and billing SaaS for Indian restaurants, bars and clubs.
-The product spec is `docs/SPEC.md`; screen flows are `docs/UI-FLOWS.md`. Read both before your first task.
+The product spec is `docs/SPEC.md`; screen flows are `docs/UI-FLOWS.md`; how every screen looks and behaves is `docs/DESIGN.md`. Read all three before your first task.
 When the spec and this file disagree, this file wins; when either disagrees with a human's instruction in the task, ask before proceeding.
 
 ## 1. What we are optimising for
@@ -64,6 +64,7 @@ Do not introduce a new framework, ORM, task queue, state library or UI kit witho
 8. **Out-of-scope means out.** Do not build KDS station routing, in-app payment gateways, OCR import, POS integrations, delivery UI or native apps unless the task explicitly opens that phase. Leave the schema hooks alone.
 9. **Feature flags** live in `apps/api/app/core/flags.py` and are per outlet, exposed to clients via the outlet settings endpoint. Waiter-confirm mode, liquor approval and ack threshold are outlet settings, not global.
 10. **Secrets** never enter the repo. Use `.env.example` with placeholder values; real values come from the environment.
+11. **UI follows `docs/DESIGN.md`.** Read it before building or changing any screen, component or style. Use its tokens and shared components; do not add hex colours, pixel sizes or one-off button styles. If a screen needs something the doc lacks (a token, a component, a pattern), add it to the doc first, in the same PR, then use it. Every data screen ships its loading, empty and error states. When you fix a finding from its audit table, mark it done there.
 
 ## 6. Code conventions
 
@@ -71,7 +72,7 @@ Do not introduce a new framework, ORM, task queue, state library or UI kit witho
 - API routes: `POST /outlets/:outletId/tabs/:tabId/orders`, resource-oriented, versioned under `/v1`.
 - Errors: `{ code, message, details? }` with stable `code` strings; never leak stack traces.
 - Logging: structured JSON with `restaurant_id`, `outlet_id`, `actor_user_id`, `request_id` on every line.
-- UI: components in `packages/ui` only when used by two apps. Touch targets ≥ 44 px. Real `<button>`/`<a>`/`<input>`; no click handlers on `div`s.
+- UI: components in `packages/ui` only when used by two apps. Touch targets ≥ 44 px. Real `<button>`/`<a>`/`<input>`; no click handlers on `div`s. Styling comes from the tokens in `packages/ui/src/tokens.css` (see `docs/DESIGN.md`), never literal values.
 - Copy: short, plain English; no jargon on guest screens. Currency with ₹.
 - Commits: conventional commits (`feat(tab): ...`, `fix(billing): ...`). One logical change per commit.
 
@@ -89,6 +90,7 @@ Do not introduce a new framework, ORM, task queue, state library or UI kit witho
 - [ ] Golden flows pass; `packages/api-client` regenerated if the API changed
 - [ ] `make check` green locally (same gates as CI)
 - [ ] No new secrets, no new out-of-scope feature, no float money
+- [ ] UI changes: the checklist in `docs/DESIGN.md` §6 is ticked in the PR (tokens only, all four states, checked at 390 px and 1280 px with screenshots, keyboard and contrast, guest bundle budget)
 - [ ] PR description: what, why, how tested, screenshots for UI, anything you were unsure about
 
 ## 9. When to stop and ask a human
