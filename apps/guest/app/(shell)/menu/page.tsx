@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { formatInr } from "@restosaas/ui";
-import { ItemSheet } from "@/components/item-sheet";
+import { formatInr, ItemSheet } from "@restosaas/ui";
+
 import { ErrorBanner, Loading } from "@/components/ui";
 import { addToCart, useCart } from "@/lib/cart-store";
 import { timeOf } from "@/lib/format";
@@ -14,7 +14,7 @@ import { useResource } from "@/lib/use-resource";
 export default function MenuPage() {
   const session = useSession();
   const base = session ? `/v1/outlets/${session.outlet_id}` : null;
-  const menu = useResource<GuestMenu>(base && `${base}/guest/menu`, 30_000);
+  const menu = useResource<GuestMenu>(base && `${base}/guest/menu`, 30_000, true);
   const tab = useResource<TabView>(session && base && `${base}/tabs/${session.tab_id}`, 5_000, true);
   const cart = useCart(session?.tab_id ?? null);
   const [vegOnly, setVegOnly] = useState(false);

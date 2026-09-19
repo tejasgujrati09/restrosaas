@@ -1,48 +1,5 @@
-import { expect, test, type APIRequestContext } from "@playwright/test";
-import { ports } from "../ports";
-
-const api = `http://localhost:${ports.api}`;
-const guest = `http://localhost:${ports.guest}`;
-
-type Venue = { owner: Record<string, string>; base: string; qrToken: string; itemId: string; taxId: string; categoryId: string };
-
-/** Sets a venue up through the API (the owner UI has its own spec) so these tests are about the guest. */
-async function setUpVenue(request: APIRequestContext, opts: { waiterConfirm?: boolean } = {}): Promise<Venue> {
-  const phone = `+91999${Math.floor(1_000_000 + Math.random() * 9_000_000)}`;
-  await request.post(`${api}/v1/signup/otp`, { data: { phone } });
-  const signup = await request.post(`${api}/v1/signup`, {
-    data: { phone, code: "123456", owner_name: "Asha", legal_name: "E2E Legal", brand_name: "E2E Bar", outlet_name: "Main", state_code: "29" },
-  });
-  const { access_token, outlet_id } = (await signup.json()) as { access_token: string; outlet_id: string };
-  const owner = { Authorization: `Bearer ${access_token}` };
-  const base = `${api}/v1/outlets/${outlet_id}`;
-  const post = async <T>(path: string, data: unknown, method: "post" | "put" | "patch" = "post"): Promise<T> => {
-    const r = await request[method](`${base}${path}`, { data, headers: owner });
-    expect(r.ok(), `${method} ${path}: ${await r.text()}`).toBe(true);
-    return (await r.json()) as T;
-  };
-  await post("/settings", { service_charge_bp: 1000, waiter_confirm_mode: opts.waiterConfirm ?? false }, "patch");
-  const tax = await post<{ id: string }>("/tax-classes", { name: "Food 5%", gst_rate_bp: 500 });
-  const category = await post<{ id: string }>("/categories", { name: "Starters" });
-  const group = await post<{ id: string }>("/modifier-groups", {
-    name: "Spice",
-    min_select: 1,
-    max_select: 1,
-    modifiers: [{ name: "Mild" }, { name: "Hot", price_delta_paise: 1000 }],
-  });
-  const item = await post<{ id: string }>("/items", {
-    category_id: category.id,
-    name: "Paneer Tikka",
-    base_price_paise: 32000,
-    tax_class_id: tax.id,
-    modifier_group_ids: [group.id],
-  });
-  await post("/items", { category_id: category.id, name: "Spring Roll", base_price_paise: 15000, tax_class_id: tax.id });
-  await post("/tables", { label: "T1" });
-  const tables = await (await request.get(`${base}/tables`, { headers: owner })).json();
-  const qrToken = (tables[0].qr_url as string).split("/").pop() as string;
-  return { owner, base, qrToken, itemId: item.id, taxId: tax.id, categoryId: category.id };
-}
+import { expect, test } from "@playwright/test";
+import { guest, setUpVenue } from "./helpers";
 
 test("a guest scans, orders two items with a modifier, sees locked prices and asks for the bill", async ({ page, request }) => {
   const venue = await setUpVenue(request);

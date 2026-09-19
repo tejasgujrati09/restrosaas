@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import "@restosaas/ui/sheet.css";
 import "./globals.css";
 
 export const metadata = { title: "Order at your table" };

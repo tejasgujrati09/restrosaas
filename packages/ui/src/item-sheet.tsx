@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { formatInr } from "@restosaas/ui";
-import type { GuestItem } from "@/lib/types";
+import type { components } from "api-client";
+import { formatInr } from "./format-inr";
 import { Sheet } from "./sheet";
+
+type GuestItem = components["schemas"]["GuestItemOut"];
 
 /** The item sheet: modifier groups with their min/max, quantity and a note. The server
  * re-checks everything; the live price here is display only (the cart shows the quote). */

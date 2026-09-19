@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CLOSE_TAB_ENDED, CLOSE_UNAUTHORISED, LiveConnection, type LiveDeps } from "./live";
+import { CLOSE_TAB_ENDED, CLOSE_TAB_MOVED, CLOSE_UNAUTHORISED, LiveConnection, type LiveDeps } from "./live";
 
 class FakeSocket {
   sent: string[] = [];
@@ -41,10 +41,10 @@ beforeEach(() => {
     clearTimer: vi.fn(),
     random: () => 1,
   };
-  conn = new LiveConnection(deps, () => (ended += 1));
+  conn = new LiveConnection(deps, { onEnded: () => (ended += 1) });
 });
 
-const session = { token: "r.secret", outlet_id: "out-1" };
+const session = { token: "r.secret", url: "ws://localhost:8000/v1/outlets/out-1/ws" };
 
 describe("live connection", () => {
   it("authenticates in the first frame, not the URL", () => {
@@ -133,6 +133,38 @@ describe("live connection", () => {
     sockets[0]!.onclose?.({ code });
     expect(ended).toBe(1);
     expect(timers).toHaveLength(0);
+  });
+
+  it("bumps on signals such as menu_changed", () => {
+    conn.start(session);
+    sockets[0]!.receive({ type: "ready" });
+    const t = conn.getState().tick;
+    sockets[0]!.receive({ type: "signal", name: "menu_changed" });
+    expect(conn.getState().tick).toBe(t + 1);
+  });
+
+  it("on a moved tab, waits for the app to learn the new one, then reconnects from scratch", async () => {
+    let learned = false;
+    const moved = new LiveConnection(
+      {
+        open: (url) => {
+          const s = new FakeSocket(url);
+          sockets.push(s);
+          return s;
+        },
+        setTimer: () => 0,
+        clearTimer: () => {},
+        random: () => 1,
+      },
+      { onMoved: async () => void (learned = true) },
+    );
+    moved.start(session);
+    sockets[0]!.receive({ type: "event", id: 9 });
+    sockets[0]!.onclose?.({ code: CLOSE_TAB_MOVED });
+    await vi.waitFor(() => expect(sockets).toHaveLength(2));
+    expect(learned).toBe(true);
+    sockets[1]!.onopen?.();
+    expect(JSON.parse(sockets[1]!.sent[0]!).last_event_id).toBeNull();
   });
 
   it("stop() closes the socket and cancels a pending reconnect", () => {

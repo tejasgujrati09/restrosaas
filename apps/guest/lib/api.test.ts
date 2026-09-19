@@ -68,6 +68,43 @@ describe("api", () => {
   });
 });
 
+describe("a tab that moved", () => {
+  it("learns the new tab after a 403 and repeats the request against it", async () => {
+    const { storage } = stubBrowser();
+    storage.set(
+      "restosaas.guest",
+      JSON.stringify({ token: "r.secret", tab_id: "old", outlet_id: "o", table_label: "T1", qr_token: "qr" }),
+    );
+    vi.resetModules();
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: "permission_denied", message: "no" }), { status: 403 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ tab_id: "new", table_label: "T2", tab_status: "open", awaiting_waiter: false }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    vi.stubGlobal("fetch", fetch);
+    const { api: fresh } = await import("./api");
+    await expect(fresh("/v1/outlets/o/tabs/old")).resolves.toEqual({ ok: true });
+    expect(String(fetch.mock.calls[1]?.[0])).toContain("/v1/outlets/o/guest/session");
+    expect(String(fetch.mock.calls[2]?.[0])).toContain("/v1/outlets/o/tabs/new");
+    const { getSession } = await import("./session");
+    expect(getSession()).toMatchObject({ tab_id: "new", table_label: "T2" });
+  });
+
+  it("does not loop when the tab did not change", async () => {
+    const { storage } = stubBrowser();
+    storage.set("restosaas.guest", JSON.stringify({ token: "r.secret", tab_id: "same", outlet_id: "o", table_label: "T1", qr_token: "qr" }));
+    vi.resetModules();
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: "permission_denied", message: "no" }), { status: 403 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ tab_id: "same", table_label: "T1", tab_status: "open", awaiting_waiter: false }), { status: 200 }));
+    vi.stubGlobal("fetch", fetch);
+    const { api: fresh, ApiError: FreshError } = await import("./api");
+    await expect(fresh("/v1/outlets/o/tabs/same")).rejects.toBeInstanceOf(FreshError);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("failure handling", () => {
   it("retries with the same key only when there was no definite answer", () => {
     expect(isRetryable(new TypeError("network"))).toBe(true);

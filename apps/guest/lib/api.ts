@@ -22,6 +22,8 @@ type Options = {
   token?: string | null;
   /** Do not treat a 401 as "your visit has ended" (used by the landing). */
   landing?: boolean;
+  /** Internal: this call is already the retry after learning a moved tab. */
+  retried?: boolean;
 };
 
 export async function api<T>(path: string, options: Options = {}): Promise<T> {
@@ -43,6 +45,17 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
     payload = await response.json();
   } catch {
     // non-JSON error body; fall through with generic values
+  }
+  if (response.status === 403 && !options.retried && path.includes("/tabs/")) {
+    // A waiter may have merged our tab into another, so the id we stored is stale. Ask which
+    // tab we are on now and, if it changed, repeat the request against the new one.
+    const before = getSession()?.tab_id;
+    const { refreshTab } = await import("./live");
+    await refreshTab().catch(() => {});
+    const after = getSession()?.tab_id;
+    if (before && after && before !== after) {
+      return api<T>(path.replace(before, after), { ...options, retried: true });
+    }
   }
   if (response.status === 401 && !options.landing) markEnded();
   throw new ApiError(

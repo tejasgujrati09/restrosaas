@@ -29,6 +29,10 @@ export default function TabPage() {
   if (!tab.data) return tab.error ? <ErrorBanner message={tab.error} /> : <Loading what="your tab" />;
   const data = tab.data;
 
+  async function answer(line: Line, answer: "ours" | "not_ours") {
+    if (await action.run(() => api(`${path}/lines/${line.id}/ack`, { method: "POST", body: { answer } }))) tab.reload();
+  }
+
   async function undo(round: Round) {
     if (await action.run(() => api(`${path}/orders/${round.id}/undo`, { method: "POST" }))) tab.reload();
   }
@@ -67,7 +71,21 @@ export default function TabPage() {
                       {source(line)}
                       {line.price_rule ? ` · ${line.price_rule.name ?? "Special price"}` : ""}
                     </div>
-                    {line.needs_customer_ack && !line.acked_at ? <div className="deal">Awaiting your ok</div> : null}
+                    {line.ack_state === "awaiting" ? (
+                      <div role="group" aria-label={`Is ${line.name} yours?`}>
+                        <div className="deal">Your waiter added this. Is it yours?</div>
+                        <div className="inline">
+                          <button type="button" disabled={action.busy} onClick={() => answer(line, "ours")}>
+                            Yes, ours
+                          </button>{" "}
+                          <button type="button" className="secondary" disabled={action.busy} onClick={() => answer(line, "not_ours")}>
+                            Not ours
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                    {line.ack_state === "acked" ? <div className="muted">You confirmed this.</div> : null}
+                    {line.ack_state === "disputed" ? <div className="deal">You said this isn&apos;t yours. A manager will check.</div> : null}
                     {line.status === "voided" && line.void_reason ? <div className="muted">Removed: {line.void_reason}</div> : null}
                   </div>
                   <div className={gone ? "struck" : undefined}>{formatInr(line.line_total_paise)}</div>

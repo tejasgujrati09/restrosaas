@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { homeFor } from "@/lib/floor";
 import { claimsOf, getToken } from "@/lib/session";
 import type { Settings } from "@/lib/types";
 
@@ -25,7 +26,7 @@ export default function Home() {
         return { outletId: c.outlet_id, label: `${s.brand_name} — ${s.outlet_name}`, role: c.role };
       }),
     ).then((list) => {
-      if (list.length === 1 && list[0]) router.replace(`/o/${list[0].outletId}/menu`);
+      if (list.length === 1 && list[0]) router.replace(`/o/${list[0].outletId}/${homeFor([list[0].role])}`);
       else setChoices(list);
     });
   }, [router]);
@@ -37,7 +38,7 @@ export default function Home() {
       <ul>
         {choices.map((c) => (
           <li key={c.outletId}>
-            <a href={`/o/${c.outletId}/menu`}>{c.label}</a> <span className="badge">{c.role}</span>
+            <a href={`/o/${c.outletId}/${homeFor([c.role])}`}>{c.label}</a> <span className="badge">{c.role}</span>
           </li>
         ))}
       </ul>

@@ -34,3 +34,33 @@ nav.top a[aria-current="page"] { background: #e8f0ff; color: var(--accent); font
 .badge.off { background: #fef3f2; color: var(--danger); }
 .muted { color: var(--muted); }
 .checklist li { margin: 4px 0; }
+
+.warn { color: var(--danger); font-weight: 600; }
+.badge.count { background: var(--danger); color: #fff; margin-left: 6px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.tile { display: flex; flex-direction: column; gap: 4px; min-height: 96px; padding: 12px; border: 2px solid var(--line); border-radius: 12px; background: #fff; color: var(--fg); text-align: left; text-decoration: none; font: inherit; cursor: pointer; }
+.tile.state-empty { border-style: dashed; color: var(--muted); }
+.tile.state-seated { border-color: #12b76a; background: #ecfdf3; }
+.tile.state-order_pending { border-color: #f79009; background: #fffaeb; }
+.tile.state-bill_requested { border-color: var(--danger); background: #fef3f2; }
+.tile .tile-name { font-size: 1.2rem; font-weight: 700; }
+.pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.pill { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: #eef1f6; }
+.pill.hot { background: var(--danger); color: #fff; }
+.pill.ready { background: var(--ok); color: #fff; }
+.line-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.line-row .grow { flex: 1; }
+.struck { text-decoration: line-through; }
+.tickets { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start; }
+.ticket { background: #fff; border: 3px solid var(--line); border-radius: 12px; padding: 14px; }
+.ticket.age-amber { border-color: #f79009; }
+.ticket.age-red { border-color: var(--danger); background: #fef3f2; }
+.ticket.holding { opacity: 0.6; border-style: dashed; }
+.ticket h3 { margin: 0 0 8px; font-size: 1.3rem; }
+.ticket .item-line { font-size: 1.1rem; font-weight: 700; margin: 6px 0 0; }
+.ticket .sub { font-weight: 700; margin: 0 0 0 12px; }
+.ticket .big { width: 100%; min-height: 64px; font-size: 1.2rem; margin-top: 12px; }
+.stations { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.stations button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.matrix th, .matrix td { text-align: center; }
+.matrix th:first-child, .matrix td:first-child { text-align: left; }

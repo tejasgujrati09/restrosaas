@@ -11,3 +11,4 @@ export type Line = S["LineOut"];
 export type Quote = S["QuoteOut"];
 export type Totals = S["TotalsOut"];
 export type ServiceRequestType = S["ServiceRequestIn"]["type"];
+export type GuestSessionInfo = S["GuestSessionOut"];

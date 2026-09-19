@@ -14,6 +14,17 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.5",
     "typescript": "^5.9.3",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.1",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.0",
+    "api-client": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./sheet.css": "./src/sheet.css",
+    "./live": "./src/live.ts"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
   }
 }

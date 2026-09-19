@@ -21,7 +21,8 @@ export default function Shell({ children }: { children: ReactNode }) {
   const outletId = session?.outlet_id ?? null;
   useEffect(() => {
     if (!token || !outletId) return;
-    live.start({ token, outlet_id: outletId });
+    const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+    live.start({ token, url: `${api.replace(/^http/, "ws")}/v1/outlets/${outletId}/ws` });
     return () => live.stop();
   }, [token, outletId]);
 
