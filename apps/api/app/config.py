@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     public_base_url: str = "http://localhost:3000"
     staff_base_url: str = "http://localhost:3001"
     invite_ttl_days: int = 7
+    # Voice ordering agent (docs/DECISIONS.md "Voice ordering agent"). The key comes from the
+    # environment only. `voice_tools_base_url` is where the platform can reach this API.
+    gupshup_api_key: str | None = None
+    gupshup_base_url: str | None = None
+    voice_tools_base_url: str | None = None
     # Browser origins allowed to call the API (the three Next.js apps).
     cors_origins: list[str] = [
         "http://localhost:3000",
