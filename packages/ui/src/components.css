@@ -1,0 +1,534 @@
+/*
+ * Shared components for every app: buttons, fields, cards, badges, banners, skeletons,
+ * empty states, page headers, data lists and the bottom sheet. Tokens only; see
+ * docs/DESIGN.md. Everything is in the `ui` layer, so an app's own unlayered CSS
+ * overrides it without needing a more specific selector.
+ */
+
+@layer ui {
+  /* ---- Layout helpers ---- */
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+  }
+  .stack-lg {
+    display: flex;
+    flex-direction: column;
+    gap: var(--section-gap);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--s-3);
+  }
+  .row > * {
+    flex: 1 1 200px;
+  }
+  .row > button,
+  .row > .button {
+    flex: 0 0 auto;
+  }
+  .inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2);
+  }
+  .grow {
+    flex: 1;
+  }
+  .spacer {
+    flex: 1;
+  }
+  .muted {
+    color: var(--ink-2);
+  }
+  .struck {
+    text-decoration: line-through;
+  }
+
+  /* ---- Buttons: primary by default; add .secondary, .tertiary or .danger ---- */
+  button,
+  .button,
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-2);
+    min-height: var(--hit);
+    min-width: var(--hit);
+    padding: 0 var(--s-4);
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    background: var(--accent);
+    color: var(--on-accent);
+    font: var(--f-button);
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color var(--t-fast) var(--ease),
+      border-color var(--t-fast) var(--ease),
+      transform var(--t-fast) var(--ease);
+  }
+  button:hover,
+  .button:hover,
+  .btn:hover {
+    background: var(--accent-hover);
+    color: var(--on-accent);
+  }
+  button:active,
+  .button:active,
+  .btn:active {
+    background: var(--accent-active);
+    transform: translateY(1px);
+  }
+
+  .secondary {
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--border-strong);
+  }
+  .secondary:hover {
+    background: var(--sunken);
+    color: var(--ink);
+  }
+  .secondary:active {
+    background: var(--border);
+    color: var(--ink);
+  }
+
+  .tertiary {
+    background: transparent;
+    color: var(--accent-text);
+    padding: 0 var(--s-3);
+  }
+  .tertiary:hover {
+    background: var(--accent-bg);
+    color: var(--accent-text);
+  }
+  .tertiary:active {
+    background: var(--accent-bg);
+    color: var(--accent-text);
+  }
+
+  .danger {
+    background: var(--surface);
+    color: var(--danger);
+    border-color: var(--danger-line);
+  }
+  .danger:hover,
+  .danger:active {
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+  /* Solid red only for the confirm step of a destructive dialog. */
+  .danger-solid {
+    background: var(--danger-solid);
+    color: var(--on-accent);
+    border-color: transparent;
+  }
+  .danger-solid:hover,
+  .danger-solid:active {
+    background: var(--danger-solid);
+    color: var(--on-accent);
+  }
+
+  .btn-lg {
+    min-height: var(--hit-cta);
+    padding: 0 var(--s-5);
+  }
+  .wide {
+    width: 100%;
+  }
+
+  button:disabled,
+  .button[aria-disabled="true"] {
+    background: var(--sunken);
+    color: var(--ink-3);
+    border-color: var(--border);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Loading: keeps its width, shows a spinner instead of moving the layout. */
+  button[aria-busy="true"] {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+  }
+  button[aria-busy="true"]::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--on-accent);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: ui-spin 0.7s linear infinite;
+  }
+  .secondary[aria-busy="true"]::after {
+    border-color: var(--ink);
+    border-right-color: transparent;
+  }
+  @keyframes ui-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ---- Fields ---- */
+  input,
+  select,
+  textarea {
+    width: 100%;
+    min-height: var(--hit);
+    padding: var(--s-2) var(--s-3);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    color: var(--ink);
+    font: var(--f-body);
+    transition: border-color var(--t-fast) var(--ease);
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--ink-3);
+  }
+  input:hover,
+  select:hover,
+  textarea:hover {
+    border-color: var(--ink-3);
+  }
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    border-color: var(--ink);
+  }
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    background: var(--sunken);
+    color: var(--ink-3);
+    cursor: not-allowed;
+  }
+  input[aria-invalid="true"],
+  select[aria-invalid="true"],
+  textarea[aria-invalid="true"] {
+    border-color: var(--danger);
+  }
+  textarea {
+    min-height: 96px;
+    resize: vertical;
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 24px;
+    min-height: 24px;
+    flex: none;
+    accent-color: var(--accent);
+  }
+  .check {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    min-height: var(--hit);
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+    margin: 0 0 var(--s-3);
+  }
+  .field-label {
+    font: var(--f-small);
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .hint {
+    font: var(--f-caption);
+    color: var(--ink-2);
+  }
+  .field-error {
+    font: var(--f-caption);
+    font-weight: 700;
+    color: var(--danger);
+  }
+
+  /* ---- Cards ---- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--s-4);
+    margin: 0 0 var(--s-3);
+  }
+  .card > h2,
+  .card > h3 {
+    margin-bottom: var(--s-3);
+  }
+
+  /* ---- Banners: warn by default; .error, .ok and .info for the others ---- */
+  .banner,
+  .error,
+  .notice {
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--warn-line);
+    border-radius: var(--r-md);
+    background: var(--warn-bg);
+    color: var(--warn);
+    font: var(--f-small);
+    font-weight: 600;
+    margin: var(--s-2) 0;
+  }
+  .error {
+    border-color: var(--danger-line);
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+  .notice {
+    border-color: var(--info-line);
+    background: var(--info-bg);
+    color: var(--info);
+  }
+  .ok {
+    color: var(--ok);
+  }
+  .warn {
+    color: var(--warn);
+    font-weight: 700;
+  }
+
+  /* ---- Badges and pills: text plus a tone, never colour alone ---- */
+  .badge,
+  .pill,
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    padding: 2px var(--s-2);
+    border-radius: var(--r-pill);
+    background: var(--sunken);
+    color: var(--ink-2);
+    font: var(--f-caption);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .badge.ok,
+  .pill.ok {
+    background: var(--ok-bg);
+    color: var(--ok);
+  }
+  .badge.warn,
+  .pill.warn {
+    background: var(--warn-bg);
+    color: var(--warn);
+  }
+  .badge.danger,
+  .badge.off,
+  .pill.danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+  .badge.info,
+  .pill.info {
+    background: var(--info-bg);
+    color: var(--info);
+  }
+  .badge.count,
+  .pill.hot {
+    background: var(--danger-solid);
+    color: var(--on-accent);
+  }
+  .pill.ready {
+    background: var(--ok-solid);
+    color: var(--on-accent);
+  }
+  .badge.count {
+    margin-left: var(--s-2);
+  }
+
+  /* ---- Skeletons and empty states ---- */
+  .skeleton {
+    display: block;
+    height: 16px;
+    border-radius: var(--r-sm);
+    background: linear-gradient(90deg, var(--sunken) 25%, var(--border) 50%, var(--sunken) 75%);
+    background-size: 200% 100%;
+    animation: ui-shimmer 1.4s ease-in-out infinite;
+  }
+  .skeleton.block {
+    height: 72px;
+    border-radius: var(--r-lg);
+  }
+  .skeleton.short {
+    width: 40%;
+  }
+  .skeleton.mid {
+    width: 70%;
+  }
+  @keyframes ui-shimmer {
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-2);
+    padding: var(--s-10) var(--s-4);
+    text-align: center;
+    color: var(--ink-2);
+  }
+  .empty h2,
+  .empty h3 {
+    color: var(--ink);
+  }
+  .empty p {
+    max-width: 36ch;
+  }
+  .empty .button,
+  .empty button {
+    margin-top: var(--s-2);
+  }
+
+  /* ---- Page header: title, one line of context, actions ---- */
+  .page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--s-3);
+    margin-bottom: var(--s-5);
+  }
+  .page-head > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+    min-width: 0;
+  }
+  .page-head p {
+    font: var(--f-small);
+    color: var(--ink-2);
+  }
+  .page-head .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+
+  /* ---- Data lists: a real table from 640px, stacked labelled rows below ---- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th {
+    font: var(--f-label);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    text-align: left;
+    padding: var(--s-2) var(--s-3);
+    border-bottom: 1px solid var(--border-strong);
+  }
+  td {
+    padding: var(--s-3);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    text-align: left;
+  }
+  tbody tr:hover td {
+    background: var(--sunken);
+  }
+  @media (max-width: 639px) {
+    table.stacked thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+    table.stacked,
+    table.stacked tbody,
+    table.stacked tr,
+    table.stacked td {
+      display: block;
+      width: 100%;
+    }
+    table.stacked tr {
+      padding: var(--s-2) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    table.stacked td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-1) 0;
+      border: 0;
+    }
+    table.stacked td[data-label]::before {
+      content: attr(data-label);
+      font: var(--f-caption);
+      color: var(--ink-2);
+    }
+    tbody tr:hover td {
+      background: none;
+    }
+  }
+
+  /* ---- Bottom sheet, option groups, quantity stepper ---- */
+  .sheet {
+    border: 0;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    padding: 0;
+    width: 100%;
+    max-width: 640px;
+    margin: auto auto 0;
+    max-height: 90vh;
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-pop);
+  }
+  .sheet::backdrop {
+    background: var(--overlay);
+  }
+  .sheet-body {
+    padding: var(--s-5) var(--gutter) calc(var(--s-5) + env(safe-area-inset-bottom));
+  }
+  .sheet-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--s-2);
+    margin-bottom: var(--s-3);
+  }
+  .group {
+    border: 0;
+    padding: 0;
+    margin: var(--s-3) 0;
+  }
+  .group legend {
+    font: var(--f-small);
+    font-weight: 700;
+    padding: 0;
+  }
+  .stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-6);
+    margin: var(--s-2) 0;
+  }
+  .stepper output {
+    min-width: 32px;
+    text-align: center;
+    font: var(--f-h2);
+    font-variant-numeric: tabular-nums;
+  }
+}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { formatInr, ItemSheet } from "@restosaas/ui";
 
-import { ErrorBanner, Loading } from "@/components/ui";
+import { ErrorBanner, Skeleton } from "@/components/ui";
 import { addToCart, useCart } from "@/lib/cart-store";
 import { timeOf } from "@/lib/format";
 import { useSession } from "@/lib/session";
@@ -21,7 +21,7 @@ export default function MenuPage() {
   const [selected, setSelected] = useState<GuestItem | null>(null);
 
   if (!session) return null;
-  if (!menu.data) return menu.error ? <ErrorBanner message={menu.error} /> : <Loading what="the menu" />;
+  if (!menu.data) return menu.error ? <ErrorBanner message={menu.error} /> : <Skeleton what="the menu" lines={6} />;
 
   const awaiting = tab.data?.awaiting_waiter ?? false;
   const count = cart.reduce((n, e) => n + e.qty, 0);

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatInr } from "@restosaas/ui";
 import { TotalsTable } from "@/components/totals";
-import { ErrorBanner, Loading } from "@/components/ui";
+import { ErrorBanner, Skeleton } from "@/components/ui";
 import { api } from "@/lib/api";
 import { secondsUntil, statusLabel, timeOf } from "@/lib/format";
 import { useSession } from "@/lib/session";
@@ -26,7 +26,7 @@ export default function TabPage() {
   const now = useNow(undoable);
 
   if (!session || !path) return null;
-  if (!tab.data) return tab.error ? <ErrorBanner message={tab.error} /> : <Loading what="your tab" />;
+  if (!tab.data) return tab.error ? <ErrorBanner message={tab.error} /> : <Skeleton what="your tab" block lines={3} />;
   const data = tab.data;
 
   async function answer(line: Line, answer: "ours" | "not_ours") {

@@ -39,11 +39,18 @@ All values are CSS custom properties in `packages/ui/src/tokens.css`. **Never wr
 | `--warn` / `--warn-bg` / `--warn-line` | `#8a5a0c` / `#fff7e6` / `#f0d9a8` | needs attention, awaiting |
 | `--danger` / `--danger-bg` / `--danger-line` | `#8a2f2f` / `#fdecec` / `#f2c4c4` | errors, destructive, disputes |
 | `--info` / `--info-bg` | `#1f5f8b` / `#e7f0f7` | neutral notices |
+| `--accent-bg` | `#fbf3ee` | tint behind accent text (tertiary button hover) |
+| `--ok-line` / `--info-line` | `#bcd6c5` / `#b9d3e6` | borders for those tones |
+| `--ok-solid` / `--danger-solid` | `#2a7148` / `#8a2f2f` | solid pills with white text (`--on-accent`), same in both themes |
+| `--on-accent` | `#ffffff` | text on accent and solid fills |
+| `--overlay` | `rgb(28 26 23 / .45)` | sheet backdrop |
 
 ### Colour — dark (waiter, kitchen, bar: `data-theme="dark"`)
-`--bg #1c1a17`, `--surface #2a2724`, `--sunken #3a3632`, `--border #3a3632`, `--border-strong #4a4540`, `--ink #f6f1ea`, `--ink-2 #b5aea3`, `--ink-3 #a39c91`, `--accent #b34a26`, `--accent-text #f0a488`, `--ok #7fc99a`, `--warn #d9a441`, `--danger #f2a0a0`, `--info #8fc1e3`. Floor tile states: `--tile-seated #4b6a56`, `--tile-bill #d9a441` (ink text), `--tile-new` = accent.
+`--bg #1c1a17`, `--surface #2a2724`, `--sunken #3a3632`, `--border #3a3632`, `--border-strong #4a4540`, `--ink #f6f1ea`, `--ink-2 #b5aea3`, `--ink-3 #aca59a`, `--accent #b34a26`, `--accent-text #f0a488`, `--ok #7fc99a`, `--warn #d9a441`, `--danger #f2a0a0`, `--info #8fc1e3`. Floor tile states, both themes: `--tile-empty`, `--tile-seated`, `--tile-new` (accent), `--tile-bill`, each with a matching `--tile-*-ink`. **Text on a tinted tile uses the tile's ink only**; grey secondary text fails contrast on the fills. Dark tints for the status backgrounds are in `tokens.css`.
 
-Every text/background pair above was checked at ≥ 4.5:1. Re-check any new pair; do not eyeball it.
+Every text/background pair in `tokens.css`, light and dark, was checked at ≥ 4.5:1 (the mock's own accent, caption grey and green failed and were darkened). Re-check any new pair; do not eyeball it.
+
+**Layers.** `tokens.css` declares `@layer ui-base, ui;`. Base element styles and the shared components live in those layers, so an app's own unlayered CSS overrides them with no specificity fight. App CSS holds layout for its own screens only.
 
 ### Type
 Fraunces 600 (Display, H1, H2, and money totals); Manrope 500/600/700 for everything else. Self-hosted, Latin subset, `font-display: swap`. Money and quantities use `font-variant-numeric: tabular-nums`.
@@ -128,20 +135,20 @@ Audit date 2026-09-19, from screenshots of 24 screens at 390 and 1280 px against
 | 7 | Menu page | Daily tasks and rare tasks (options, CSV) at one level; about 1,900 px tall | open |
 | 8 | Guest tab | Round-level status only; "Request bill" below totals, not sticky | open (line status: check API) |
 | 9 | Copy | "Included in prices: CGST/SGST/VAT" on guest screens | open |
-| 10 | States | "Loading…", "Nothing waiting.", a red paragraph; no skeletons, no next step | open |
-| 11 | Styles | Two near-identical `globals.css`; `.check`/`.grow` defined 3×; ~15 hard-coded hex | open |
-| 12 | Type/motion | System font only; no focus, transition or dark rules | open |
+| 10 | States | "Loading…", "Nothing waiting.", a red paragraph; no skeletons, no next step | partly done: `Skeleton` and `EmptyState` exist; screens adopt them per slice |
+| 11 | Styles | Two near-identical `globals.css`; `.check`/`.grow` defined 3×; ~15 hard-coded hex | done (UI-1): one `tokens.css` + `components.css`; app CSS is token-only |
+| 12 | Type/motion | System font only; no focus, transition or dark rules | done (UI-1): self-hosted Manrope + Fraunces with ₹, transitions, reduced-motion |
 | 13 | Alignment | Desktop staff nav starts at x=16, content at x=176; no shared left edge | open |
 | 14 | Floor | Free tiles centred, seated tiles left-aligned; zone shows raw lowercase "floor" | open |
 | 15 | Desktop | Floor map uses a fraction of the width | open |
-| 16 | A11y | No designed focus indicator; mock palette fails AA (accent 4.48, accent text 3.99, grey 3.15) | open (palette fixed in tokens) |
+| 16 | A11y | No designed focus indicator; mock palette fails AA (accent 4.48, accent text 3.99, grey 3.15) | done (UI-1): global `:focus-visible` ring, AA palette |
 | 17 | Auth | Sign-in and sign-up are bare forms at the top-left | open |
 | 18 | Admin app | Stub; nothing to polish until it has screens | n/a |
 
 ## Screen map and slices
 | Slice | Screens | Status |
 | --- | --- | --- |
-| UI-1 Foundation | tokens, fonts, shared components, focus, shrink both `globals.css` | open |
+| UI-1 Foundation | tokens, fonts, shared components, focus, shrink both `globals.css` | **done** (branch `ui/design-system`) |
 | UI-2 Guest | QR landing/errors, menu, item sheet, cart, tab, call sheet | open |
 | UI-3 Staff service | shell + nav, floor, table view, add items, requests, kitchen | open |
 | UI-4 Owner admin | sign-in/sign-up/invite, outlet picker, setup, menu, tables & QR, staff, happy hours, assignments | open |
