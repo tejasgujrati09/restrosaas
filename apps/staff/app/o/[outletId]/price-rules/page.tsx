@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { formatBp, formatInr, parsePercentToBp, parseRupees } from "@restosaas/ui";
+import { Badge, EmptyState, formatBp, formatInr, PageHeader, parsePercentToBp, parseRupees } from "@restosaas/ui";
 import { Card, ErrorBanner, Field } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
@@ -47,16 +47,18 @@ export default function PriceRulesPage() {
   const items = menu.data?.categories.flatMap((c) => c.items) ?? [];
 
   return (
-    <>
-      <h1>Happy hours and event pricing</h1>
-      <p className="muted">A guest is charged the price at the moment they order, and it stays that price on their bill even after the window ends. Times are in your outlet&apos;s timezone. A window that runs past midnight belongs to the day it starts.</p>
+    <div className="narrow">
+      <PageHeader
+        title="Happy hours and event pricing"
+        subtitle="A guest is charged the price at the moment they order, and it stays that price on their bill even after the window ends. Times are in your outlet's timezone. A window that runs past midnight belongs to the day it starts."
+      />
       <Card title="Current rules">
         <ErrorBanner message={rules.error} />
-        {rules.data?.length === 0 ? <p>No rules yet.</p> : null}
-        <ul>
+        {rules.data?.length === 0 ? <EmptyState title="No rules yet">Add a happy hour below and guests will see the lower price while it runs.</EmptyState> : null}
+        <ul className="list">
           {rules.data?.map((r) => (
-            <li key={r.id} className="inline">
-              <strong>{r.name}</strong> — {describe(r)} {!r.active ? <span className="badge off">Off</span> : null}
+            <li key={r.id}>
+              <span><strong>{r.name}</strong> — {describe(r)} {!r.active ? <Badge tone="danger">Off</Badge> : null}</span>
               <button type="button" className="danger" onClick={() => action.run(async () => { await api(`${base}/price-rules/${r.id}`, { method: "DELETE" }); rules.reload(); })}>Delete</button>
             </li>
           ))}
@@ -84,9 +86,9 @@ export default function PriceRulesPage() {
                 <option value="percent_off">Percent off</option><option value="fixed">Fixed price</option>
               </select>
             </Field>
-            <Field label={type === "percent_off" ? "Percent off" : "Price (₹)"}><input required inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} /></Field>
-            <Field label="From"><input type="time" required value={start} onChange={(e) => setStart(e.target.value)} /></Field>
-            <Field label="Until"><input type="time" required value={end} onChange={(e) => setEnd(e.target.value)} /></Field>
+            <Field label={type === "percent_off" ? "Percent off" : "Price (₹)"} size="short"><input required inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} /></Field>
+            <Field label="From" size="short"><input type="time" required value={start} onChange={(e) => setStart(e.target.value)} /></Field>
+            <Field label="Until" size="short"><input type="time" required value={end} onChange={(e) => setEnd(e.target.value)} /></Field>
           </div>
           <fieldset className="field">
             <legend className="field-label">Days</legend>
@@ -100,6 +102,6 @@ export default function PriceRulesPage() {
           <button type="submit" disabled={action.busy || days.length === 0}>Add rule</button>
         </form>
       </Card>
-    </>
+    </div>
   );
 }

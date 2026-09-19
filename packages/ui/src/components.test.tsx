@@ -34,6 +34,15 @@ describe("Field", () => {
     );
   });
 
+  it("narrows the field for short values", () => {
+    const out = html(
+      <Field label="Service charge (%)" size="short">
+        <input />
+      </Field>,
+    );
+    expect(out.startsWith('<label class="field short">')).toBe(true);
+  });
+
   it("marks a single control invalid and announces the error", () => {
     const out = html(
       <Field label="Phone" error="Enter 10 digits">

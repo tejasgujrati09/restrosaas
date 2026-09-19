@@ -128,11 +128,11 @@ Audit date 2026-09-19, from screenshots of 24 screens at 390 and 1280 px against
 | --- | --- | --- | --- |
 | 1 | Nav | Staff nav: 9 equal links wrap to 3–4 rows on a phone; no grouping; Sign out styled like a page action | done (UI-3): grouped sidebar on desktop; top bar + 3-tab bar + More sheet on phones; Sign out in the sidebar / More |
 | 2 | Guest menu | Rows do not look tappable (no add control); no venue brand | done (UI-2) |
-| 3 | Staff menu | Page overflows sideways at 390 px; Edit/Delete clipped; 4-line item names | open |
+| 3 | Staff menu | Page overflows sideways at 390 px; Edit/Delete clipped; 4-line item names | done (UI-4): rows stack on phones, no sideways scroll; secondary actions quieter |
 | 4 | Kitchen | Every sold-out button reads "Sold out" (action looks like state); list flush under tickets | done (UI-3): "Mark sold out" / "Available again" with a visible Sold out badge; neutral buttons |
 | 5 | Buttons | Everything solid or outlined blue; no primary/secondary/destructive hierarchy | done (UI-1, applied per slice): one primary per region, secondary and tertiary quieter |
-| 6 | Setup | Ten stacked full-width cards; one Save mid-page covers only some sections | open |
-| 7 | Menu page | Daily tasks and rare tasks (options, CSV) at one level; about 1,900 px tall | open |
+| 6 | Setup | Ten stacked full-width cards; one Save mid-page covers only some sections | done (UI-4): 720px column, short fields short, sticky Save bar that says what it covers |
+| 7 | Menu page | Daily tasks and rare tasks (options, CSV) at one level; about 1,900 px tall | partly done (UI-4): clearer hierarchy and stacked rows; options and CSV import still on the same page |
 | 8 | Guest tab | Round-level status only; "Request bill" below totals, not sticky | done (UI-2): sticky "Request the bill · ₹", running total, per-item progress (the API already sends line status) |
 | 9 | Copy | "Included in prices: CGST/SGST/VAT" on guest screens | done (UI-2): "Taxes are already in your prices." |
 | 10 | States | "Loading…", "Nothing waiting.", a red paragraph; no skeletons, no next step | partly done: `Skeleton` and `EmptyState` exist; screens adopt them per slice |
@@ -142,8 +142,14 @@ Audit date 2026-09-19, from screenshots of 24 screens at 390 and 1280 px against
 | 14 | Floor | Free tiles centred, seated tiles left-aligned; zone shows raw lowercase "floor" | done (UI-3): one left-aligned tile layout, legend, capitalised zones |
 | 15 | Desktop | Floor map uses a fraction of the width | done (UI-3): sidebar + wide content column |
 | 16 | A11y | No designed focus indicator; mock palette fails AA (accent 4.48, accent text 3.99, grey 3.15) | done (UI-1): global `:focus-visible` ring, AA palette |
-| 17 | Auth | Sign-in and sign-up are bare forms at the top-left | open |
+| 17 | Auth | Sign-in and sign-up are bare forms at the top-left | done (UI-4): centred card, plain-English lines, full-width actions |
 | 18 | Admin app | Stub; nothing to polish until it has screens | n/a |
+
+## Remaining after UI-4
+- Menu page still mixes daily work with options and CSV import; splitting them into tabs is the next improvement.
+- Toasts are specified but not built; "Saved" is still an inline status.
+- The admin app (platform admin) is a stub.
+- One Playwright test (`a waiter adds items with no connection…`) failed once in a full parallel run and passed alone and on rerun; treat as a possible flake and fix it in its own PR if it recurs.
 
 ## Screen map and slices
 | Slice | Screens | Status |
@@ -151,4 +157,4 @@ Audit date 2026-09-19, from screenshots of 24 screens at 390 and 1280 px against
 | UI-1 Foundation | tokens, fonts, shared components, focus, shrink both `globals.css` | **done** (branch `ui/design-system`) |
 | UI-2 Guest | QR landing/errors, menu, item sheet, cart, tab, call sheet | **done** |
 | UI-3 Staff service | shell + nav, floor, table view, add items, requests, kitchen | **done** |
-| UI-4 Owner admin | sign-in/sign-up/invite, outlet picker, setup, menu, tables & QR, staff, happy hours, assignments | open |
+| UI-4 Owner admin | sign-in/sign-up/invite, outlet picker, setup, menu, tables & QR, staff, happy hours, assignments | **done** |

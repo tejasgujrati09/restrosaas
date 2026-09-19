@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { formatBp, paiseToInput, parsePercentToBp, parseRupees } from "@restosaas/ui";
+import { Badge, formatBp, PageHeader, paiseToInput, parsePercentToBp, parseRupees, Skeleton } from "@restosaas/ui";
 import { Card, ErrorBanner, Field } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
@@ -32,7 +32,7 @@ export default function SetupPage() {
   const base = `/v1/outlets/${outletId}`;
   const settings = useResource<Settings>(`${base}/settings`);
   const menu = useResource<Menu>(`${base}/menu`);
-  if (!settings.data) return <ErrorBanner message={settings.error} />;
+  if (!settings.data) return settings.error ? <ErrorBanner message={settings.error} /> : <Skeleton what="your settings" lines={5} block />;
   return <SetupForm base={base} s={settings.data} reload={settings.reload} menu={menu} />;
 }
 
@@ -41,9 +41,10 @@ function SetupForm({ base, s, reload, menu }: {
 }) {
   const [form, setForm] = useState<Form>(() => toForm(s));
   const [saved, setSaved] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
   const save = useAction();
-  const set = <K extends keyof Form>(key: K, value: Form[K]) => { setForm({ ...form, [key]: value }); setSaved(false); };
+  const set = <K extends keyof Form>(key: K, value: Form[K]) => { setForm({ ...form, [key]: value }); setSaved(false); setDirty(true); };
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -68,12 +69,12 @@ function SetupForm({ base, s, reload, menu }: {
         },
       }),
     );
-    if (ok) { setSaved(true); reload(); }
+    if (ok) { setSaved(true); setDirty(false); reload(); }
   }
 
   return (
-    <>
-      <h1>Outlet setup</h1>
+    <div className="narrow">
+      <PageHeader title="Outlet setup" subtitle="Business details, tax and how ordering works at this outlet." />
       <Card title="Before you go live">
         {s.ready_to_go_live ? (
           <p className="ok">All set. Your outlet is ready for guests.</p>
@@ -111,9 +112,9 @@ function SetupForm({ base, s, reload, menu }: {
           </fieldset>
           <label className="check"><input type="checkbox" checked={form.liquor_licensed} onChange={(e) => set("liquor_licensed", e.target.checked)} /> This outlet serves liquor</label>
           {form.liquor_licensed ? (
-            <Field label="State VAT on liquor (%)"><input inputMode="decimal" value={form.liquor_vat} onChange={(e) => set("liquor_vat", e.target.value)} /></Field>
+            <Field label="State VAT on liquor (%)" size="short"><input inputMode="decimal" value={form.liquor_vat} onChange={(e) => set("liquor_vat", e.target.value)} /></Field>
           ) : null}
-          <Field label="Service charge (%)" hint="Guests can remove it. Leave 0 for none."><input inputMode="decimal" value={form.service_charge} onChange={(e) => set("service_charge", e.target.value)} /></Field>
+          <Field label="Service charge (%)" hint="Guests can remove it. Leave 0 for none." size="short"><input inputMode="decimal" value={form.service_charge} onChange={(e) => set("service_charge", e.target.value)} /></Field>
         </Card>
         <Card title="Ordering">
           <label className="check"><input type="checkbox" checked={form.waiter_confirm_mode} onChange={(e) => set("waiter_confirm_mode", e.target.checked)} /> A waiter must confirm each table before guests can order</label>
@@ -123,20 +124,20 @@ function SetupForm({ base, s, reload, menu }: {
           </Field>
         </Card>
         <Card title="Invoices">
-          <Field label="Invoice prefix" hint={`Next invoice: ${s.next_invoice_preview}. Change the prefix to start a new series, for example at the start of a financial year. The counter carries on.`}>
+          <Field size="short" label="Invoice prefix" hint={`Next invoice: ${s.next_invoice_preview}. Change the prefix to start a new series, for example at the start of a financial year. The counter carries on.`}>
             <input value={form.invoice_prefix} maxLength={10} onChange={(e) => set("invoice_prefix", e.target.value)} />
           </Field>
         </Card>
         <ErrorBanner message={inputError ?? save.error} />
-        <div className="inline">
+        <div className="savebar">
           <button type="submit" disabled={save.busy}>Save</button>
-          {saved ? <span role="status" className="ok">Saved</span> : null}
+          {saved ? <span role="status" className="ok">Saved</span> : dirty ? <span className="warn">You have unsaved changes above.</span> : <span className="muted">Saves the sections above. Tax classes and stations below save as you add them.</span>}
         </div>
       </form>
 
       <TaxClasses base={base} menu={menu} />
       <Stations base={base} menu={menu} />
-    </>
+    </div>
   );
 }
 
@@ -158,17 +159,17 @@ function TaxClasses({ base, menu }: { base: string; menu: ReturnType<typeof useR
   return (
     <Card title="Tax classes">
       <p className="muted">Food is charged GST, split equally into CGST and SGST. Liquor is charged state VAT and no GST. Each menu item uses one tax class.</p>
-      <ul>
+      <ul className="list">
         {menu.data?.tax_classes.map((t) => (
-          <li key={t.id} className="inline">
-            {t.name} <span className="badge">{t.liquor_vat ? "Liquor VAT" : `GST ${formatBp(t.gst_rate_bp)}%`}</span>
+          <li key={t.id}>
+            <span>{t.name} <Badge>{t.liquor_vat ? "Liquor VAT" : `GST ${formatBp(t.gst_rate_bp)}%`}</Badge></span>
             <button type="button" className="danger" onClick={() => action.run(async () => { await api(`${base}/tax-classes/${t.id}`, { method: "DELETE" }); menu.reload(); })}>Remove</button>
           </li>
         ))}
       </ul>
       <form onSubmit={add} className="row">
         <Field label="Name"><input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Food 5%" /></Field>
-        <Field label="GST (%)"><input inputMode="decimal" value={rate} disabled={liquor} onChange={(e) => setRate(e.target.value)} /></Field>
+        <Field label="GST (%)" size="short"><input inputMode="decimal" value={rate} disabled={liquor} onChange={(e) => setRate(e.target.value)} /></Field>
         <label className="check"><input type="checkbox" checked={liquor} onChange={(e) => setLiquor(e.target.checked)} /> Liquor (state VAT)</label>
         <button type="submit" disabled={action.busy}>Add tax class</button>
       </form>
@@ -183,10 +184,10 @@ function Stations({ base, menu }: { base: string; menu: ReturnType<typeof useRes
   return (
     <Card title="Stations">
       <p className="muted">Where an item is prepared, for example Kitchen or Bar.</p>
-      <ul>
+      <ul className="list">
         {menu.data?.stations.map((st) => (
-          <li key={st.id} className="inline">
-            {st.name}
+          <li key={st.id}>
+            <span>{st.name}</span>
             <button type="button" className="danger" onClick={() => action.run(async () => { await api(`${base}/stations/${st.id}`, { method: "DELETE" }); menu.reload(); })}>Remove</button>
           </li>
         ))}

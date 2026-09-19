@@ -33,12 +33,13 @@ export default function InvitePage() {
   }
 
   return (
-    <main>
+    <main className="auth">
       <h1>Join your team</h1>
+      <p className="muted">You were invited to work at a restaurant. Confirm your number to join.</p>
       <Card>
         {!sent ? (
           <>
-            <p>We will send a code to the mobile number this invite was made for.</p>
+            <p className="muted">We will send a code to the mobile number this invite was made for.</p>
             <ErrorBanner message={error} />
             <button type="button" disabled={busy} onClick={sendCode}>Send code</button>
           </>

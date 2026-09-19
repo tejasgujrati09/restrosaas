@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { formatInr, paiseToInput, parseRupees } from "@restosaas/ui";
+import { Badge, EmptyState, formatInr, PageHeader, paiseToInput, parseRupees, Skeleton } from "@restosaas/ui";
 import { Card, ErrorBanner, Field } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api, openBlob } from "@/lib/api";
@@ -21,7 +21,7 @@ export default function MenuPage() {
   const [categoryName, setCategoryName] = useState("");
   const action = useAction();
 
-  if (!menu.data) return <ErrorBanner message={menu.error} />;
+  if (!menu.data) return menu.error ? <ErrorBanner message={menu.error} /> : <Skeleton what="the menu" lines={6} block />;
   const m = menu.data;
   const taxName = (id: string) => m.tax_classes.find((t) => t.id === id)?.name ?? "?";
 
@@ -34,21 +34,21 @@ export default function MenuPage() {
 
   return (
     <>
-      <h1>Menu</h1>
-      <p className="muted">
-        {m.prices_include_tax ? "Prices include taxes." : "Taxes are added on top of these prices."} Prices are shown exactly as you enter them.
-      </p>
-      <div className="inline">
-        <button type="button" className="secondary" onClick={() => action.run(() => openBlob(`${base}/menu.pdf`))}>Print menu (PDF)</button>
-      </div>
+      <PageHeader
+        title="Menu"
+        subtitle={`${m.prices_include_tax ? "Prices include taxes." : "Taxes are added on top of these prices."} Prices are shown exactly as you enter them.`}
+        actions={<button type="button" className="secondary" onClick={() => action.run(() => openBlob(`${base}/menu.pdf`))}>Print menu (PDF)</button>}
+      />
       <ErrorBanner message={action.error} />
 
-      {m.categories.length === 0 ? <Card><p>No menu yet. Add a category, then items, or import a CSV below.</p></Card> : null}
+      {m.categories.length === 0 ? (
+        <EmptyState title="No menu yet">Add a category and then items below, or import a CSV to start from a spreadsheet.</EmptyState>
+      ) : null}
       {m.categories.map((c) => (
         <Card key={c.id} title={c.name}>
-          {!c.visible ? <span className="badge off">Hidden from guests</span> : null}
-          <table>
-            <thead><tr><th>Item</th><th>Price</th><th>Tax class</th><th>Availability</th><th /></tr></thead>
+          {!c.visible ? <Badge tone="danger">Hidden from guests</Badge> : null}
+          <table className="stacked">
+            <thead><tr><th>Item</th><th>Price</th><th>Tax class</th><th>Availability</th><th><span className="visually-hidden">Actions</span></th></tr></thead>
             <tbody>
               {c.items.map((item) =>
                 editing === item.id && canEdit ? (
@@ -57,19 +57,19 @@ export default function MenuPage() {
                   </td></tr>
                 ) : (
                   <tr key={item.id}>
-                    <td>{item.veg_flag ? "●" : "▲"} {item.name}{item.is_liquor ? " (liquor)" : ""}</td>
-                    <td>{formatInr(item.base_price_paise)}</td>
-                    <td>{taxName(item.tax_class_id)}</td>
-                    <td>
-                      <button type="button" className="secondary" disabled={!canToggle} aria-pressed={!item.available}
+                    <td data-label="Item">{item.veg_flag ? "●" : "▲"} {item.name}{item.is_liquor ? " (liquor)" : ""}</td>
+                    <td data-label="Price" className="money">{formatInr(item.base_price_paise)}</td>
+                    <td data-label="Tax class">{taxName(item.tax_class_id)}</td>
+                    <td data-label="Availability">
+                      <button type="button" className={item.available ? "secondary" : "danger"} disabled={!canToggle} aria-pressed={!item.available}
                         onClick={() => action.run(async () => { await api(`${base}/items/${item.id}/availability`, { method: "PUT", body: { available: !item.available } }); menu.reload(); })}>
                         {item.available ? "Available" : "Sold out"}
                       </button>
                     </td>
-                    <td className="inline">
+                    <td><div className="actions-cell">
                       {canEdit ? <button type="button" className="secondary" onClick={() => setEditing(item.id)}>Edit</button> : null}
-                      {canEdit ? <button type="button" className="danger" onClick={() => action.run(async () => { await api(`${base}/items/${item.id}`, { method: "DELETE" }); menu.reload(); })}>Delete</button> : null}
-                    </td>
+                      {canEdit ? <button type="button" className="tertiary" onClick={() => action.run(async () => { await api(`${base}/items/${item.id}`, { method: "DELETE" }); menu.reload(); })}>Delete</button> : null}
+                    </div></td>
                   </tr>
                 ),
               )}
@@ -203,10 +203,10 @@ function ModifierGroups({ base, groups, reload }: { base: string; groups: Modifi
 
   return (
     <Card title="Options (modifiers)">
-      <ul>
+      <ul className="list">
         {groups.map((g) => (
-          <li key={g.id} className="inline">
-            <strong>{g.name}</strong> (choose {g.min_select}–{g.max_select}): {g.modifiers.map((m) => `${m.name}${m.price_delta_paise ? ` +${formatInr(m.price_delta_paise)}` : ""}`).join(", ")}
+          <li key={g.id}>
+            <span><strong>{g.name}</strong> (choose {g.min_select}–{g.max_select}): {g.modifiers.map((m) => `${m.name}${m.price_delta_paise ? ` +${formatInr(m.price_delta_paise)}` : ""}`).join(", ")}</span>
             <button type="button" className="danger" onClick={() => action.run(async () => { await api(`${base}/modifier-groups/${g.id}`, { method: "DELETE" }); reload(); })}>Remove</button>
           </li>
         ))}
@@ -214,8 +214,8 @@ function ModifierGroups({ base, groups, reload }: { base: string; groups: Modifi
       <form onSubmit={add}>
         <div className="row">
           <Field label="Group name"><input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Spice level" /></Field>
-          <Field label="Choose at least"><input inputMode="numeric" value={min} onChange={(e) => setMin(e.target.value)} /></Field>
-          <Field label="Choose at most"><input inputMode="numeric" value={max} onChange={(e) => setMax(e.target.value)} /></Field>
+          <Field label="Choose at least" size="short"><input inputMode="numeric" value={min} onChange={(e) => setMin(e.target.value)} /></Field>
+          <Field label="Choose at most" size="short"><input inputMode="numeric" value={max} onChange={(e) => setMax(e.target.value)} /></Field>
         </div>
         <Field label="Choices, one per line" hint="Add an extra price after a comma, for example: Extra cheese, 30">
           <textarea value={lines} onChange={(e) => setLines(e.target.value)} />

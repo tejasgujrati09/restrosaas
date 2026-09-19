@@ -49,8 +49,9 @@ export default function SignupPage() {
   }
 
   return (
-    <main>
+    <main className="auth">
       <h1>Create your restaurant</h1>
+      <p className="muted">Takes about two minutes. You will set up menu, tables and staff next.</p>
       <Card>
         <form onSubmit={create}>
           <Field label="Your mobile number" hint="You will sign in with this number.">
@@ -85,7 +86,7 @@ export default function SignupPage() {
           {!sent ? <ErrorBanner message={error} /> : null}
         </form>
       </Card>
-      <p>Already have an account? <Link href="/login">Sign in</Link></p>
+      <p className="muted">Already have an account? <Link href="/login">Sign in</Link></p>
     </main>
   );
 }

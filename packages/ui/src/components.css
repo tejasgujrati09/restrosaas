@@ -256,6 +256,9 @@
     gap: var(--s-1);
     margin: 0 0 var(--s-3);
   }
+  .field.short {
+    max-width: 200px;
+  }
   .field-label {
     font: var(--f-small);
     font-weight: 700;
@@ -493,6 +496,16 @@
     tbody tr:hover td {
       background: none;
     }
+  }
+
+  /* Disclosure rows ("Add an item"): a clear, full-size tap target. */
+  summary {
+    display: flex;
+    align-items: center;
+    min-height: var(--hit);
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--accent-text);
   }
 
   /* ---- Bottom sheet, option groups, quantity stepper ---- */

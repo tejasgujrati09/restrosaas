@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Badge, Skeleton } from "@restosaas/ui";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { homeFor } from "@/lib/floor";
@@ -31,14 +32,24 @@ export default function Home() {
     });
   }, [router]);
 
-  if (!choices) return <main><p>Loading…</p></main>;
+  if (!choices) {
+    return (
+      <main className="auth">
+        <Skeleton what="your outlets" lines={3} block />
+      </main>
+    );
+  }
   return (
-    <main>
+    <main className="auth">
       <h1>Choose an outlet</h1>
-      <ul>
+      <p className="muted">You work at more than one place. Pick where to start.</p>
+      <ul className="list picker">
         {choices.map((c) => (
           <li key={c.outletId}>
-            <a href={`/o/${c.outletId}/${homeFor([c.role])}`}>{c.label}</a> <span className="badge">{c.role}</span>
+            <a className="pick" href={`/o/${c.outletId}/${homeFor([c.role])}`}>
+              <span>{c.label}</span>
+              <Badge>{c.role}</Badge>
+            </a>
           </li>
         ))}
       </ul>

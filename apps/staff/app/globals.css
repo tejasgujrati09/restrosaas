@@ -462,3 +462,103 @@ main > h2,
 .offline p {
   margin: var(--s-1) 0;
 }
+
+/* Form and list pages read best in a narrow column */
+.narrow {
+  max-width: var(--w-form);
+}
+.actions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.scroll-x {
+  overflow-x: auto;
+}
+.list {
+  list-style: none;
+  margin: 0 0 var(--s-3);
+  padding: 0;
+}
+.list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-3);
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+.list li:last-child {
+  border-bottom: 0;
+}
+
+/* Setup: what "Save" covers, always in reach */
+.savebar {
+  position: sticky;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-6);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+@media (min-width: 1024px) {
+  .savebar {
+    bottom: var(--s-4);
+  }
+}
+
+/* Sign-in, sign-up and invite: a calm, centred card */
+main.auth {
+  max-width: 440px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-4);
+  padding-block: var(--s-8);
+}
+main.auth > h1 {
+  font: var(--f-display);
+  margin: 0;
+}
+main.auth .card {
+  margin: 0;
+  padding: var(--s-5);
+}
+main.auth form > button,
+main.auth .card > button {
+  width: 100%;
+  min-height: var(--hit-cta);
+}
+
+.picker li {
+  padding: 0;
+  border: 0;
+}
+.pick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: var(--hit-cta);
+  padding: 0 var(--s-4);
+  margin-bottom: var(--s-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+.pick:hover {
+  border-color: var(--border-strong);
+  color: var(--ink);
+}

@@ -9,11 +9,14 @@ export function Field({
   label,
   hint,
   error,
+  size,
   children,
 }: {
   label: string;
   hint?: string;
   error?: string | null;
+  /** "short" for a number, a percentage or a prefix: a short value gets a short input. */
+  size?: "short";
   children: ReactNode;
 }) {
   const only = Children.count(children) === 1 ? Children.only(children) : null;
@@ -22,7 +25,7 @@ export function Field({
       ? cloneElement(only as ReactElement<{ "aria-invalid"?: boolean }>, { "aria-invalid": true })
       : children;
   return (
-    <label className="field">
+    <label className={size === "short" ? "field short" : "field"}>
       <span className="field-label">{label}</span>
       {control}
       {hint ? <span className="hint">{hint}</span> : null}
