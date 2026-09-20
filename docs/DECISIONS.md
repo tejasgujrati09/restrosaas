@@ -4,7 +4,7 @@ Record of choices made where `docs/SPEC.md` was silent and the answer affects th
 
 ## 2026-09-19 — Voice ordering agent (Gupshup VoiceAI) — **approved by a human (CLAUDE.md §9); in progress**
 
-Requested by a human: an owner can switch on a phone ordering agent for their restaurant. Callers phone a number, the agent takes an order, and it appears in the existing staff and kitchen views. Gupshup VoiceAI runs the whole call (telephony, STT, LLM, TTS); we only call its API and serve the agent's tools. The four §9 items below were approved by a human on 2026-09-19. Built so far: the schema and capability (migration 0008) and the `VoicePlatform` interface, Gupshup adapter and fake. Not yet built: tool endpoints, provisioning and the owner enable flow.
+Requested by a human: an owner can switch on a phone ordering agent for their restaurant. Callers phone a number, the agent takes an order, and it appears in the existing staff and kitchen views. Gupshup VoiceAI runs the whole call (telephony, STT, LLM, TTS); we only call its API and serve the agent's tools. The four §9 items below were approved by a human on 2026-09-19. Built so far: the schema and capabilities (migration 0008), the `VoicePlatform` interface, Gupshup adapter and fake, manual acceptance of phone orders (staff list, accept, reject), and the tool endpoints (`lookup_customer`, `save_address`, `place_order`, authenticated by `X-Voice-Key`, kept out of the public OpenAPI schema). Not yet built: provisioning (agent, prompt, number) and the owner enable flow.
 
 **Approved (each was a §9 stop-and-ask item):**
 
