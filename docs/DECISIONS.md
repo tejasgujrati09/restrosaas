@@ -2,6 +2,19 @@
 
 Record of choices made where `docs/SPEC.md` was silent and the answer affects the schema or a public API. Newest first. Each entry: date, decision, reason, impact.
 
+## 2026-09-20 — Platform admin (slice A1: list, suspend, audit)
+
+Confirmed by a human: impersonation-only access (no wide cross-tenant policy); phone OTP against the `platform_admin` table; first slice is list, suspend/reactivate and the audit log; plans get per-plan feature limits (numbers still to be decided, next slice).
+
+- **Who a platform admin is.** An `app_user` with an active `platform_admin` row (both from migration 0003; `active` added in 0008). Created only by `scripts/create_platform_admin.py` with the owner DB URL; there is no signup and no API route. Sign-in is a phone OTP at `/v1/platform/auth/otp/*`; the request answers 202 for anyone so admins cannot be discovered.
+- **Two token kinds that cannot cross.** A platform token has `typ=platform` and no `roles`; the staff decoder rejects it, and the platform decoder rejects staff tokens. Both directions are tested. The admin row is re-read on every request, so deactivating an admin locks them out at once.
+- **RLS: two new policies, both SELECT-only** (migration 0008, **needs your review**): `restaurant_platform_read` on `restaurant` and `audit_log_platform_read` on `audit_log`. Each is true only when `app.platform_admin_id` names an *active* `platform_admin` row. Tests show a restaurant still sees only itself, an unknown or deactivated admin id sees nothing, and the platform session cannot write.
+- **Writes use the tenant path.** Suspending opens the restaurant's own `tenant_session`, so the update and the audit row pass the existing tenant policies. Impersonation (a later slice) will do the same, which is why it needs no new policy.
+- **`audit_log` is append-only** for the app role (UPDATE and DELETE revoked; `check_rls.py` now asserts it).
+- **Suspension is enforced on every request**, not only at the QR landing: staff and guest requests re-read the restaurant's status and get 403 `restaurant_suspended`. Live WebSocket connections are not yet closed at suspension; they end at the next request.
+- **No Idempotency-Key on the status endpoint** (CLAUDE.md §3 asks for one on client writes): setting a status a restaurant already has is a no-op that writes no audit row, so a repeat cannot do anything twice. Revisit if a non-idempotent admin write is added.
+- **Deferred to slice A2:** plan limits and assignment (`restaurant.subscription_plan` is still a label, default `trial`), onboarding a restaurant from the admin, and impersonation with an audit trail.
+
 ## 2026-09-19 — GSTIN is optional at setup
 
 Requested by a human: onboarding will later fetch GSTIN details (registered name, address) from an external GST lookup, so GSTIN is no longer a go-live blocker. When supplied it is still checksum-validated and must match the state code; a blank value clears it.

@@ -49,7 +49,7 @@ async def main() -> int:
         elif bypass:
             findings.append(f"role {APP_ROLE!r} has BYPASSRLS")
         # Append-only tables: app role must not hold UPDATE/DELETE.
-        for t in ("tab_event", "bill", "bill_line"):
+        for t in ("tab_event", "bill", "bill_line", "audit_log"):
             if t in tenant_tables:
                 grants = await conn.fetch(
                     "select privilege_type from information_schema.role_table_grants where grantee = $1 and table_name = $2",

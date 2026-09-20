@@ -42,6 +42,7 @@ class PlatformAdmin(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("app_user.id"), unique=True)
     permissions: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
 
 class AuditLog(Base):

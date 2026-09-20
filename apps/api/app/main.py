@@ -21,6 +21,7 @@ from app.api.v1 import (
     kitchen,
     menu,
     menu_import,
+    platform,
     price_rules,
     settings,
     signup,
@@ -64,6 +65,7 @@ for module in (
     assignments,
     floor,
     kitchen,
+    platform,
 ):
     app.include_router(module.router)
 

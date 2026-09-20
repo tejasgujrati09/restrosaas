@@ -534,6 +534,9 @@
     gap: var(--s-2);
     margin-bottom: var(--s-3);
   }
+  .sheet-body > p {
+    margin-bottom: var(--s-3);
+  }
   .group {
     border: 0;
     padding: 0;

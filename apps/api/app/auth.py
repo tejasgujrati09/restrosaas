@@ -60,6 +60,42 @@ def decode_token(token: str) -> tuple[UUID, list[RoleClaim]]:
         raise InvalidTokenError from exc
 
 
+PLATFORM_TOKEN_TYPE = "platform"
+
+
+def issue_platform_token(user_id: UUID, admin_id: UUID) -> str:
+    """A token for the platform admin API only. It has no `roles` claim, so
+    `decode_token` (the staff decoder) rejects it, and `decode_platform_token` rejects
+    staff tokens: neither kind can call the other's routes."""
+    now = int(time.time())
+    payload = {
+        "sub": str(user_id),
+        "adm": str(admin_id),
+        "typ": PLATFORM_TOKEN_TYPE,
+        "iss": settings.jwt_issuer,
+        "iat": now,
+        "exp": now + settings.jwt_access_token_ttl_seconds,
+    }
+    return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
+
+
+def decode_platform_token(token: str) -> tuple[UUID, UUID]:
+    """(user_id, platform_admin_id) from a platform token."""
+    try:
+        payload = jwt.decode(
+            token,
+            settings.jwt_secret,
+            algorithms=["HS256"],
+            issuer=settings.jwt_issuer,
+            options={"require": ["sub", "adm", "exp", "iss", "typ"]},
+        )
+        if payload["typ"] != PLATFORM_TOKEN_TYPE:
+            raise ValueError("not a platform token")
+        return UUID(payload["sub"]), UUID(payload["adm"])
+    except (jwt.PyJWTError, KeyError, ValueError, TypeError) as exc:
+        raise InvalidTokenError from exc
+
+
 class OtpRateLimitedError(Exception):
     pass
 

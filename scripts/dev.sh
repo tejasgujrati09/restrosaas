@@ -150,7 +150,8 @@ PORTS
 
   say "6/6 Demo data"
   if [[ "$seed" == 1 ]]; then
-    (cd "$ROOT/apps/api" && uv run python "$ROOT/scripts/seed_demo.py" "$api_url" "http://localhost:$staff_port")
+    (cd "$ROOT/apps/api" && uv run python "$ROOT/scripts/seed_demo.py" "$api_url" "http://localhost:$staff_port" "http://localhost:$admin_port")
+    (cd "$ROOT/apps/api" && uv run python "$ROOT/scripts/create_platform_admin.py" +918888800009 --name "Demo Platform Admin")
   else
     echo "skipped (--no-seed)"
   fi

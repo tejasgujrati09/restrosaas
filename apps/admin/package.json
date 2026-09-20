@@ -11,6 +11,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@restosaas/ui": "workspace:*",
+    "api-client": "workspace:*",
     "next": "^16.3.5",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"

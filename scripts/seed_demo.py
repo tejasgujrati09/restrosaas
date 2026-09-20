@@ -18,6 +18,7 @@ import httpx
 
 API = sys.argv[1].rstrip("/")
 STAFF = sys.argv[2].rstrip("/")
+ADMIN = (sys.argv[3] if len(sys.argv) > 3 else "http://localhost:3002").rstrip("/")
 PHONE = "+918888800001"  # not the +91999 prefix the automated tests clean up
 CODE = "123456"
 GSTIN = "29AAPFU0939F1ZR"  # valid checksum for state 29 (Karnataka)
@@ -154,6 +155,7 @@ lines = [
     f"  Owner sign-in    {STAFF}/login   phone 8888800001, code {CODE}   (also acts as manager)",
     f"  Waiter sign-in   same page, phone 8888800002: sees only tables T1 and T2",
     f"  Kitchen sign-in  same page, phone 8888800003: the ticket queue",
+    f"  Platform admin   {ADMIN}   phone 8888800009, code {CODE}   (all restaurants; suspend and audit)",
     "  Guest links (open on a phone-sized window):",
     *[f"    Table {t['label']:<3} {t['qr_url']}" for t in tables],
     "  Happy hour: Craft Beer is Rs 200 between 4 PM and 8 PM, otherwise Rs 300.",

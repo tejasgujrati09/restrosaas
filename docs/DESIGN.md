@@ -144,12 +144,12 @@ Audit date 2026-09-19, from screenshots of 24 screens at 390 and 1280 px against
 | 15 | Desktop | Floor map uses a fraction of the width | done (UI-3): sidebar + wide content column |
 | 16 | A11y | No designed focus indicator; mock palette fails AA (accent 4.48, accent text 3.99, grey 3.15) | done (UI-1): global `:focus-visible` ring, AA palette |
 | 17 | Auth | Sign-in and sign-up are bare forms at the top-left | done (UI-4): centred card, plain-English lines, full-width actions |
-| 18 | Admin app | Stub; nothing to polish until it has screens | n/a |
+| 18 | Admin app | Stub; nothing to polish until it has screens | done: sign-in, restaurants card grid with suspend/reactivate, audit log, on the shared tokens |
 
 ## Remaining after UI-4
 - Menu page still mixes daily work with options and CSV import; splitting them into tabs is the next improvement.
 - Toasts are specified but not built; "Saved" is still an inline status.
-- The admin app (platform admin) is a stub.
+- The admin app has restaurants and audit only; plans, onboarding and impersonation come in slice A2 (see DECISIONS.md, 2026-09-20).
 - One Playwright test (`a waiter adds items with no connection…`) failed once in a full parallel run and passed alone and on rerun; treat as a possible flake and fix it in its own PR if it recurs.
 
 ## Screen map and slices

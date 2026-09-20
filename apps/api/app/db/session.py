@@ -67,3 +67,15 @@ async def qr_session(qr_token: str) -> AsyncIterator[AsyncSession]:
     async with session_factory() as session, session.begin():
         await session.execute(text("SELECT set_config('app.qr_token', :t, true)"), {"t": qr_token})
         yield session
+
+
+@asynccontextmanager
+async def platform_session(admin_id: UUID) -> AsyncIterator[AsyncSession]:
+    """A platform admin's read session: `app.platform_admin_id` unlocks the two SELECT-only
+    policies on `restaurant` and `audit_log` (migration 0008), and only while that admin is
+    active. Writes to a restaurant never use this; they open `tenant_session` for it."""
+    async with session_factory() as session, session.begin():
+        await session.execute(
+            text("SELECT set_config('app.platform_admin_id', :aid, true)"), {"aid": str(admin_id)}
+        )
+        yield session

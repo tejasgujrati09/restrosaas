@@ -1,0 +1,196 @@
+/* Platform admin. Colour, type, space and radius come from the shared tokens
+   (packages/ui/src/tokens.css); do not write literal values here. */
+
+main {
+  max-width: var(--w-wide);
+  margin: 0 auto;
+  padding: var(--s-6) var(--gutter) var(--s-10);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--gutter);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.topbar {
+  flex-wrap: wrap;
+}
+.topbar .brand {
+  font: var(--f-h2);
+  margin: 0;
+  flex: 1;
+}
+.topbar button {
+  white-space: nowrap;
+}
+.topbar nav {
+  order: 3;
+  flex-basis: 100%;
+  display: flex;
+  gap: var(--s-1);
+}
+@media (min-width: 640px) {
+  .topbar .brand {
+    flex: none;
+  }
+  .topbar nav {
+    order: 0;
+    flex: 1;
+    flex-basis: auto;
+  }
+}
+.topbar nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit);
+  padding: 0 var(--s-3);
+  border-radius: var(--r-md);
+  color: var(--ink);
+  font: var(--f-small);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.topbar nav a:hover {
+  background: var(--sunken);
+  color: var(--ink);
+}
+.topbar nav a[aria-current="page"] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* Sign-in: a calm, centred card */
+main.auth {
+  max-width: 440px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-4);
+}
+main.auth > h1 {
+  font: var(--f-display);
+}
+main.auth .card {
+  margin: 0;
+  padding: var(--s-5);
+}
+main.auth form > button {
+  width: 100%;
+  min-height: var(--hit-cta);
+}
+
+/* Restaurants */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-5);
+  margin-bottom: var(--s-4);
+}
+.toolbar .field {
+  flex: 1 1 260px;
+  max-width: 420px;
+  margin: 0;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.chips button {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink);
+  font: var(--f-small);
+  font-weight: 700;
+}
+.chips button:hover {
+  background: var(--sunken);
+  color: var(--ink);
+}
+.chips button[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+.chips .count {
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.chips button[aria-pressed="true"] .count {
+  color: var(--bg);
+}
+
+.restaurant-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--s-4);
+}
+.restaurant-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+.restaurant-card .top {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.restaurant-card .avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-md);
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  font: var(--f-h1);
+}
+.restaurant-card .names {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.restaurant-card .names h2 {
+  overflow-wrap: anywhere;
+}
+.restaurant-card .names span {
+  font: var(--f-small);
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+.restaurant-card .meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  flex: 1;
+}
+.restaurant-card .since {
+  font: var(--f-caption);
+  color: var(--ink-2);
+}
+
+.audit td {
+  overflow-wrap: anywhere;
+}
+
+.audit {
+  margin-top: var(--s-4);
+}
