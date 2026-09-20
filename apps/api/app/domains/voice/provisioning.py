@@ -105,6 +105,8 @@ async def enable(
 
     if row is not None and row.status == "disabled" and row.gupshup_agent_id:
         return await _reactivate(session, platform, row, menu, tools_base_url, now)
+    if row is not None and row.status == "failed" and row.gupshup_agent_id and row.sr_plan_id:
+        return await _finish_setup(session, platform, row, menu, tools_base_url, now)
 
     key, key_hash = new_voice_key(restaurant_id)
     name = agent_name(menu)
@@ -129,24 +131,60 @@ async def enable(
     row.updated_at = now
     row.last_error = None
 
-    agent_id: str | None = None
+    linked = False
     try:
         agent_id = await platform.create_agent(_spec(name, menu, tools_base_url, key, active=True))
         row.gupshup_agent_id = agent_id
-        # Linking is last on purpose: if anything before it fails, no number is left pointing at
-        # an agent we then delete.
-        await platform.pass_caller_to_agent(number.plan_id)
         await platform.link_number(number.plan_id, agent_id, name, number.number)
+        linked = True
+        row.sr_plan_id = number.plan_id
+        row.phone_number = number.number
+        # The platform only accepts caller metadata for a number that is already linked, so
+        # this cannot come first. If it fails, the number already points at the agent: the
+        # agent is kept (never deleted from under a linked number) and a retry finishes here.
+        await platform.pass_caller_to_agent(number.plan_id, agent_id, number.number)
     except VoicePlatformError as exc:
         logger.warning("voice_enable_failed", op=exc.op, status=exc.status)
         row.status = "failed"
         row.last_error = _safe(exc)
-        await _discard_platform_agent(platform, row)
+        if not linked:
+            await _discard_platform_agent(platform, row)
         await session.flush()
         return row
-    row.sr_plan_id = number.plan_id
-    row.phone_number = number.number
     row.status = "active"
+    await session.flush()
+    return row
+
+
+async def _finish_setup(
+    session: AsyncSession,
+    platform: VoicePlatform,
+    row: VoiceAgent,
+    menu: PromptMenu,
+    tools_base_url: str,
+    now: datetime,
+) -> VoiceAgent:
+    """Retry after a failure that happened once the number was linked: the agent and the link
+    exist, so refresh the agent (new key) and set the caller metadata again."""
+    assert row.gupshup_agent_id is not None and row.sr_plan_id is not None
+    key, key_hash = new_voice_key(row.restaurant_id)
+    try:
+        await platform.update_agent(
+            row.gupshup_agent_id,
+            _spec(agent_name(menu), menu, tools_base_url, key, active=True),
+        )
+        await platform.pass_caller_to_agent(
+            row.sr_plan_id, row.gupshup_agent_id, row.phone_number or ""
+        )
+    except VoicePlatformError as exc:
+        row.last_error = _safe(exc)
+        row.updated_at = now
+        await session.flush()
+        return row
+    row.key_hash = key_hash
+    row.status = "active"
+    row.last_error = None
+    row.updated_at = now
     await session.flush()
     return row
 

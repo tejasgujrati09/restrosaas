@@ -154,7 +154,7 @@ async def test_link_number_and_caller_mapping_requests() -> None:
 
     platform = _platform(handler)
     await platform.link_number(7, "agent-1", "Test Kitchen", "+910000000007")
-    await platform.pass_caller_to_agent(7)
+    await platform.pass_caller_to_agent(7, "agent-1", "+910000000007")
     assert requests[0] == (
         "/api/v1/sr/numbers/link-agent",
         {
@@ -165,8 +165,9 @@ async def test_link_number_and_caller_mapping_requests() -> None:
         },
     )
     path, body = requests[1]
-    assert path == "/api/v1/sr/numbers/metadata"
-    assert body["plan_id"] == 7
+    assert path == "/api/v1/sr/ivr/setup"
+    assert (body["plan_id"], body["agent_id"], body["call_type"]) == (7, "agent-1", "inbound")
+    assert body["phone_number"] == "+910000000007"
     assert json.loads(body["sip_metadata"])["caller"] == "${app_params0}"
     await platform.aclose()
 

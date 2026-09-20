@@ -67,8 +67,12 @@ class FakeVoicePlatform:
             raise VoicePlatformError("link_number", "number already linked", status=409)
         self.numbers[plan_id] = PhoneNumber(plan_id, number, agent_id)
 
-    async def pass_caller_to_agent(self, plan_id: int) -> None:
+    async def pass_caller_to_agent(self, plan_id: int, agent_id: str, number: str) -> None:
         self._enter("pass_caller_to_agent")
+        current = self.numbers.get(plan_id)
+        if current is None or current.linked_agent_id != agent_id:
+            # The real platform: "No IVR allocation found for this plan_id" until it is linked.
+            raise VoicePlatformError("pass_caller_to_agent", "number not linked", status=404)
         self.caller_mapped.add(plan_id)
 
     async def caller_of_call(self, call_id: str) -> str | None:

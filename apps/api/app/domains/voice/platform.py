@@ -103,9 +103,10 @@ class VoicePlatform(Protocol):
         self, plan_id: int, agent_id: str, agent_name: str, number: str
     ) -> None: ...
 
-    async def pass_caller_to_agent(self, plan_id: int) -> None:
-        """Make the number send the caller's and the dialed number to the agent as its
-        `caller` call variable, so tools can be bound to it."""
+    async def pass_caller_to_agent(self, plan_id: int, agent_id: str, number: str) -> None:
+        """Route inbound calls on an already linked number to the agent and make the number
+        send the caller's and the dialed number as the agent's `caller` call variable, so
+        tools can be bound to it. Must come after `link_number`."""
         ...
 
     async def caller_of_call(self, call_id: str) -> str | None:

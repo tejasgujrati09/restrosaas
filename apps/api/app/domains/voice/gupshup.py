@@ -208,12 +208,21 @@ class GupshupPlatform:
             },
         )
 
-    async def pass_caller_to_agent(self, plan_id: int) -> None:
+    async def pass_caller_to_agent(self, plan_id: int, agent_id: str, number: str) -> None:
+        # Linking alone records the pairing; `ivr/setup` creates the inbound IVR allocation
+        # that actually routes calls, and carries the metadata template (the separate
+        # `numbers/metadata` call is refused, "No IVR allocation", until this has run).
         await self._call(
             "pass_caller_to_agent",
             "POST",
-            "/api/v1/sr/numbers/metadata",
-            json_body={"plan_id": plan_id, "sip_metadata": _SIP_METADATA},
+            "/api/v1/sr/ivr/setup",
+            json_body={
+                "phone_number": number,
+                "plan_id": plan_id,
+                "agent_id": agent_id,
+                "sip_metadata": _SIP_METADATA,
+                "call_type": "inbound",
+            },
         )
 
     async def caller_of_call(self, call_id: str) -> str | None:

@@ -206,7 +206,7 @@ async def test_an_unknown_number_and_no_free_number_are_refused(
     assert platform.agents == {}
 
 
-@pytest.mark.parametrize("failing", ["create_agent", "pass_caller_to_agent", "link_number"])
+@pytest.mark.parametrize("failing", ["create_agent", "link_number"])
 async def test_a_platform_failure_is_recorded_and_leaves_nothing_behind(
     client: httpx.AsyncClient, seed: Seed, env: Menu, platform: FakeVoicePlatform, failing: str
 ) -> None:
@@ -222,6 +222,31 @@ async def test_a_platform_failure_is_recorded_and_leaves_nothing_behind(
     retry = await client.post(_url(seed, "/enable"), headers=_owner(seed))
     assert retry.status_code == 200 and retry.json()["status"] == "active"
     assert len(platform.agents) == 1
+
+
+async def test_a_failure_after_linking_keeps_the_agent_and_a_retry_finishes_it(
+    client: httpx.AsyncClient, seed: Seed, env: Menu, platform: FakeVoicePlatform
+) -> None:
+    """The platform only takes caller metadata for a linked number. If that step fails the
+    number already points at the agent, so the agent must not be deleted; retrying resumes."""
+    platform.fail_next("pass_caller_to_agent")
+    r = await client.post(_url(seed, "/enable"), headers=_owner(seed))
+    body = r.json()
+    assert (body["enabled"], body["status"]) == (False, "failed")
+    assert body["last_error"] == "pass_caller_to_agent failed (HTTP 500)"
+    (agent_id,) = platform.agents
+    assert platform.numbers[FREE[0]].linked_agent_id == agent_id
+    assert FREE[0] not in platform.caller_mapped
+    old_key = _key(platform)
+
+    retry = await client.post(_url(seed, "/enable"), headers=_owner(seed))
+    assert retry.status_code == 200 and retry.json()["status"] == "active"
+    assert list(platform.agents) == [agent_id]  # same agent, nothing duplicated
+    assert FREE[0] in platform.caller_mapped
+    assert retry.json()["phone_number"] == FREE[1]
+    new_key = _key(platform)
+    assert new_key != old_key
+    assert (await _tool(client, new_key, "lookup_customer", {})).status_code == 200
 
 
 async def test_disable_stops_the_agent_and_cuts_off_its_tools(
