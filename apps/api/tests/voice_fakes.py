@@ -10,6 +10,7 @@ from app.domains.voice.platform import AgentSpec, PhoneNumber, VoicePlatformErro
 class FakeVoicePlatform:
     def __init__(self, numbers: list[tuple[int, str]] | None = None) -> None:
         self.agents: dict[str, AgentSpec] = {}
+        self.active: dict[str, bool] = {}
         self.numbers: dict[int, PhoneNumber] = {
             plan: PhoneNumber(plan, number, None)
             for plan, number in (numbers or [(1001, "+910000000001")])
@@ -32,6 +33,7 @@ class FakeVoicePlatform:
         self._enter("create_agent")
         agent_id = f"fake-agent-{next(self._ids)}"
         self.agents[agent_id] = spec
+        self.active[agent_id] = spec.active
         return agent_id
 
     async def update_agent(self, agent_id: str, spec: AgentSpec) -> None:
@@ -39,10 +41,18 @@ class FakeVoicePlatform:
         if agent_id not in self.agents:
             raise VoicePlatformError("update_agent", "no such agent", status=404)
         self.agents[agent_id] = spec
+        self.active[agent_id] = spec.active  # the real adapter sends is_active on every update
+
+    async def set_agent_active(self, agent_id: str, active: bool) -> None:
+        self._enter("set_agent_active")
+        if agent_id not in self.agents:
+            raise VoicePlatformError("set_agent_active", "no such agent", status=404)
+        self.active[agent_id] = active
 
     async def delete_agent(self, agent_id: str) -> None:
         self._enter("delete_agent")
         self.agents.pop(agent_id, None)
+        self.active.pop(agent_id, None)
 
     async def list_numbers(self) -> list[PhoneNumber]:
         self._enter("list_numbers")

@@ -27,6 +27,7 @@ from app.api.v1 import (
     staff,
     tables,
     tabs,
+    voice_agent,
     voice_orders,
     voice_tools,
 )
@@ -66,6 +67,7 @@ for module in (
     assignments,
     floor,
     kitchen,
+    voice_agent,
     voice_orders,
     voice_tools,
 ):

@@ -88,6 +88,11 @@ class VoicePlatform(Protocol):
         """Replace the agent's prompt, tools and variables (used to re-sync the menu)."""
         ...
 
+    async def set_agent_active(self, agent_id: str, active: bool) -> None:
+        """Turn the agent on or off without touching its prompt or tools. An inactive agent
+        does not answer calls."""
+        ...
+
     async def delete_agent(self, agent_id: str) -> None: ...
 
     async def list_numbers(self) -> list[PhoneNumber]:

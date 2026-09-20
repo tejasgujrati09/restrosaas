@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     gupshup_api_key: str | None = None
     gupshup_base_url: str | None = None
     voice_tools_base_url: str | None = None
+    # The one SR number the enable flow may link (else the first unlinked one). Never a linked one.
+    voice_sr_number: str | None = None
     # Browser origins allowed to call the API (the three Next.js apps).
     cors_origins: list[str] = [
         "http://localhost:3000",

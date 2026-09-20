@@ -166,6 +166,14 @@ class GupshupPlatform:
             "update_agent", "PUT", f"/api/v1/agents/{agent_id}", json_body=agent_json(spec)
         )
 
+    async def set_agent_active(self, agent_id: str, active: bool) -> None:
+        await self._call(
+            "set_agent_active",
+            "PUT",
+            f"/api/v1/agents/{agent_id}",
+            json_body={"is_active": active},
+        )
+
     async def delete_agent(self, agent_id: str) -> None:
         await self._call("delete_agent", "DELETE", f"/api/v1/agents/{agent_id}")
 

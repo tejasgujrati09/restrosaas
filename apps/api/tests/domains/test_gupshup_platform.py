@@ -195,3 +195,18 @@ async def test_every_call_is_logged_with_duration_and_status_and_no_secret() -> 
     assert isinstance(entry["duration_ms"], int)
     assert KEY not in json.dumps(logs)
     await platform.aclose()
+
+
+async def test_set_agent_active_sends_only_the_flag() -> None:
+    seen: dict[str, Any] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["method"] = request.method
+        seen["path"] = request.url.path
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json={})
+
+    platform = _platform(handler)
+    await platform.set_agent_active("agent-5", False)
+    assert seen == {"method": "PUT", "path": "/api/v1/agents/agent-5", "body": {"is_active": False}}
+    await platform.aclose()
