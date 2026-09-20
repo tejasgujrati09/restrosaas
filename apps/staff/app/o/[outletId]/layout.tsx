@@ -2,25 +2,15 @@
 
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Icon, Notice, Sheet } from "@restosaas/ui";
 import { useResource } from "@/components/hooks";
 import { OfflineBanner } from "@/components/offline-banner";
 import { live, socketUrl, useLive } from "@/lib/live";
+import { sectionOf, splitForTabBar, usesDarkTheme, visibleNav, type NavItem } from "@/lib/nav";
 import { clearSession, getToken, rolesAt } from "@/lib/session";
 import { useToken } from "@/lib/use-token";
 import type { RequestRow, Settings } from "@/lib/types";
-
-const LINKS: { href: string; label: string; roles: string[] }[] = [
-  { href: "floor", label: "Floor", roles: ["owner", "manager", "waiter"] },
-  { href: "requests", label: "Requests", roles: ["owner", "manager", "waiter"] },
-  { href: "kitchen", label: "Kitchen", roles: ["owner", "manager", "kitchen", "bar"] },
-  { href: "setup", label: "Setup", roles: ["owner"] },
-  { href: "menu", label: "Menu", roles: ["owner", "manager", "waiter", "kitchen", "bar"] },
-  { href: "price-rules", label: "Happy hours", roles: ["owner", "manager"] },
-  { href: "tables", label: "Tables & QR", roles: ["owner", "manager"] },
-  { href: "staff", label: "Staff", roles: ["owner", "manager"] },
-  { href: "assignments", label: "Assign tables", roles: ["owner", "manager"] },
-];
 
 export default function OutletLayout({ children }: { children: ReactNode }) {
   const { outletId } = useParams<{ outletId: string }>();
@@ -29,6 +19,7 @@ export default function OutletLayout({ children }: { children: ReactNode }) {
   const token = useToken();
   const roles = useMemo(() => rolesAt(token, outletId), [token, outletId]);
   const settings = useResource<Settings>(token ? `/v1/outlets/${outletId}/settings` : null);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // One live socket for everything on screen; screens refetch when it pushes.
   useEffect(() => {
@@ -46,31 +37,110 @@ export default function OutletLayout({ children }: { children: ReactNode }) {
     if (!getToken()) router.replace("/login");
   }, [token, router]);
 
-  // Hiding a link is convenience only; the API refuses anything the role may not do.
-  const visible = LINKS.filter((l) => roles.some((r) => l.roles.includes(r)));
+  // Waiter, kitchen and bar work at night: dark. Set on <html> so the page background follows.
+  const dark = usesDarkTheme(roles);
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    return () => {
+      delete document.documentElement.dataset.theme;
+    };
+  }, [dark]);
+
+  const groups = visibleNav(roles);
+  const section = sectionOf(pathname);
+  const brand = settings.data ? settings.data.brand_name : "…";
+  const suspended = settings.data?.suspended === true;
+  const { primary, more } = splitForTabBar(groups.flatMap((g) => g.items));
+
+  function signOut() {
+    clearSession();
+    router.replace("/login");
+  }
+
+  const link = (item: NavItem, className?: string) => (
+    <Link
+      key={item.href}
+      href={`/o/${outletId}/${item.href}`}
+      className={className}
+      aria-current={section === item.href ? "page" : undefined}
+      onClick={() => setMoreOpen(false)}
+    >
+      <Icon name={item.icon} />
+      <span>{item.label}</span>
+      {item.href === "requests" && open > 0 ? (
+        <span className="badge count" aria-label={`${open} open`}>
+          {open}
+        </span>
+      ) : null}
+    </Link>
+  );
+
+  const status = (
+    <span className={connected ? "conn" : "conn off"} title="Connection to the server">
+      <span className="conn-dot" aria-hidden="true" />
+      {connected ? "Live" : "Reconnecting…"}
+    </span>
+  );
 
   return (
-    <>
-      <nav className="top" aria-label="Main">
-        <ul>
-          <li><strong>{settings.data ? settings.data.brand_name : "…"}</strong></li>
-          {visible.map((l) => (
-            <li key={l.href}>
-              <Link href={`/o/${outletId}/${l.href}`} aria-current={pathname.includes(`/${l.href}`) ? "page" : undefined}>
-                {l.label}
-                {l.href === "requests" && open > 0 ? <span className="badge count" aria-label={`${open} open`}>{open}</span> : null}
-              </Link>
-            </li>
+    <div className="shell">
+      <aside className="sidebar">
+        <p className="brand">{brand}</p>
+        <nav aria-label="Main">
+          {groups.map((g) => (
+            <div key={g.label} className="nav-group">
+              <p className="nav-label">{g.label}</p>
+              <ul>
+                {g.items.map((i) => (
+                  <li key={i.href}>{link(i, "nav-link")}</li>
+                ))}
+              </ul>
+            </div>
           ))}
-          <li className="spacer" />
-          <li className={connected ? "muted" : "warn"} title="Connection to the server">{connected ? "Live" : "Reconnecting…"}</li>
-          <li>
-            <button type="button" className="secondary" onClick={() => { clearSession(); router.replace("/login"); }}>Sign out</button>
-          </li>
-        </ul>
+        </nav>
+        <div className="side-foot">
+          {status}
+          <button type="button" className="secondary" onClick={signOut}>
+            <Icon name="logout" />
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      <div className="content-col">
+        <header className="topbar">
+          <p className="brand">{brand}</p>
+          {status}
+        </header>
+        <OfflineBanner />
+        <main>
+          {suspended ? <Notice>This restaurant&apos;s account is suspended. You can look around, but changes are turned off. Please contact support.</Notice> : null}
+          {/* A disabled fieldset turns off every button and field inside it; links still work. */}
+          <fieldset className="readonly" disabled={suspended}>
+            {children}
+          </fieldset>
+        </main>
+      </div>
+
+      <nav className="tabbar" aria-label="Main">
+        {primary.map((i) => link(i, "tab"))}
+        <button type="button" className="tab" onClick={() => setMoreOpen(true)}>
+          <Icon name="more" />
+          <span>More</span>
+        </button>
       </nav>
-      <OfflineBanner />
-      <main>{children}</main>
-    </>
+
+      <Sheet open={moreOpen} onClose={() => setMoreOpen(false)} title="More">
+        <ul className="more-list">
+          {more.map((i) => (
+            <li key={i.href}>{link(i, "nav-link")}</li>
+          ))}
+        </ul>
+        <button type="button" className="secondary btn-lg wide" onClick={signOut}>
+          <Icon name="logout" />
+          Sign out
+        </button>
+      </Sheet>
+    </div>
   );
 }

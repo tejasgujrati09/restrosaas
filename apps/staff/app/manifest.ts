@@ -6,7 +6,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Staff",
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#ffffff",
+    // A manifest cannot use CSS variables: keep these equal to --bg in packages/ui/src/tokens.css.
+    background_color: "#f6f1ea",
+    theme_color: "#f6f1ea",
   };
 }

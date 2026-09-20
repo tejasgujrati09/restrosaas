@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { Badge, EmptyState, PageHeader, Skeleton } from "@restosaas/ui";
 import { ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { act } from "@/lib/offline";
@@ -23,7 +24,7 @@ export default function KitchenPage() {
   const [search, setSearch] = useState("");
   const [note, setNote] = useState<string | null>(null);
 
-  if (!queue.data) return <ErrorBanner message={queue.error} />;
+  if (!queue.data) return queue.error ? <ErrorBanner message={queue.error} /> : <Skeleton what="the queue" lines={3} block />;
 
   async function move(t: Ticket, verb: "start" | "ready" | "recall") {
     if (await action.run(() => act("POST", `${base}/tickets/${t.id}/${verb}`, undefined, `${verb[0]?.toUpperCase()}${verb.slice(1)} ticket for table ${t.table_label ?? "?"}`))) queue.reload();
@@ -40,7 +41,7 @@ export default function KitchenPage() {
 
   return (
     <>
-      <h1>Kitchen and bar</h1>
+      <PageHeader title="Kitchen and bar" subtitle={queue.data.queue.length > 0 ? `${queue.data.queue.length} ticket${queue.data.queue.length === 1 ? "" : "s"} waiting` : undefined} />
       <ErrorBanner message={action.error ?? queue.error} />
       <div className="stations" role="group" aria-label="Station">
         <button type="button" className="secondary" aria-pressed={station === null} onClick={() => setStation(null)}>Everything</button>
@@ -48,7 +49,9 @@ export default function KitchenPage() {
           <button key={s.id} type="button" className="secondary" aria-pressed={station === s.id} onClick={() => setStation(s.id)}>{s.name}</button>
         ))}
       </div>
-      {queue.data.queue.length === 0 ? <p>No tickets waiting.</p> : null}
+      {queue.data.queue.length === 0 ? (
+        <EmptyState title="No tickets waiting.">New orders show up here the moment a guest or waiter places them.</EmptyState>
+      ) : null}
       <div className="tickets">
         {queue.data.queue.map((t) => {
           const minutes = minutesSince(t.created_at, now);
@@ -71,7 +74,7 @@ export default function KitchenPage() {
                   {l.note ? <p className="sub">“{l.note}”</p> : null}
                 </div>
               ))}
-              {holding ? <p className="warn">The guest can still undo for {hold}s. Start unlocks then.</p> : null}
+              {holding ? <p className="hold">The guest can still undo for {hold}s. Start unlocks then.</p> : null}
               {t.status === "queued" ? (
                 <button type="button" className="big" disabled={action.busy || !t.can_start} onClick={() => move(t, "start")}>
                   {t.can_start ? "Start" : `Wait ${hold}s`}
@@ -100,9 +103,9 @@ export default function KitchenPage() {
         <input type="search" aria-label="Find an item" placeholder="Find an item" value={search} onChange={(e) => setSearch(e.target.value)} />
         {items.slice(0, 40).map((i) => (
           <div key={i.id} className="line-row">
-            <span className="grow">{i.name} {!i.available ? <span className="badge off">Sold out</span> : null}</span>
-            <button type="button" className={i.available ? "danger" : "secondary"} disabled={action.busy} onClick={() => soldOut(i.id, i.name, i.available)}>
-              {i.available ? "Sold out" : "Available again"}
+            <span className="grow">{i.name} {!i.available ? <Badge tone="danger">Sold out</Badge> : null}</span>
+            <button type="button" className="secondary" disabled={action.busy} onClick={() => soldOut(i.id, i.name, i.available)}>
+              {i.available ? "Mark sold out" : "Available again"}
             </button>
           </div>
         ))}

@@ -39,11 +39,18 @@ All values are CSS custom properties in `packages/ui/src/tokens.css`. **Never wr
 | `--warn` / `--warn-bg` / `--warn-line` | `#8a5a0c` / `#fff7e6` / `#f0d9a8` | needs attention, awaiting |
 | `--danger` / `--danger-bg` / `--danger-line` | `#8a2f2f` / `#fdecec` / `#f2c4c4` | errors, destructive, disputes |
 | `--info` / `--info-bg` | `#1f5f8b` / `#e7f0f7` | neutral notices |
+| `--accent-bg` | `#fbf3ee` | tint behind accent text (tertiary button hover) |
+| `--ok-line` / `--info-line` | `#bcd6c5` / `#b9d3e6` | borders for those tones |
+| `--ok-solid` / `--danger-solid` | `#2a7148` / `#8a2f2f` | solid pills with white text (`--on-accent`), same in both themes |
+| `--on-accent` | `#ffffff` | text on accent and solid fills |
+| `--overlay` | `rgb(28 26 23 / .45)` | sheet backdrop |
 
 ### Colour — dark (waiter, kitchen, bar: `data-theme="dark"`)
-`--bg #1c1a17`, `--surface #2a2724`, `--sunken #3a3632`, `--border #3a3632`, `--border-strong #4a4540`, `--ink #f6f1ea`, `--ink-2 #b5aea3`, `--ink-3 #a39c91`, `--accent #b34a26`, `--accent-text #f0a488`, `--ok #7fc99a`, `--warn #d9a441`, `--danger #f2a0a0`, `--info #8fc1e3`. Floor tile states: `--tile-seated #4b6a56`, `--tile-bill #d9a441` (ink text), `--tile-new` = accent.
+`--bg #1c1a17`, `--surface #2a2724`, `--sunken #3a3632`, `--border #3a3632`, `--border-strong #4a4540`, `--ink #f6f1ea`, `--ink-2 #b5aea3`, `--ink-3 #aca59a`, `--accent #b34a26`, `--accent-text #f0a488`, `--ok #7fc99a`, `--warn #d9a441`, `--danger #f2a0a0`, `--info #8fc1e3`. Floor tile states, both themes: `--tile-empty`, `--tile-seated`, `--tile-new` (accent), `--tile-bill`, each with a matching `--tile-*-ink`. **Text on a tinted tile uses the tile's ink only**; grey secondary text fails contrast on the fills. Dark tints for the status backgrounds are in `tokens.css`.
 
-Every text/background pair above was checked at ≥ 4.5:1. Re-check any new pair; do not eyeball it.
+Every text/background pair in `tokens.css`, light and dark, was checked at ≥ 4.5:1 (the mock's own accent, caption grey and green failed and were darkened). Re-check any new pair; do not eyeball it.
+
+**Layers.** `tokens.css` declares `@layer ui-base, ui;`. Base element styles and the shared components live in those layers, so an app's own unlayered CSS overrides them with no specificity fight. App CSS holds layout for its own screens only.
 
 ### Type
 Fraunces 600 (Display, H1, H2, and money totals); Manrope 500/600/700 for everything else. Self-hosted, Latin subset, `font-display: swap`. Money and quantities use `font-variant-numeric: tabular-nums`.
@@ -91,9 +98,11 @@ Plain CSS classes and small React components; **no new UI library** (CLAUDE.md �
 
 ## 4. Shell and navigation
 - **Guest:** header (venue name in Fraunces, a `Table` pill, one line for the current happy hour) + bottom bar with a contextual primary action (view round, request bill) above the tab links (Menu, My tab, Call waiter).
+- **Restaurant picker** (after sign-in, for people who work at more than one place): a grid of cards, one per outlet, each with an initial avatar, restaurant name, outlet and state, a role badge and a readiness badge. One outlet skips the picker.
 - **Staff, phone:** slim top bar (venue, connection dot with text, account menu with Sign out) + bottom tab bar of at most four role-based destinations; the rest under **More**.
 - **Staff, desktop (≥ 1024):** left sidebar grouped **Service** (Floor, Requests, Kitchen), **Manage** (Menu, Happy hours, Tables & QR, Assign tables, Staff), **Settings** (Setup); page header in the content column. The active item has `aria-current="page"` and a filled row. Sign out is in the account menu, never styled like a page action.
-- Role filtering of links stays (`LINKS`); hiding a link is convenience, the API is the check.
+- **Suspended restaurant:** the shell shows a warn `Notice` above the page ("This restaurant's account is suspended…") and wraps the page in `<fieldset class="readonly" disabled>`, which turns off every button and field while links, and so reading, still work. The picker card shows a danger `Suspended` badge. Never hide a suspended restaurant.
+- Role filtering of links stays (`NAV` in `apps/staff/lib/nav.ts`); hiding a link is convenience, the API is the check.
 
 ## 5. Copy
 Short, plain English, sentence case, no jargon on guest screens ("Taxes included", not "Included in prices: CGST/SGST/VAT"). Buttons say what they do ("Place order · ₹624", not "Submit"). Errors say what happened and what to do next.
@@ -119,29 +128,35 @@ Audit date 2026-09-19, from screenshots of 24 screens at 390 and 1280 px against
 ## Findings
 | # | Area | Finding | Status |
 | --- | --- | --- | --- |
-| 1 | Nav | Staff nav: 9 equal links wrap to 3–4 rows on a phone; no grouping; Sign out styled like a page action | open |
-| 2 | Guest menu | Rows do not look tappable (no add control); no venue brand | open |
-| 3 | Staff menu | Page overflows sideways at 390 px; Edit/Delete clipped; 4-line item names | open |
-| 4 | Kitchen | Every sold-out button reads "Sold out" (action looks like state); list flush under tickets | open |
-| 5 | Buttons | Everything solid or outlined blue; no primary/secondary/destructive hierarchy | open |
-| 6 | Setup | Ten stacked full-width cards; one Save mid-page covers only some sections | open |
-| 7 | Menu page | Daily tasks and rare tasks (options, CSV) at one level; about 1,900 px tall | open |
-| 8 | Guest tab | Round-level status only; "Request bill" below totals, not sticky | open (line status: check API) |
-| 9 | Copy | "Included in prices: CGST/SGST/VAT" on guest screens | open |
-| 10 | States | "Loading…", "Nothing waiting.", a red paragraph; no skeletons, no next step | open |
-| 11 | Styles | Two near-identical `globals.css`; `.check`/`.grow` defined 3×; ~15 hard-coded hex | open |
-| 12 | Type/motion | System font only; no focus, transition or dark rules | open |
-| 13 | Alignment | Desktop staff nav starts at x=16, content at x=176; no shared left edge | open |
-| 14 | Floor | Free tiles centred, seated tiles left-aligned; zone shows raw lowercase "floor" | open |
-| 15 | Desktop | Floor map uses a fraction of the width | open |
-| 16 | A11y | No designed focus indicator; mock palette fails AA (accent 4.48, accent text 3.99, grey 3.15) | open (palette fixed in tokens) |
-| 17 | Auth | Sign-in and sign-up are bare forms at the top-left | open |
-| 18 | Admin app | Stub; nothing to polish until it has screens | n/a |
+| 1 | Nav | Staff nav: 9 equal links wrap to 3–4 rows on a phone; no grouping; Sign out styled like a page action | done (UI-3): grouped sidebar on desktop; top bar + 3-tab bar + More sheet on phones; Sign out in the sidebar / More |
+| 2 | Guest menu | Rows do not look tappable (no add control); no venue brand | done (UI-2) |
+| 3 | Staff menu | Page overflows sideways at 390 px; Edit/Delete clipped; 4-line item names | done (UI-4): rows stack on phones, no sideways scroll; secondary actions quieter |
+| 4 | Kitchen | Every sold-out button reads "Sold out" (action looks like state); list flush under tickets | done (UI-3): "Mark sold out" / "Available again" with a visible Sold out badge; neutral buttons |
+| 5 | Buttons | Everything solid or outlined blue; no primary/secondary/destructive hierarchy | done (UI-1, applied per slice): one primary per region, secondary and tertiary quieter |
+| 6 | Setup | Ten stacked full-width cards; one Save mid-page covers only some sections | done (UI-4): 720px column, short fields short, sticky Save bar that says what it covers |
+| 7 | Menu page | Daily tasks and rare tasks (options, CSV) at one level; about 1,900 px tall | partly done (UI-4): clearer hierarchy and stacked rows; options and CSV import still on the same page |
+| 8 | Guest tab | Round-level status only; "Request bill" below totals, not sticky | done (UI-2): sticky "Request the bill · ₹", running total, per-item progress (the API already sends line status) |
+| 9 | Copy | "Included in prices: CGST/SGST/VAT" on guest screens | done (UI-2): "Taxes are already in your prices." |
+| 10 | States | "Loading…", "Nothing waiting.", a red paragraph; no skeletons, no next step | partly done: `Skeleton` and `EmptyState` exist; screens adopt them per slice |
+| 11 | Styles | Two near-identical `globals.css`; `.check`/`.grow` defined 3×; ~15 hard-coded hex | done (UI-1): one `tokens.css` + `components.css`; app CSS is token-only |
+| 12 | Type/motion | System font only; no focus, transition or dark rules | done (UI-1): self-hosted Manrope + Fraunces with ₹, transitions, reduced-motion |
+| 13 | Alignment | Desktop staff nav starts at x=16, content at x=176; no shared left edge | done (UI-3): everything sits in one content column beside the sidebar |
+| 14 | Floor | Free tiles centred, seated tiles left-aligned; zone shows raw lowercase "floor" | done (UI-3): one left-aligned tile layout, legend, capitalised zones |
+| 15 | Desktop | Floor map uses a fraction of the width | done (UI-3): sidebar + wide content column |
+| 16 | A11y | No designed focus indicator; mock palette fails AA (accent 4.48, accent text 3.99, grey 3.15) | done (UI-1): global `:focus-visible` ring, AA palette |
+| 17 | Auth | Sign-in and sign-up are bare forms at the top-left | done (UI-4): centred card, plain-English lines, full-width actions |
+| 18 | Admin app | Stub; nothing to polish until it has screens | done: sign-in, restaurants card grid with suspend/reactivate, audit log, on the shared tokens |
+
+## Remaining after UI-4
+- Menu page still mixes daily work with options and CSV import; splitting them into tabs is the next improvement.
+- Toasts are specified but not built; "Saved" is still an inline status.
+- The admin app has restaurants and audit only; plans, onboarding and impersonation come in slice A2 (see DECISIONS.md, 2026-09-20).
+- One Playwright test (`a waiter adds items with no connection…`) failed once in a full parallel run and passed alone and on rerun; treat as a possible flake and fix it in its own PR if it recurs.
 
 ## Screen map and slices
 | Slice | Screens | Status |
 | --- | --- | --- |
-| UI-1 Foundation | tokens, fonts, shared components, focus, shrink both `globals.css` | open |
-| UI-2 Guest | QR landing/errors, menu, item sheet, cart, tab, call sheet | open |
-| UI-3 Staff service | shell + nav, floor, table view, add items, requests, kitchen | open |
-| UI-4 Owner admin | sign-in/sign-up/invite, outlet picker, setup, menu, tables & QR, staff, happy hours, assignments | open |
+| UI-1 Foundation | tokens, fonts, shared components, focus, shrink both `globals.css` | **done** (branch `ui/design-system`) |
+| UI-2 Guest | QR landing/errors, menu, item sheet, cart, tab, call sheet | **done** |
+| UI-3 Staff service | shell + nav, floor, table view, add items, requests, kitchen | **done** |
+| UI-4 Owner admin | sign-in/sign-up/invite, outlet picker, setup, menu, tables & QR, staff, happy hours, assignments | **done** |

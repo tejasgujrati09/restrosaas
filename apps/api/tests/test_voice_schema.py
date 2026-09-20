@@ -1,4 +1,4 @@
-"""Tenant isolation and integrity for the voice tables (migration 0008).
+"""Tenant isolation and integrity for the voice tables (migration 0009).
 
 Fixture data only: fake phones from `new_phone()` and obviously fake addresses."""
 

@@ -39,8 +39,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main>
+    <main className="auth">
       <h1>Sign in</h1>
+      <p className="muted">Use the mobile number your restaurant registered you with.</p>
       <Card>
         {!sent ? (
           <form onSubmit={requestCode}>
@@ -57,14 +58,12 @@ export default function LoginPage() {
               <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value)} />
             </Field>
             <ErrorBanner message={error} />
-            <div className="inline">
-              <button type="submit" disabled={busy || code.length !== 6}>Sign in</button>
-              <button type="button" className="secondary" onClick={() => { setSent(false); setCode(""); clearError(); }}>Change number</button>
-            </div>
+            <button type="submit" disabled={busy || code.length !== 6}>Sign in</button>
+            <button type="button" className="tertiary wide" onClick={() => { setSent(false); setCode(""); clearError(); }}>Change number</button>
           </form>
         )}
       </Card>
-      <p>New restaurant? <Link href="/signup">Create your account</Link></p>
+      <p className="muted">New restaurant? <Link href="/signup">Create your account</Link></p>
     </main>
   );
 }

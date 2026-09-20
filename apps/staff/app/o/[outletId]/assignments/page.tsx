@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { EmptyState, PageHeader, Skeleton } from "@restosaas/ui";
 import { ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
@@ -15,7 +16,7 @@ export default function AssignmentsPage() {
   const staff = useResource<Staff[]>(`${base}/staff`);
   const action = useAction();
 
-  if (!rows.data || !staff.data) return <ErrorBanner message={rows.error ?? staff.error} />;
+  if (!rows.data || !staff.data) return rows.error ?? staff.error ? <ErrorBanner message={rows.error ?? staff.error} /> : <Skeleton what="table assignments" lines={4} block />;
   const waiters = staff.data.filter((s) => s.role === "waiter" && s.active);
   const zones = new Map<string, TableAssignment[]>();
   for (const r of rows.data) zones.set(r.zone, [...(zones.get(r.zone) ?? []), r]);
@@ -40,13 +41,13 @@ export default function AssignmentsPage() {
 
   return (
     <>
-      <h1>Assign tables</h1>
-      <p className="muted">A waiter sees and takes orders for the tables ticked here. Managers and owners always see every table.</p>
+      <PageHeader title="Assign tables" subtitle="A waiter sees and takes orders for the tables ticked here. Managers and owners always see every table." />
       <ErrorBanner message={action.error ?? rows.error} />
-      {waiters.length === 0 ? <p className="card">There are no active waiters yet. Invite some under Staff.</p> : null}
+      {waiters.length === 0 ? <EmptyState title="There are no active waiters yet">Invite some under Staff, then tick the tables they serve here.</EmptyState> : null}
       {[...zones.entries()].map(([zone, list]) => (
         <section key={zone} className="card" aria-label={zone}>
           <h2>{zone}</h2>
+          <div className="scroll-x">
           <table className="matrix">
             <thead>
               <tr>
@@ -77,6 +78,7 @@ export default function AssignmentsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </section>
       ))}
     </>

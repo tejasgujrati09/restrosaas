@@ -192,6 +192,13 @@ async def seed(owner_engine: AsyncEngine) -> AsyncIterator[Seed]:
             )
         await conn.execute(text("DELETE FROM restaurant WHERE id = ANY(:r)"), {"r": rids})
         await conn.execute(
+            text(
+                "DELETE FROM platform_admin WHERE user_id IN "
+                "(SELECT id FROM app_user WHERE phone LIKE :p)"
+            ),
+            {"p": f"{TEST_PHONE_PREFIX}%"},
+        )
+        await conn.execute(
             text("DELETE FROM app_user WHERE phone LIKE :p"), {"p": f"{TEST_PHONE_PREFIX}%"}
         )
 

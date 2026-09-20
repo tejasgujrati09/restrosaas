@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ageClass, homeFor, lineStatus, minutesSince, secondsUntil } from "./floor";
+import { ageClass, homeFor, lineStatus, minutesSince, secondsUntil, statusTone } from "./floor";
 
 describe("ageClass", () => {
   it("turns amber at 8 minutes and red at 15", () => {
@@ -36,5 +36,18 @@ describe("time helpers", () => {
   it("names line statuses in plain words, falling back to the raw value", () => {
     expect(lineStatus("ready")).toBe("Ready to serve");
     expect(lineStatus("dispatched")).toBe("dispatched");
+  });
+});
+
+describe("statusTone", () => {
+  it("is amber while the kitchen works, green when it is ready or served", () => {
+    expect(statusTone("preparing")).toBe("warn");
+    expect(statusTone("ready")).toBe("ok");
+    expect(statusTone("served")).toBe("ok");
+  });
+
+  it("marks a fresh round as info and everything else as neutral", () => {
+    expect(statusTone("placed")).toBe("info");
+    for (const s of ["accepted", "cancelled", "voided", "anything-else"]) expect(statusTone(s)).toBe("neutral");
   });
 });

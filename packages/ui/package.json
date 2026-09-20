@@ -21,7 +21,8 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./sheet.css": "./src/sheet.css",
+    "./tokens.css": "./src/tokens.css",
+    "./components.css": "./src/components.css",
     "./live": "./src/live.ts"
   },
   "peerDependencies": {

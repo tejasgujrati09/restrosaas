@@ -18,8 +18,8 @@ development database should ever be downgraded.
 
 from alembic import op
 
-revision = "0008"
-down_revision = "0007"
+revision = "0009"
+down_revision = "0008"
 branch_labels = None
 depends_on = None
 

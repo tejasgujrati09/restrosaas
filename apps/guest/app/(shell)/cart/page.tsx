@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { TotalsTable } from "@/components/totals";
-import { ErrorBanner } from "@/components/ui";
-import { formatInr } from "@restosaas/ui";
+import { EmptyState, ErrorBanner, Notice } from "@/components/ui";
+import { formatInr, Icon } from "@restosaas/ui";
 import { api, errorMessage, isRetryable } from "@/lib/api";
 import { setQty, useCart, writeCart } from "@/lib/cart-store";
 import { secondsUntil, timeOf } from "@/lib/format";
@@ -69,6 +69,9 @@ export default function CartPage() {
           </>
         ) : (
           <>
+            <span className="mark" aria-hidden="true">
+              <Icon name="check" size={28} />
+            </span>
             <p className="big">Order placed</p>
             <p>
               Round {placed.seq_no} · {timeOf(placed.placed_at)}
@@ -92,14 +95,14 @@ export default function CartPage() {
             ) : null}
           </>
         )}
-        <p>
-          <Link className="button" href="/tab">
+        <div className="actions">
+          <Link className="button btn-lg" href="/tab">
             See my tab
-          </Link>{" "}
-          <Link className="button secondary" href="/menu">
+          </Link>
+          <Link className="button secondary btn-lg" href="/menu">
             Back to menu
           </Link>
-        </p>
+        </div>
       </section>
     );
   }
@@ -130,41 +133,77 @@ export default function CartPage() {
   if (entries.length === 0) {
     return (
       <>
-        <h1>Your cart</h1>
-        <p>Your cart is empty.</p>
-        <Link className="button" href="/menu">
-          Browse the menu
-        </Link>
+        <header className="g-head with-back">
+          <Link className="button secondary icon-btn" href="/menu" aria-label="Back to menu">
+            <Icon name="back" />
+          </Link>
+          <h1>Your cart</h1>
+        </header>
+        <EmptyState
+          title="Nothing in your cart yet"
+          action={
+            <Link className="button" href="/menu">
+              Browse the menu
+            </Link>
+          }
+        >
+          Add something from the menu and it will show up here.
+        </EmptyState>
       </>
     );
   }
 
   return (
     <>
-      <h1>Your cart</h1>
-      <p className="muted">This round for table {session.table_label}</p>
+      <header className="g-head with-back">
+        <Link className="button secondary icon-btn" href="/menu" aria-label="Back to menu">
+          <Icon name="back" />
+        </Link>
+        <div>
+          <h1>Your cart</h1>
+          <p className="sub">This round for table {session.table_label}</p>
+        </div>
+      </header>
       <ErrorBanner message={quoteError} />
-      <section className="card" aria-label="Items">
+      <section aria-label="Items">
         {entries.map((e) => {
           const priced = quote?.lines.find((l) => l.menu_item_id === e.menu_item_id && l.qty === e.qty);
           return (
-            <div key={e.key} className="line">
-              <div className="grow">
-                <strong>{e.name}</strong>
-                {priced?.modifiers.length ? <div className="muted">{priced.modifiers.map((m) => m.name).join(", ")}</div> : null}
-                {priced?.price_rule ? <div className="deal">{priced.price_rule.name}</div> : null}
-                {e.note ? <div className="muted">“{e.note}”</div> : null}
-                <div className="inline stepper" role="group" aria-label={`Quantity of ${e.name}`}>
-                  <button type="button" className="secondary" aria-label={`One less ${e.name}`} onClick={() => setQty(session.tab_id, e.key, e.qty - 1)}>
-                    {e.qty === 1 ? "Remove" : "−"}
+            <div key={e.key} className="card line-card">
+              <div className="top">
+                <div className="grow">
+                  <strong>{e.name}</strong>
+                  {priced?.modifiers.length ? <div className="muted">{priced.modifiers.map((m) => m.name).join(", ")}</div> : null}
+                  {priced?.price_rule ? <div className="deal">{priced.price_rule.name}</div> : null}
+                  {e.note ? <div className="muted">“{e.note}”</div> : null}
+                </div>
+                <strong>{priced ? formatInr(priced.line_total_paise) : "…"}</strong>
+              </div>
+              <div className="controls">
+                <div className="qty" role="group" aria-label={`Quantity of ${e.name}`}>
+                  <button
+                    type="button"
+                    className="secondary icon-btn"
+                    aria-label={`One less ${e.name}`}
+                    disabled={e.qty <= 1}
+                    onClick={() => setQty(session.tab_id, e.key, e.qty - 1)}
+                  >
+                    <Icon name="minus" />
                   </button>
                   <output>{e.qty}</output>
-                  <button type="button" className="secondary" aria-label={`One more ${e.name}`} onClick={() => setQty(session.tab_id, e.key, e.qty + 1)}>
-                    +
+                  <button
+                    type="button"
+                    className="secondary icon-btn"
+                    aria-label={`One more ${e.name}`}
+                    onClick={() => setQty(session.tab_id, e.key, e.qty + 1)}
+                  >
+                    <Icon name="plus" />
                   </button>
                 </div>
+                <button type="button" className="tertiary" aria-label={`Remove ${e.name}`} onClick={() => setQty(session.tab_id, e.key, 0)}>
+                  Remove
+                </button>
               </div>
-              <div>{priced ? formatInr(priced.line_total_paise) : "…"}</div>
             </div>
           );
         })}
@@ -183,9 +222,10 @@ export default function CartPage() {
         </section>
       ) : null}
       <ErrorBanner message={charge.error ?? place.error} />
-      {quote && !quote.can_order ? <p className="banner">Your waiter needs to confirm your table before you can order.</p> : null}
-      <button type="button" className="wide" disabled={!quote || !quote.can_order || place.busy} onClick={placeOrder}>
-        {place.busy ? "Placing…" : "Place order"}
+      {quote && !quote.can_order ? <Notice>Your waiter needs to confirm your table before you can order.</Notice> : null}
+      <button type="button" className="btn-lg cta" disabled={!quote || !quote.can_order || place.busy} onClick={placeOrder}>
+        <span>{place.busy ? "Placing…" : "Place order"}</span>
+        {quote && !place.busy ? <span>{formatInr(quote.totals.estimated_total_paise)}</span> : null}
       </button>
     </>
   );

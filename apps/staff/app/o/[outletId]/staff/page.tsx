@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { Badge, PageHeader } from "@restosaas/ui";
 import { Card, ErrorBanner, Field } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
@@ -35,7 +36,7 @@ export default function StaffPage() {
 
   return (
     <>
-      <h1>Staff</h1>
+      <PageHeader title="Staff" subtitle="Invite your team by mobile number. They join with a one-time code." />
       <Card title="Invite someone">
         <form onSubmit={invite}>
           <div className="row">
@@ -65,9 +66,9 @@ export default function StaffPage() {
 
       {invites.data && invites.data.length > 0 ? (
         <Card title="Waiting to join">
-          <ul>
+          <ul className="list">
             {invites.data.map((i) => (
-              <li key={i.id} className="inline">{i.phone} <span className="badge">{i.role}</span>
+              <li key={i.id}><span>{i.phone} <Badge>{i.role}</Badge></span>
                 <button type="button" className="danger" onClick={() => action.run(async () => { await api(`${base}/invites/${i.id}`, { method: "DELETE" }); invites.reload(); })}>Cancel</button>
               </li>
             ))}
@@ -77,16 +78,16 @@ export default function StaffPage() {
 
       <Card title="Team">
         <ErrorBanner message={staff.error} />
-        <table>
-          <thead><tr><th>Name</th><th>Phone</th><th>Role</th><th /></tr></thead>
+        <table className="stacked">
+          <thead><tr><th>Name</th><th>Phone</th><th>Role</th><th><span className="visually-hidden">Actions</span></th></tr></thead>
           <tbody>
             {staff.data?.map((s) => (
               <tr key={s.id}>
-                <td>{s.name ?? "—"} {!s.active ? <span className="badge off">Inactive</span> : null}</td>
-                <td>{s.phone}</td>
-                <td>{s.role}</td>
+                <td data-label="Name">{s.name ?? "—"} {!s.active ? <Badge tone="danger">Inactive</Badge> : null}</td>
+                <td data-label="Phone">{s.phone}</td>
+                <td data-label="Role">{s.role}</td>
                 <td>
-                  <button type="button" className={s.active ? "danger" : "secondary"}
+                  <button type="button" className={s.active ? "tertiary" : "secondary"}
                     onClick={() => action.run(async () => { await api(`${base}/staff/${s.id}`, { method: "PATCH", body: { active: !s.active } }); staff.reload(); })}>
                     {s.active ? "Deactivate" : "Reactivate"}
                   </button>

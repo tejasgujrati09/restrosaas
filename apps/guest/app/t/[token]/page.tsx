@@ -44,23 +44,30 @@ export default function Landing() {
   }, [token, attempt, router]);
 
   return (
-    <main>
-      <h1>Opening your table…</h1>
-      <ErrorBanner message={error} />
+    <main className="center">
       {error ? (
-        <button
-          type="button"
-          onClick={() => {
-            setError(null);
-            setAttempt((n) => n + 1);
-          }}
-        >
-          Try again
-        </button>
+        <>
+          <h1>We couldn&apos;t open your table</h1>
+          <ErrorBanner message={error} />
+          <button
+            type="button"
+            className="btn-lg"
+            onClick={() => {
+              setError(null);
+              setAttempt((n) => n + 1);
+            }}
+          >
+            Try again
+          </button>
+        </>
       ) : (
-        <p className="muted" role="status">
-          One moment.
-        </p>
+        <>
+          <span className="spinner" aria-hidden="true" />
+          <h1>Opening your table…</h1>
+          <p className="muted" role="status">
+            One moment.
+          </p>
+        </>
       )}
     </main>
   );
