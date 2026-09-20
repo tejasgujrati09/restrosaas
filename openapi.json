@@ -2677,6 +2677,10 @@
             "title": "State Code",
             "type": "string"
           },
+          "suspended": {
+            "title": "Suspended",
+            "type": "boolean"
+          },
           "timezone": {
             "title": "Timezone",
             "type": "string"
@@ -2705,7 +2709,8 @@
           "next_invoice_no",
           "next_invoice_preview",
           "ready_to_go_live",
-          "go_live_blockers"
+          "go_live_blockers",
+          "suspended"
         ],
         "title": "SettingsOut",
         "type": "object"

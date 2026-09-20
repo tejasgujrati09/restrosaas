@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 import { ports } from "../ports";
-import { api, guest, setUpVenue } from "./helpers";
+import { api, guest, setUpVenue, staffApp, staffPage } from "./helpers";
 
 const adminApp = `http://localhost:${ports.admin}`;
 
@@ -41,10 +41,22 @@ test("a platform admin suspends a restaurant, staff and guests are refused, then
   await confirm.click();
   await expect(card.getByText("Suspended", { exact: true })).toBeVisible();
 
-  // Staff are refused at the API, and a guest scanning the QR is turned away.
-  const staff = await request.get(`${venue.base}/tables`, { headers: venue.owner });
-  expect(staff.status()).toBe(403);
-  expect(((await staff.json()) as { code: string }).code).toBe("restaurant_suspended");
+  // Staff can still look but not change anything, and the app says why.
+  expect((await request.get(`${venue.base}/tables`, { headers: venue.owner })).status()).toBe(200);
+  const write = await request.patch(`${venue.base}/settings`, {
+    headers: { ...venue.owner, "Idempotency-Key": crypto.randomUUID() },
+    data: { brand_name: "Sneaky" },
+  });
+  expect(write.status()).toBe(403);
+  expect(((await write.json()) as { code: string }).code).toBe("restaurant_suspended");
+  const owner = await staffPage(browser, venue.ownerToken);
+  await owner.goto(`${staffApp}/o/${venue.outletId}/setup`);
+  await expect(owner.getByText(/account is suspended/)).toBeVisible();
+  await expect(owner.getByRole("heading", { name: "Outlet setup" })).toBeVisible();
+  await expect(owner.getByRole("button", { name: "Save" })).toBeDisabled();
+  await expect(owner.getByRole("link", { name: "Floor" }).first()).toBeEnabled();
+  await owner.close();
+  // A guest scanning the QR is turned away.
   const scanner = await browser.newPage();
   await scanner.goto(`${guest}/t/${venue.qrToken}`);
   await expect(scanner.getByText(/not taking orders/)).toBeVisible();
@@ -62,7 +74,11 @@ test("a platform admin suspends a restaurant, staff and guests are refused, then
   await card.getByRole("button", { name: `Reactivate ${brand}` }).click();
   await page.getByRole("button", { name: "Reactivate restaurant" }).click();
   await expect(card.getByText("Active", { exact: true })).toBeVisible();
-  expect((await request.get(`${venue.base}/tables`, { headers: venue.owner })).status()).toBe(200);
+  const back = await request.patch(`${venue.base}/settings`, {
+    headers: { ...venue.owner, "Idempotency-Key": crypto.randomUUID() },
+    data: { brand_name: brand },
+  });
+  expect(back.status()).toBe(200);
   await scanner.goto(`${guest}/t/${venue.qrToken}`);
   await expect(scanner).toHaveURL(/\/menu/);
 });

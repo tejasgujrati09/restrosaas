@@ -101,6 +101,7 @@ Plain CSS classes and small React components; **no new UI library** (CLAUDE.md �
 - **Restaurant picker** (after sign-in, for people who work at more than one place): a grid of cards, one per outlet, each with an initial avatar, restaurant name, outlet and state, a role badge and a readiness badge. One outlet skips the picker.
 - **Staff, phone:** slim top bar (venue, connection dot with text, account menu with Sign out) + bottom tab bar of at most four role-based destinations; the rest under **More**.
 - **Staff, desktop (≥ 1024):** left sidebar grouped **Service** (Floor, Requests, Kitchen), **Manage** (Menu, Happy hours, Tables & QR, Assign tables, Staff), **Settings** (Setup); page header in the content column. The active item has `aria-current="page"` and a filled row. Sign out is in the account menu, never styled like a page action.
+- **Suspended restaurant:** the shell shows a warn `Notice` above the page ("This restaurant's account is suspended…") and wraps the page in `<fieldset class="readonly" disabled>`, which turns off every button and field while links, and so reading, still work. The picker card shows a danger `Suspended` badge. Never hide a suspended restaurant.
 - Role filtering of links stays (`NAV` in `apps/staff/lib/nav.ts`); hiding a link is convenience, the API is the check.
 
 ## 5. Copy

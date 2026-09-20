@@ -238,7 +238,17 @@ async def test_suspend_blocks_staff_and_guests_audits_it_and_reactivate_restores
         assert r.status_code == 200
         assert r.json()["status"] == "suspended"
 
-        blocked = await client.get(tables, headers=owner_b)
+        # Staff can still look: reads work and the settings say why writes will not.
+        assert (await client.get(tables, headers=owner_b)).status_code == 200
+        settings = await client.get(f"/v1/outlets/{seed.outlet_b}/settings", headers=owner_b)
+        assert settings.status_code == 200
+        assert settings.json()["suspended"] is True
+        # Every write is refused with a code the app can explain.
+        blocked = await client.patch(
+            f"/v1/outlets/{seed.outlet_b}/settings",
+            json={"brand_name": "Sneaky"},
+            headers={**owner_b, "Idempotency-Key": str(uuid.uuid4())},
+        )
         assert blocked.status_code == 403
         assert blocked.json()["code"] == "restaurant_suspended"
         scan = await client.post(f"/v1/qr/{qr}/session", json={})
@@ -264,7 +274,8 @@ async def test_suspend_blocks_staff_and_guests_audits_it_and_reactivate_restores
         back = await client.put(url, json={"status": "active"}, headers=headers)
         assert back.status_code == 200
     assert back.json()["status"] == "active"
-    assert (await client.get(tables, headers=owner_b)).status_code == 200
+    settings = await client.get(f"/v1/outlets/{seed.outlet_b}/settings", headers=owner_b)
+    assert settings.json()["suspended"] is False
     log = (
         await client.get(
             f"/v1/platform/audit-log?restaurant_id={seed.restaurant_b}", headers=headers

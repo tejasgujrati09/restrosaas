@@ -41,6 +41,7 @@ class SettingsOut(BaseModel):
     next_invoice_preview: str
     ready_to_go_live: bool
     go_live_blockers: list[str]
+    suspended: bool
 
 
 class SettingsPatchIn(BaseModel):
@@ -108,6 +109,7 @@ async def build_settings(ctx: OutletContext) -> SettingsOut:
         next_invoice_preview=format_invoice_no(outlet.invoice_prefix, outlet.next_invoice_no),
         ready_to_go_live=not blockers,
         go_live_blockers=blockers,
+        suspended=restaurant.status == "suspended",
     )
 
 

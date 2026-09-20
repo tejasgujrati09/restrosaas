@@ -6,7 +6,7 @@ from typing import Annotated
 from uuid import UUID
 
 import structlog
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,11 +52,18 @@ _SUSPENDED = ApiError(
 )
 
 
-async def assert_restaurant_active(session: AsyncSession, restaurant_id: UUID) -> None:
-    """Every staff and guest request re-reads the restaurant's status, so a suspension takes
-    effect on the next request, not when a token or session expires."""
+_READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+
+
+async def restaurant_is_active(session: AsyncSession, restaurant_id: UUID) -> bool:
     status = await session.scalar(select(Restaurant.status).where(Restaurant.id == restaurant_id))
-    if status != "active":
+    return status == "active"
+
+
+async def assert_restaurant_active(session: AsyncSession, restaurant_id: UUID) -> None:
+    """Every guest request and every staff write re-reads the restaurant's status, so a
+    suspension takes effect on the next request, not when a token or session expires."""
+    if not await restaurant_is_active(session, restaurant_id):
         raise _SUSPENDED
 
 
@@ -79,13 +86,16 @@ async def get_auth(
 
 
 async def get_outlet_context(
-    outlet_id: UUID, auth: Annotated[AuthContext, Depends(get_auth)]
+    outlet_id: UUID, request: Request, auth: Annotated[AuthContext, Depends(get_auth)]
 ) -> AsyncIterator[OutletContext]:
     """Resolves the tenant from the signed claims (never from the request),
     opens a session with `app.restaurant_id` set so Postgres RLS is the
     backstop, then re-reads the user's roles from the database. The token only
     says which tenant to look in; `staff_role` stays the source of truth, so a
-    deactivated user loses access on the next request, not when the JWT expires."""
+    deactivated user loses access on the next request, not when the JWT expires.
+
+    A suspended restaurant is read-only for its staff: they can still see everything (the
+    settings say `suspended` so the app can explain why), but any write is refused."""
     claim = next((c for c in auth.claims if c.outlet_id == outlet_id), None)
     if claim is None:
         raise PermissionDeniedError(capability=None, outlet_id=outlet_id)
@@ -94,7 +104,8 @@ async def get_outlet_context(
     )
     async with tenant_session(claim.restaurant_id) as session:
         roles = await load_staff_roles(session, auth.actor.user_id, outlet_id)
-        await assert_restaurant_active(session, claim.restaurant_id)
+        if request.method not in _READ_METHODS:
+            await assert_restaurant_active(session, claim.restaurant_id)
         bind_outlet(session, outlet_id)
         yield OutletContext(
             session=session,

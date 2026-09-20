@@ -2417,6 +2417,8 @@ export interface components {
             service_charge_bp: number;
             /** State Code */
             state_code: string;
+            /** Suspended */
+            suspended: boolean;
             /** Timezone */
             timezone: string;
             /** Waiter Confirm Mode */

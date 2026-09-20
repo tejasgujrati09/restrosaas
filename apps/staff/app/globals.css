@@ -6,12 +6,22 @@ main {
   margin: 0 auto;
   padding: var(--s-5) var(--gutter);
 }
-main > h1 {
+main > h1,
+.readonly > h1 {
   margin-bottom: var(--s-4);
 }
 main > h2,
+.readonly > h2,
 .card > h2 {
   margin-bottom: var(--s-3);
+}
+
+/* Wraps the page so a suspended restaurant can be made read-only in one place. */
+.readonly {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
 }
 
 .checklist li {

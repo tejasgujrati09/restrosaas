@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Icon, Sheet } from "@restosaas/ui";
+import { Icon, Notice, Sheet } from "@restosaas/ui";
 import { useResource } from "@/components/hooks";
 import { OfflineBanner } from "@/components/offline-banner";
 import { live, socketUrl, useLive } from "@/lib/live";
@@ -49,6 +49,7 @@ export default function OutletLayout({ children }: { children: ReactNode }) {
   const groups = visibleNav(roles);
   const section = sectionOf(pathname);
   const brand = settings.data ? settings.data.brand_name : "…";
+  const suspended = settings.data?.suspended === true;
   const { primary, more } = splitForTabBar(groups.flatMap((g) => g.items));
 
   function signOut() {
@@ -112,7 +113,13 @@ export default function OutletLayout({ children }: { children: ReactNode }) {
           {status}
         </header>
         <OfflineBanner />
-        <main>{children}</main>
+        <main>
+          {suspended ? <Notice>This restaurant&apos;s account is suspended. You can look around, but changes are turned off. Please contact support.</Notice> : null}
+          {/* A disabled fieldset turns off every button and field inside it; links still work. */}
+          <fieldset className="readonly" disabled={suspended}>
+            {children}
+          </fieldset>
+        </main>
       </div>
 
       <nav className="tabbar" aria-label="Main">
