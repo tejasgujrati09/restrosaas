@@ -142,6 +142,20 @@ Reading: setup runs B → C → D → E → F in order with a progress checklist
 - Staff: role chips; a waiter's invite is a WhatsApp deep link; deactivation is one tap for high-turnover venues.
 - Reports: day close list, drill to bill, disputed-bill filter; item-level sales for menu decisions.
 
+## 5b. Phone orders (voice pilot)
+
+The owner turns the phone assistant on once (V1). After that a phone order never reaches the kitchen on its own: it waits on V2 until a manager or the owner accepts or rejects it. The kitchen ticket shows as "Phone order" and stays locked ("Not accepted yet") until then.
+
+```mermaid
+flowchart TD
+  A[Owner: Voice ordering<br/>Turn on] --> B[Assistant created from the menu<br/>phone number shown]
+  B --> C[Customer calls<br/>assistant takes the order]
+  C --> D[Phone orders<br/>waiting for you]
+  D -- Accept --> E[Kitchen ticket unlocks<br/>Start / Ready as usual]
+  D -- Reject + reason --> F[Round cancelled<br/>reason saved · call the customer]
+  A --> G[Update menu on the assistant<br/>after a menu change]
+```
+
 ## 6. Screen inventory
 
 | # | Screen | Surface | Role | MVP |
@@ -183,5 +197,7 @@ Reading: setup runs B → C → D → E → F in order with a progress checklist
 | O9 | Multi-outlet dashboard | Owner web | Owner | Phase 2 |
 | O10 | Subscription | Owner web | Owner | Yes |
 | P1 | Onboard / suspend restaurant, audit | Admin web | Platform admin | Yes |
+| V1 | Voice ordering: turn the phone assistant on or off, update its menu | Staff app | Owner | Yes (pilot) |
+| V2 | Phone orders: accept or reject an order taken by phone | Staff app | Manager, Owner | Yes (pilot) |
 
-27 MVP screens across four surfaces; the customer PWA is 9 of them and should be prototyped and timed with real guests before the staff surfaces are built.
+27 MVP screens across four surfaces (plus the two phone-ordering screens V1 and V2, added for the voice pilot: docs/DECISIONS.md "Voice ordering agent"); the customer PWA is 9 of them and should be prototyped and timed with real guests before the staff surfaces are built.

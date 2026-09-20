@@ -12,6 +12,7 @@ export const NAV: NavGroup[] = [
       { href: "floor", label: "Floor", icon: "grid", roles: ["owner", "manager", "waiter"] },
       { href: "requests", label: "Requests", icon: "bell", roles: ["owner", "manager", "waiter"] },
       { href: "kitchen", label: "Kitchen", icon: "flame", roles: ["owner", "manager", "kitchen", "bar"] },
+      { href: "phone-orders", label: "Phone orders", icon: "phone", roles: ["owner", "manager"] },
     ],
   },
   {
@@ -26,7 +27,10 @@ export const NAV: NavGroup[] = [
   },
   {
     label: "Settings",
-    items: [{ href: "setup", label: "Setup", icon: "sliders", roles: ["owner"] }],
+    items: [
+      { href: "setup", label: "Setup", icon: "sliders", roles: ["owner"] },
+      { href: "voice", label: "Voice ordering", icon: "phone", roles: ["owner"] },
+    ],
   },
 ];
 

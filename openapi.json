@@ -3682,6 +3682,10 @@
             "title": "Seq No",
             "type": "integer"
           },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
           "station_id": {
             "anyOf": [
               {
@@ -3738,6 +3742,7 @@
           "created_at",
           "holding_until",
           "can_start",
+          "source",
           "lines"
         ],
         "title": "TicketOut",

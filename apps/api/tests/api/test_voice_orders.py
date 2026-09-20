@@ -123,6 +123,7 @@ async def test_a_phone_order_is_placed_and_never_auto_accepted(
     (ticket,) = await _tickets(client, seed)  # reading the queue must not accept it either
     assert ticket["can_start"] is False
     assert ticket["holding_until"] is None
+    assert ticket["source"] == "voice"
     start = await client.post(
         f"/v1/outlets/{seed.outlet_a}/tickets/{ticket['id']}/start", headers=kitchen(seed)
     )

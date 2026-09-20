@@ -30,3 +30,5 @@ export type ServeMenu = S["GuestMenuOut"];
 export type ServeItem = S["GuestItemOut"];
 export type TableAssignment = S["TableAssignmentOut"];
 export type OpenTab = S["OpenTabOut"];
+export type VoiceOrder = S["VoiceOrderOut"];
+export type VoiceAgent = S["VoiceAgentOut"];

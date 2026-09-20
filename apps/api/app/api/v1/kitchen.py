@@ -50,6 +50,9 @@ class TicketOut(BaseModel):
     # While set, the guest can still undo the round: show a countdown, Start is locked.
     holding_until: datetime | None
     can_start: bool
+    # Where the round came from: customer, waiter or voice. A phone order is locked until a
+    # manager or owner accepts it, so it has no countdown.
+    source: str
     lines: list[TicketLineOut]
 
 
@@ -118,6 +121,7 @@ async def _tickets_out(ctx: OutletContext, rows: list[Ticket]) -> list[TicketOut
                 ),
                 can_start=ticket.status == TicketState.QUEUED.value
                 and ticket_startable(OrderState(order.status)),
+                source=order.source,
                 lines=[
                     TicketLineOut(
                         name=line.item_name_snapshot,

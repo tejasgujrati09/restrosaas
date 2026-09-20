@@ -232,7 +232,7 @@ async def test_the_spoken_total_is_the_menus_price_not_anything_the_model_sent(
 
 
 async def test_a_delivery_order_with_a_saved_address_links_customer_and_address(
-    client: httpx.AsyncClient, voice: dict[str, Any], owner_engine: AsyncEngine
+    client: httpx.AsyncClient, seed: Seed, voice: dict[str, Any], owner_engine: AsyncEngine
 ) -> None:
     saved = await call(client, voice, "save_address", {"phone": CALLER, "address": "1 Test Street"})
     address_id = saved.split("address_id=")[1].rstrip(".")
@@ -248,8 +248,9 @@ async def test_a_delivery_order_with_a_saved_address_links_customer_and_address(
             await conn.execute(
                 text(
                     "SELECT o.customer_id, o.address_id::text, o.delivery_address_snapshot, o.source "
-                    "FROM tab_order o WHERE o.source = 'voice'"
-                )
+                    "FROM tab_order o WHERE o.source = 'voice' AND o.restaurant_id = :r"
+                ),
+                {"r": seed.restaurant_a},
             )
         ).one()
     assert row.customer_id is not None
@@ -298,6 +299,7 @@ async def test_a_number_from_contact_phone_is_used_when_caller_id_is_missing(
 )
 async def test_bad_orders_say_so_and_write_nothing(
     client: httpx.AsyncClient,
+    seed: Seed,
     voice: dict[str, Any],
     owner_engine: AsyncEngine,
     change: dict[str, Any],
@@ -308,12 +310,15 @@ async def test_bad_orders_say_so_and_write_nothing(
     assert fragment in result
     assert "Do not tell the caller an order was placed" in result
     async with owner_engine.connect() as conn:
-        assert await conn.scalar(text("SELECT count(*) FROM tab_order WHERE source = 'voice'")) == 0
-        assert await conn.scalar(text("SELECT count(*) FROM tab WHERE opened_by = 'voice'")) == 0
+        r = {"r": seed.restaurant_a}
+        orders = "SELECT count(*) FROM tab_order WHERE source = 'voice' AND restaurant_id = :r"
+        tabs = "SELECT count(*) FROM tab WHERE opened_by = 'voice' AND restaurant_id = :r"
+        assert await conn.scalar(text(orders), r) == 0
+        assert await conn.scalar(text(tabs), r) == 0
 
 
 async def test_another_callers_address_cannot_be_used(
-    client: httpx.AsyncClient, voice: dict[str, Any], owner_engine: AsyncEngine
+    client: httpx.AsyncClient, seed: Seed, voice: dict[str, Any], owner_engine: AsyncEngine
 ) -> None:
     other = await call(
         client, voice, "save_address", {"phone": "+919999900404", "address": "9 Other Street"}
@@ -325,7 +330,8 @@ async def test_another_callers_address_cannot_be_used(
     assert result.startswith("ORDER NOT PLACED")
     assert "does not belong" in result
     async with owner_engine.connect() as conn:
-        assert await conn.scalar(text("SELECT count(*) FROM tab_order WHERE source = 'voice'")) == 0
+        orders = "SELECT count(*) FROM tab_order WHERE source = 'voice' AND restaurant_id = :r"
+        assert await conn.scalar(text(orders), {"r": seed.restaurant_a}) == 0
 
 
 async def test_a_repeated_tool_call_places_one_order(

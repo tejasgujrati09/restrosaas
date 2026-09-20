@@ -20,9 +20,19 @@ describe("visibleNav", () => {
     expect(hrefs(["bar"])).toEqual(["kitchen", "menu"]);
   });
 
-  it("gives a manager everything except setup, and drops the empty group", () => {
+  it("gives a manager everything except owner settings, and drops the empty group", () => {
     expect(hrefs(["manager"])).not.toContain("setup");
+    expect(hrefs(["manager"])).not.toContain("voice");
     expect(visibleNav(["manager"]).map((g) => g.label)).toEqual(["Service", "Manage"]);
+  });
+
+  it("lets owners and managers see phone orders, and only the owner switch voice on", () => {
+    expect(hrefs(["owner"])).toEqual(expect.arrayContaining(["phone-orders", "voice"]));
+    expect(hrefs(["manager"])).toContain("phone-orders");
+    for (const role of ["waiter", "kitchen", "bar"]) {
+      expect(hrefs([role])).not.toContain("phone-orders");
+      expect(hrefs([role])).not.toContain("voice");
+    }
   });
 
   it("merges several roles and shows nothing without one", () => {

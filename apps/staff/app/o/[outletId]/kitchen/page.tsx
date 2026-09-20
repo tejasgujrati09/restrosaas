@@ -56,11 +56,17 @@ export default function KitchenPage() {
         {queue.data.queue.map((t) => {
           const minutes = minutesSince(t.created_at, now);
           const hold = t.holding_until ? secondsUntil(t.holding_until, now) : 0;
-          const holding = t.status === "queued" && !t.can_start;
+          const phone = t.source === "voice";
+          const waitingForAcceptance = phone && t.status === "queued" && !t.can_start;
+          const holding = t.status === "queued" && !t.can_start && !phone;
           return (
-            <article key={t.id} className={`ticket ${holding ? "holding" : ageClass(minutes)}`} aria-label={`Table ${t.table_label ?? "?"} round ${t.seq_no}`}>
+            <article
+              key={t.id}
+              className={`ticket ${holding || waitingForAcceptance ? "holding" : ageClass(minutes)}`}
+              aria-label={phone ? `Phone order round ${t.seq_no}` : `Table ${t.table_label ?? "?"} round ${t.seq_no}`}
+            >
               <h3>
-                Table {t.table_label ?? "?"} <span className="muted">· round {t.seq_no}</span>
+                {phone ? "Phone order" : `Table ${t.table_label ?? "?"}`} <span className="muted">· round {t.seq_no}</span>
               </h3>
               <p className="muted">
                 {t.station_name ?? "Any station"} · {minutes} min
@@ -75,9 +81,10 @@ export default function KitchenPage() {
                 </div>
               ))}
               {holding ? <p className="hold">The guest can still undo for {hold}s. Start unlocks then.</p> : null}
+              {waitingForAcceptance ? <p className="hold">A manager or the owner has to accept this phone order first. Start unlocks then.</p> : null}
               {t.status === "queued" ? (
                 <button type="button" className="big" disabled={action.busy || !t.can_start} onClick={() => move(t, "start")}>
-                  {t.can_start ? "Start" : `Wait ${hold}s`}
+                  {t.can_start ? "Start" : waitingForAcceptance ? "Not accepted yet" : `Wait ${hold}s`}
                 </button>
               ) : (
                 <button type="button" className="big" disabled={action.busy} onClick={() => move(t, "ready")}>Ready</button>
