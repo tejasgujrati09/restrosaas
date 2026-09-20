@@ -538,27 +538,74 @@ main.auth .card > button {
   min-height: var(--hit-cta);
 }
 
-.picker li {
-  padding: 0;
-  border: 0;
+/* Restaurant picker: one card per place you work */
+main.picker-page {
+  max-width: 960px;
+  padding-block: var(--s-8);
 }
-.pick {
-  display: flex;
+.outlet-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--s-4);
+}
+.outlet-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    "avatar names go"
+    "meta meta meta";
   align-items: center;
-  justify-content: space-between;
-  gap: var(--s-3);
-  width: 100%;
-  min-height: var(--hit-cta);
-  padding: 0 var(--s-4);
-  margin-bottom: var(--s-2);
+  gap: var(--s-3) var(--s-4);
+  height: 100%;
+  padding: var(--s-4);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   background: var(--surface);
   color: var(--ink);
-  font-weight: 700;
   text-decoration: none;
+  transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
 }
-.pick:hover {
-  border-color: var(--border-strong);
+.outlet-card:hover {
+  border-color: var(--ink-3);
   color: var(--ink);
+  transform: translateY(-1px);
+}
+.outlet-card .avatar {
+  grid-area: avatar;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-md);
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  font: var(--f-h1);
+}
+.outlet-card .names {
+  grid-area: names;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.outlet-card .names strong {
+  font: var(--f-h2);
+  overflow-wrap: anywhere;
+}
+.outlet-card .names span {
+  font: var(--f-small);
+  color: var(--ink-2);
+}
+.outlet-card .meta {
+  grid-area: meta;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.outlet-card .go {
+  grid-area: go;
+  color: var(--ink-3);
 }

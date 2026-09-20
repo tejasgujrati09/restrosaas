@@ -98,6 +98,7 @@ Plain CSS classes and small React components; **no new UI library** (CLAUDE.md Â
 
 ## 4. Shell and navigation
 - **Guest:** header (venue name in Fraunces, a `Table` pill, one line for the current happy hour) + bottom bar with a contextual primary action (view round, request bill) above the tab links (Menu, My tab, Call waiter).
+- **Restaurant picker** (after sign-in, for people who work at more than one place): a grid of cards, one per outlet, each with an initial avatar, restaurant name, outlet and state, a role badge and a readiness badge. One outlet skips the picker.
 - **Staff, phone:** slim top bar (venue, connection dot with text, account menu with Sign out) + bottom tab bar of at most four role-based destinations; the rest under **More**.
 - **Staff, desktop (â‰¥ 1024):** left sidebar grouped **Service** (Floor, Requests, Kitchen), **Manage** (Menu, Happy hours, Tables & QR, Assign tables, Staff), **Settings** (Setup); page header in the content column. The active item has `aria-current="page"` and a filled row. Sign out is in the account menu, never styled like a page action.
 - Role filtering of links stays (`NAV` in `apps/staff/lib/nav.ts`); hiding a link is convenience, the API is the check.
