@@ -187,8 +187,8 @@ function OrderCard({ order: o, onOpen }: { order: OrderRow; onOpen: () => void }
       </span>
       <span className="muted">{who}{o.table_label && o.customer_name ? ` · Table ${o.table_label}` : ""}</span>
       <span className="items">
-        {shown.map((line) => (
-          <span key={line}>{line}</span>
+        {shown.map((line, i) => (
+          <span key={`${i}-${line}`}>{line}</span>
         ))}
         {more > 0 ? <span className="muted">+ {more} more</span> : null}
       </span>
