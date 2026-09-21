@@ -13,6 +13,7 @@ from starlette.datastructures import Headers, MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.api.v1 import (
+    analytics,
     assignments,
     auth,
     floor,
@@ -66,6 +67,7 @@ for module in (
     floor,
     kitchen,
     platform,
+    analytics,
 ):
     app.include_router(module.router)
 

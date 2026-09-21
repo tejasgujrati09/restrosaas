@@ -48,6 +48,9 @@ class Capability(StrEnum):
     DAY_CLOSE_AND_REPORTS = "day_close_and_reports"
     EXPORT_INTEGRATIONS = "export_integrations"
     MANAGE_SUBSCRIPTION_BILLING = "manage_subscription_billing"
+    # Not in docs/SPEC.md §6; see docs/DECISIONS.md "Owner analytics".
+    VIEW_ANALYTICS = "view_analytics"
+    EDIT_EXPECTED_PREP = "edit_expected_prep"
 
 
 # Capability -> the outlet-scoped staff roles that hold it. A role missing
@@ -79,6 +82,8 @@ CAPABILITY_MATRIX: dict[Capability, frozenset[Role]] = {
     Capability.DAY_CLOSE_AND_REPORTS: frozenset({Role.MANAGER, Role.OWNER}),
     Capability.EXPORT_INTEGRATIONS: frozenset({Role.OWNER}),
     Capability.MANAGE_SUBSCRIPTION_BILLING: frozenset({Role.OWNER}),
+    Capability.VIEW_ANALYTICS: frozenset({Role.MANAGER, Role.OWNER}),
+    Capability.EDIT_EXPECTED_PREP: frozenset({Role.MANAGER, Role.OWNER}),
 }
 
 

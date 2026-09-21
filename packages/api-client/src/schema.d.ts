@@ -96,6 +96,151 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/outlets/{outlet_id}/analytics/expected-prep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Expected Prep
+         * @description The outlet-wide yardstick for a delayed order. Owner or manager.
+         */
+        put: operations["set_expected_prep_v1_outlets__outlet_id__analytics_expected_prep_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/analytics/export/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export
+         * @description CSV of what the matching screen shows. Owner only, like every export (SPEC §6).
+         */
+        get: operations["export_v1_outlets__outlet_id__analytics_export__kind__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/analytics/kitchen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kitchen */
+        get: operations["kitchen_v1_outlets__outlet_id__analytics_kitchen_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/analytics/menu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Menu */
+        get: operations["menu_v1_outlets__outlet_id__analytics_menu_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/analytics/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Orders
+         * @description The rounds behind a dashboard number, newest first, 50 per page.
+         */
+        get: operations["orders_v1_outlets__outlet_id__analytics_orders_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/analytics/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview */
+        get: operations["overview_v1_outlets__outlet_id__analytics_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/analytics/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff */
+        get: operations["staff_v1_outlets__outlet_id__analytics_staff_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/analytics/tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tables */
+        get: operations["tables_v1_outlets__outlet_id__analytics_tables_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/outlets/{outlet_id}/categories": {
         parameters: {
             query?: never;
@@ -1437,6 +1582,491 @@ export interface components {
             /** Table Label */
             table_label: string | null;
         };
+        /** AnalyticsCancellationsOut */
+        AnalyticsCancellationsOut: {
+            /** Items */
+            items: components["schemas"]["AnalyticsCancelledItem"][];
+            /** Note */
+            note: string;
+            /** Rate Pct */
+            rate_pct: number | null;
+            /** Rounds */
+            rounds: number;
+            /** Value Paise */
+            value_paise: number;
+        };
+        /** AnalyticsCancelledItem */
+        AnalyticsCancelledItem: {
+            /** Name */
+            name: string;
+            /** Units */
+            units: number;
+            /** Value Paise */
+            value_paise: number;
+        };
+        /**
+         * AnalyticsCoverage
+         * @description How many tickets the timings could use, and why the rest were left out.
+         */
+        AnalyticsCoverage: {
+            /** Cancelled */
+            cancelled: number;
+            /** Invalid */
+            invalid: number;
+            /** Total */
+            total: number;
+            /** Unfinished */
+            unfinished: number;
+            /** Used */
+            used: number;
+        };
+        /** AnalyticsExpectedPrepIn */
+        AnalyticsExpectedPrepIn: {
+            /** Minutes */
+            minutes: number;
+        };
+        /** AnalyticsExpectedPrepOut */
+        AnalyticsExpectedPrepOut: {
+            /** Expected Prep Minutes */
+            expected_prep_minutes: number;
+        };
+        /** AnalyticsHourPoint */
+        AnalyticsHourPoint: {
+            /** Hour */
+            hour: number;
+            /** Lines Served */
+            lines_served: number;
+            /** Order Value Paise */
+            order_value_paise: number;
+            /** Orders */
+            orders: number;
+            /** Tickets */
+            tickets: number;
+        };
+        /** AnalyticsKitchenKpis */
+        AnalyticsKitchenKpis: {
+            avg_prep: components["schemas"]["AnalyticsKpi"];
+            avg_ready_to_served: components["schemas"]["AnalyticsKpi"];
+            avg_to_ready: components["schemas"]["AnalyticsKpi"];
+            avg_wait: components["schemas"]["AnalyticsKpi"];
+            over_expected: components["schemas"]["AnalyticsKpi"];
+        };
+        /** AnalyticsKitchenOut */
+        AnalyticsKitchenOut: {
+            /** By Category */
+            by_category: components["schemas"]["AnalyticsPrepGroup"][];
+            /** By Hour */
+            by_hour: components["schemas"]["AnalyticsPrepPoint"][];
+            /** Can Edit Expected Prep */
+            can_edit_expected_prep: boolean;
+            coverage: components["schemas"]["AnalyticsCoverage"];
+            /** Expected Prep Minutes */
+            expected_prep_minutes: number;
+            /** Fastest */
+            fastest: components["schemas"]["AnalyticsPrepItem"][];
+            /** Items Hidden Low Sample */
+            items_hidden_low_sample: number;
+            kpis: components["schemas"]["AnalyticsKitchenKpis"];
+            live: components["schemas"]["AnalyticsLiveOut"];
+            /** Note */
+            note: string;
+            range: components["schemas"]["AnalyticsRangeOut"];
+            /** Slowest */
+            slowest: components["schemas"]["AnalyticsPrepItem"][];
+            /** Trend */
+            trend: components["schemas"]["AnalyticsPrepPoint"][];
+        };
+        /**
+         * AnalyticsKpi
+         * @description `value` is None when there is no data. `change_pct` is None unless the previous period
+         *     has a valid, non-zero value to compare with.
+         */
+        AnalyticsKpi: {
+            /** Basis */
+            basis: string;
+            /** Change Pct */
+            change_pct: number | null;
+            /** Definition */
+            definition: string;
+            /** Excluded */
+            excluded?: string | null;
+            /** N */
+            n: number;
+            /** Previous */
+            previous: number | null;
+            /** Previous N */
+            previous_n: number;
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "count" | "paise" | "seconds" | "percent" | "ratio";
+            /** Value */
+            value: number | null;
+        };
+        /** AnalyticsLiveBucket */
+        AnalyticsLiveBucket: {
+            /** Longest Seconds */
+            longest_seconds: number | null;
+            /** N */
+            n: number;
+            /** Over Expected */
+            over_expected: number;
+        };
+        /** AnalyticsLiveOut */
+        AnalyticsLiveOut: {
+            preparing: components["schemas"]["AnalyticsLiveBucket"];
+            ready_awaiting_serve: components["schemas"]["AnalyticsLiveBucket"];
+            waiting_for_kitchen: components["schemas"]["AnalyticsLiveBucket"];
+        };
+        /** AnalyticsMenuCategoryOut */
+        AnalyticsMenuCategoryOut: {
+            /** Avg Order Value Paise */
+            avg_order_value_paise: number | null;
+            /** Id */
+            id: string | null;
+            /** Name */
+            name: string;
+            /** Order Value Paise */
+            order_value_paise: number;
+            /** Rounds */
+            rounds: number;
+            /** Share Pct */
+            share_pct: number | null;
+            /** Units */
+            units: number;
+        };
+        /** AnalyticsMenuItemOut */
+        AnalyticsMenuItemOut: {
+            /** Avg Prep Seconds */
+            avg_prep_seconds: number | null;
+            /** Avg Price Paise */
+            avg_price_paise: number | null;
+            /** Category */
+            category: string;
+            /** Category Id */
+            category_id: string | null;
+            /** Dropped Rate Pct */
+            dropped_rate_pct: number | null;
+            /** Dropped Units */
+            dropped_units: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Order Value Paise */
+            order_value_paise: number;
+            /** Prep N */
+            prep_n: number;
+            quadrant: components["schemas"]["Quadrant"];
+            /** Rounds */
+            rounds: number;
+            /** Share Pct */
+            share_pct: number | null;
+            /** Units */
+            units: number;
+        };
+        /** AnalyticsMenuOut */
+        AnalyticsMenuOut: {
+            /** Can Export */
+            can_export: boolean;
+            /** Categories */
+            categories: components["schemas"]["AnalyticsMenuCategoryOut"][];
+            /** Items */
+            items: components["schemas"]["AnalyticsMenuItemOut"][];
+            /** Median Order Value Paise */
+            median_order_value_paise: number | null;
+            /** Median Units */
+            median_units: number | null;
+            /** Notes */
+            notes: string[];
+            range: components["schemas"]["AnalyticsRangeOut"];
+            /** Total Order Value Paise */
+            total_order_value_paise: number;
+            /** Total Units */
+            total_units: number;
+        };
+        /** AnalyticsOrderRowOut */
+        AnalyticsOrderRowOut: {
+            /** Delayed */
+            delayed: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Items */
+            items: string | null;
+            /** Order Value Paise */
+            order_value_paise: number;
+            /**
+             * Placed At
+             * Format: date-time
+             */
+            placed_at: string;
+            /** Prep Seconds */
+            prep_seconds: number | null;
+            /** Seq No */
+            seq_no: number;
+            /** Served By */
+            served_by: string | null;
+            /** Source */
+            source: string;
+            /** Status */
+            status: string;
+            /**
+             * Tab Id
+             * Format: uuid
+             */
+            tab_id: string;
+            /** Table Label */
+            table_label: string | null;
+        };
+        /** AnalyticsOrdersOut */
+        AnalyticsOrdersOut: {
+            /** Next Cursor */
+            next_cursor: string | null;
+            range: components["schemas"]["AnalyticsRangeOut"];
+            /** Rows */
+            rows: components["schemas"]["AnalyticsOrderRowOut"][];
+        };
+        /** AnalyticsOverviewKpis */
+        AnalyticsOverviewKpis: {
+            avg_order_value: components["schemas"]["AnalyticsKpi"];
+            avg_prep: components["schemas"]["AnalyticsKpi"];
+            avg_ready_to_served: components["schemas"]["AnalyticsKpi"];
+            cancellation_rate: components["schemas"]["AnalyticsKpi"];
+            items_per_order: components["schemas"]["AnalyticsKpi"];
+            order_value: components["schemas"]["AnalyticsKpi"];
+            orders: components["schemas"]["AnalyticsKpi"];
+        };
+        /** AnalyticsOverviewOut */
+        AnalyticsOverviewOut: {
+            /** Can Edit Expected Prep */
+            can_edit_expected_prep: boolean;
+            /** Can Export */
+            can_export: boolean;
+            cancellations: components["schemas"]["AnalyticsCancellationsOut"];
+            /** Expected Prep Minutes */
+            expected_prep_minutes: number;
+            kpis: components["schemas"]["AnalyticsOverviewKpis"];
+            peak: components["schemas"]["AnalyticsPeakOut"];
+            /** Pending Orders */
+            pending_orders: number;
+            range: components["schemas"]["AnalyticsRangeOut"];
+            /** Status Mix */
+            status_mix: components["schemas"]["AnalyticsStatusCount"][];
+            /** Trend */
+            trend: components["schemas"]["AnalyticsTrendPoint"][];
+        };
+        /** AnalyticsPeakOut */
+        AnalyticsPeakOut: {
+            /** By Hour */
+            by_hour: components["schemas"]["AnalyticsHourPoint"][];
+            /** Heatmap */
+            heatmap: number[][];
+            /** Windows */
+            windows: components["schemas"]["AnalyticsPeakWindow"][];
+        };
+        /** AnalyticsPeakWindow */
+        AnalyticsPeakWindow: {
+            /** End Hour */
+            end_hour: number;
+            /** Start Hour */
+            start_hour: number;
+        };
+        /** AnalyticsPrepGroup */
+        AnalyticsPrepGroup: {
+            /** Avg Prep Seconds */
+            avg_prep_seconds: number;
+            /** Id */
+            id: string | null;
+            /** Low Sample */
+            low_sample: boolean;
+            /** N */
+            n: number;
+            /** Name */
+            name: string;
+        };
+        /** AnalyticsPrepItem */
+        AnalyticsPrepItem: {
+            /** Avg Prep Seconds */
+            avg_prep_seconds: number;
+            /** Category */
+            category: string;
+            /** Id */
+            id: string | null;
+            /** Low Sample */
+            low_sample: boolean;
+            /** N */
+            n: number;
+            /** Name */
+            name: string;
+        };
+        /** AnalyticsPrepPoint */
+        AnalyticsPrepPoint: {
+            /** Avg Prep Seconds */
+            avg_prep_seconds: number | null;
+            /** Key */
+            key: string;
+            /** N */
+            n: number;
+        };
+        /** AnalyticsRangeOut */
+        AnalyticsRangeOut: {
+            bucket: components["schemas"]["Bucket"];
+            /** Days */
+            days: number;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            preset: components["schemas"]["RangePreset"];
+            /**
+             * Previous End
+             * Format: date
+             */
+            previous_end: string;
+            /**
+             * Previous Start
+             * Format: date
+             */
+            previous_start: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Timezone */
+            timezone: string;
+        };
+        /** AnalyticsStaffHour */
+        AnalyticsStaffHour: {
+            /** Hour */
+            hour: number;
+            /** Lines Per Staff */
+            lines_per_staff: number | null;
+            /** Lines Served */
+            lines_served: number;
+            /** Staff Active */
+            staff_active: number;
+        };
+        /** AnalyticsStaffOut */
+        AnalyticsStaffOut: {
+            /** By Hour */
+            by_hour: components["schemas"]["AnalyticsStaffHour"][];
+            /** Can Export */
+            can_export: boolean;
+            /** Notes */
+            notes: string[];
+            range: components["schemas"]["AnalyticsRangeOut"];
+            /** Rows */
+            rows: components["schemas"]["AnalyticsStaffRowOut"][];
+        };
+        /** AnalyticsStaffRowOut */
+        AnalyticsStaffRowOut: {
+            /** Active Days */
+            active_days: number;
+            /** Avg Ready To Served Seconds */
+            avg_ready_to_served_seconds: number | null;
+            /** Lines Per Active Day */
+            lines_per_active_day: number | null;
+            /** Lines Served */
+            lines_served: number;
+            /** Name */
+            name: string;
+            /** Order Value Entered Paise */
+            order_value_entered_paise: number;
+            /** Order Value Served Paise */
+            order_value_served_paise: number;
+            /** Peak Hour */
+            peak_hour: number | null;
+            /** Peak Hour Lines */
+            peak_hour_lines: number;
+            /** Ready To Served N */
+            ready_to_served_n: number;
+            /** Role */
+            role: string | null;
+            /** Rounds Entered */
+            rounds_entered: number;
+            /** Rounds Served */
+            rounds_served: number;
+            /** Tables Served */
+            tables_served: number;
+            /** Units Served */
+            units_served: number;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** AnalyticsStatusCount */
+        AnalyticsStatusCount: {
+            /** N */
+            n: number;
+            /** Status */
+            status: string;
+        };
+        /** AnalyticsTableRowOut */
+        AnalyticsTableRowOut: {
+            /** Avg Round Value Paise */
+            avg_round_value_paise: number | null;
+            /** Guests */
+            guests: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+            /** Order Value Paise */
+            order_value_paise: number;
+            /** Rounds */
+            rounds: number;
+            /** Seats */
+            seats: number;
+            /** Visits */
+            visits: number;
+            /** Zone */
+            zone: string;
+        };
+        /** AnalyticsTablesOut */
+        AnalyticsTablesOut: {
+            /** Notes */
+            notes: string[];
+            range: components["schemas"]["AnalyticsRangeOut"];
+            /** Rows */
+            rows: components["schemas"]["AnalyticsTableRowOut"][];
+        };
+        /** AnalyticsTrendPoint */
+        AnalyticsTrendPoint: {
+            /** Avg Prep Seconds */
+            avg_prep_seconds: number | null;
+            /**
+             * Bucket
+             * Format: date
+             */
+            bucket: string;
+            /** Cancelled */
+            cancelled: number;
+            /** Order Value Paise */
+            order_value_paise: number;
+            /** Orders */
+            orders: number;
+            /** Prep N */
+            prep_n: number;
+        };
         /** AssigneesIn */
         AssigneesIn: {
             /** User Ids */
@@ -1480,6 +2110,11 @@ export interface components {
             /** Available */
             available: boolean;
         };
+        /**
+         * Bucket
+         * @enum {string}
+         */
+        Bucket: "day" | "week" | "month";
         /** BulkTablesIn */
         BulkTablesIn: {
             /** Labels */
@@ -2217,6 +2852,12 @@ export interface components {
             /** Table Label */
             table_label: string;
         };
+        /**
+         * Quadrant
+         * @description Neutral labels: the owner decides what each means for their menu.
+         * @enum {string}
+         */
+        Quadrant: "high_volume_high_value" | "high_volume_low_value" | "low_volume_high_value" | "low_volume_low_value";
         /** QuoteLineOut */
         QuoteLineOut: {
             /** Line Total Paise */
@@ -2244,6 +2885,11 @@ export interface components {
             lines: components["schemas"]["QuoteLineOut"][];
             totals: components["schemas"]["TotalsOut"];
         };
+        /**
+         * RangePreset
+         * @enum {string}
+         */
+        RangePreset: "today" | "yesterday" | "last_7_days" | "last_30_days" | "this_week" | "this_month" | "previous_month" | "custom";
         /** RequestRowOut */
         RequestRowOut: {
             /**
@@ -3048,6 +3694,587 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_expected_prep_v1_outlets__outlet_id__analytics_expected_prep_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalyticsExpectedPrepIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsExpectedPrepOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    export_v1_outlets__outlet_id__analytics_export__kind__get: {
+        parameters: {
+            query?: {
+                range?: components["schemas"]["RangePreset"];
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path: {
+                kind: "orders" | "staff" | "menu";
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    kitchen_v1_outlets__outlet_id__analytics_kitchen_get: {
+        parameters: {
+            query?: {
+                range?: components["schemas"]["RangePreset"];
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsKitchenOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    menu_v1_outlets__outlet_id__analytics_menu_get: {
+        parameters: {
+            query?: {
+                range?: components["schemas"]["RangePreset"];
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsMenuOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    orders_v1_outlets__outlet_id__analytics_orders_get: {
+        parameters: {
+            query?: {
+                range?: components["schemas"]["RangePreset"];
+                from?: string | null;
+                to?: string | null;
+                status?: string | null;
+                item_id?: string | null;
+                category_id?: string | null;
+                served_by?: string | null;
+                table_id?: string | null;
+                weekday?: number | null;
+                hour?: number | null;
+                day?: string | null;
+                delayed?: boolean;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsOrdersOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    overview_v1_outlets__outlet_id__analytics_overview_get: {
+        parameters: {
+            query?: {
+                range?: components["schemas"]["RangePreset"];
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsOverviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    staff_v1_outlets__outlet_id__analytics_staff_get: {
+        parameters: {
+            query?: {
+                range?: components["schemas"]["RangePreset"];
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsStaffOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    tables_v1_outlets__outlet_id__analytics_tables_get: {
+        parameters: {
+            query?: {
+                range?: components["schemas"]["RangePreset"];
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsTablesOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
                 };
             };
         };

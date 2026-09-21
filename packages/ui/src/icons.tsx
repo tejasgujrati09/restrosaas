@@ -15,6 +15,7 @@ export type IconName =
   | "users"
   | "user"
   | "sliders"
+  | "chart"
   | "more"
   | "logout";
 
@@ -35,6 +36,7 @@ const PATHS: Record<IconName, string> = {
   users: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
   user: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
   sliders: "M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",
+  chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
   more: "M5 12h.01M12 12h.01M19 12h.01",
   logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
 };

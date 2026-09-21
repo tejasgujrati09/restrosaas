@@ -94,6 +94,7 @@ Plain CSS classes and small React components; **no new UI library** (CLAUDE.md �
 - **PageHeader** — title (H1), one line of context, actions on the right (desktop) or below (phone).
 - **DataList** — a real `<table>` from 640 px; the same rows stacked as labelled pairs below. Never a horizontally scrolling page.
 - **Sheet, Stepper** — existing; restyled by tokens.
+- **KpiCard, Bars, Heatmap** (analytics, `apps/staff/components/analytics-parts.tsx`) — a KPI card is label, number, "Based on N …", an optional change line (only when the API gives a valid comparison; direction is stated, never coloured good or bad) and a "How is this calculated?" disclosure. Bars are HTML columns using `--accent`, with a "See the numbers" table beneath so nothing lives only in a picture. The heatmap shades `--accent` over `--sunken` by share. Segmented choices (`.seg`) and section tabs (`.tabs`) use `aria-pressed` / `role="tab"`.
 - **Money** — renders `formatInr`; display only.
 
 ## 4. Shell and navigation

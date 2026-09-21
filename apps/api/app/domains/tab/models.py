@@ -87,6 +87,8 @@ class OrderLine(Base):
     needs_customer_ack: Mapped[bool] = mapped_column(Boolean, default=False)
     acked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     notes: Mapped[str | None] = mapped_column(Text)
+    served_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    served_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("app_user.id"))
     voided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     void_reason: Mapped[str | None] = mapped_column(Text)
     ticket_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("ticket.id"))

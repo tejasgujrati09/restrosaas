@@ -4,8 +4,8 @@ import { NAV, sectionOf, splitForTabBar, usesDarkTheme, visibleNav } from "./nav
 const hrefs = (roles: string[]) => visibleNav(roles).flatMap((g) => g.items.map((i) => i.href));
 
 describe("visibleNav", () => {
-  it("shows an owner everything, in three groups", () => {
-    expect(visibleNav(["owner"]).map((g) => g.label)).toEqual(["Service", "Manage", "Settings"]);
+  it("shows an owner everything, in four groups", () => {
+    expect(visibleNav(["owner"]).map((g) => g.label)).toEqual(["Service", "Insights", "Manage", "Settings"]);
     expect(hrefs(["owner"])).toEqual(
       NAV.flatMap((g) => g.items.map((i) => i.href)),
     );
@@ -22,7 +22,7 @@ describe("visibleNav", () => {
 
   it("gives a manager everything except setup, and drops the empty group", () => {
     expect(hrefs(["manager"])).not.toContain("setup");
-    expect(visibleNav(["manager"]).map((g) => g.label)).toEqual(["Service", "Manage"]);
+    expect(visibleNav(["manager"]).map((g) => g.label)).toEqual(["Service", "Insights", "Manage"]);
   });
 
   it("merges several roles and shows nothing without one", () => {

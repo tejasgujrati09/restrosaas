@@ -161,3 +161,17 @@ Confirmed by a human: **public self-serve signup**, **segno + WeasyPrint** as ne
 **Reason:** Restaurant menus in India commonly show tax-inclusive prices; bars and clubs commonly show "+ taxes as applicable" (tax-exclusive). Hard-coding one mode would make the owner-entered price differ from the printed menu, which is exactly the "menu says a different price" dispute the product exists to prevent.
 
 **Impact:** New `Outlet.prices_include_tax` field. `OrderLine` needs a `prices_include_tax` (or equivalent) value in its snapshot set, alongside `tax_class_snapshot`. Tax computation in `apps/api/app/core/` derives per-line taxable value from `(unit_price_snapshot, prices_include_tax_snapshot, tax_class_snapshot)` rather than assuming exclusive storage; `Bill.cgst`/`sgst`/`liquor_vat` are sums of line-level amounts, not rate × subtotal.
+
+## 2026-09-20 — Owner analytics (order value, kitchen, serving, menu, peak hours)
+
+**Decision:** Analytics ships now on what the workflow records: rounds, order value at locked prices, kitchen tickets, serving, menu and tables. Revenue, bills, tax, discounts, refunds, payment mix, average bill and table turnaround are **not estimated**; they wait for billing (Milestone 5). The screens label figures "order value", never "revenue".
+
+**Choices:**
+- Owner and manager may view analytics (new `view_analytics`) and edit the expected prep time (new `edit_expected_prep`, default 10 minutes per outlet, `outlet.expected_prep_minutes`). CSV export stays owner-only, as SPEC §6 says for exports. These two capabilities are additions to the SPEC §6 matrix.
+- Migration 0009 adds `order_line.served_at` / `served_by` (backfilled from `line_served` events) and range indexes. No new table, so no new RLS policy.
+- Every figure carries its definition, sample size and exclusions. Percent change is shown only against a non-zero previous period of the same length. Ranges are outlet-local days, at most 366.
+- Cohorts: rounds by `placed_at`; kitchen timings by `ticket.created_at`; serving work by `served_at`. Tickets are per station per round, so item and category prep times are ticket times, and items with fewer than 3 tickets are not ranked.
+- Waiter credit is whoever marked the line served, plus rounds a staff member typed in. Cancellations are never attributed to a waiter. No efficiency score.
+- No new dependency: charts are HTML/CSS. Analytics lives in `app/domains/analytics` and `app/api/v1/analytics.py`; pure rules are in `app/core/analytics.py`.
+
+**Open until billing:** revenue, bills, payments, refunds, table turnaround; per-line ready time (tickets, not items, are timed); staff assignment history.

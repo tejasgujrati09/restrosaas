@@ -47,6 +47,9 @@ class Outlet(Base):
     liquor_approval_required: Mapped[bool] = mapped_column(
         Boolean, default=flags.DEFAULT_LIQUOR_APPROVAL_REQUIRED
     )
+    expected_prep_minutes: Mapped[int] = mapped_column(
+        Integer, default=flags.DEFAULT_EXPECTED_PREP_MINUTES
+    )
     invoice_prefix: Mapped[str] = mapped_column(Text)
     next_invoice_no: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
