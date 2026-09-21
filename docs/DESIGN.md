@@ -90,6 +90,8 @@ Plain CSS classes and small React components; **no new UI library** (CLAUDE.md �
 - **Banner** — inline notice with tone; `role="alert"` only for errors that just happened, `role="status"` otherwise.
 - **Skeleton** — for loading lists and cards, sized like the content. A bare "Loading…" line is not allowed on a data screen.
 - **EmptyState** — what is empty, why, and the next action.
+- **TabStrip** — views of one list, each with its own count (Orders: New, In progress, Ready, Completed, Cancelled). A `tablist` of real buttons; the selected tab is marked with `aria-selected`, a filled surface and an outline, and a count is text, never colour alone. Scrolls sideways inside itself on a phone. The panel it controls is a `role="tabpanel"` labelled by the tab.
+- **Stepper** — a short list of things happening in order (setting up voice ordering). Each step has a mark (✓ ● ○ !) and hidden text for its state; the current step carries `aria-current="step"`. Use it for setup that takes seconds to minutes, not for progress bars.
 - **Toast** — confirmation of a completed action (saved, sent). One live region; auto-dismiss after 4 s; errors stay.
 - **PageHeader** — title (H1), one line of context, actions on the right (desktop) or below (phone).
 - **DataList** — a real `<table>` from 640 px; the same rows stacked as labelled pairs below. Never a horizontally scrolling page.
@@ -100,7 +102,7 @@ Plain CSS classes and small React components; **no new UI library** (CLAUDE.md �
 - **Guest:** header (venue name in Fraunces, a `Table` pill, one line for the current happy hour) + bottom bar with a contextual primary action (view round, request bill) above the tab links (Menu, My tab, Call waiter).
 - **Restaurant picker** (after sign-in, for people who work at more than one place): a grid of cards, one per outlet, each with an initial avatar, restaurant name, outlet and state, a role badge and a readiness badge. One outlet skips the picker.
 - **Staff, phone:** slim top bar (venue, connection dot with text, account menu with Sign out) + bottom tab bar of at most four role-based destinations; the rest under **More**.
-- **Staff, desktop (≥ 1024):** left sidebar grouped **Service** (Floor, Requests, Kitchen), **Manage** (Menu, Happy hours, Tables & QR, Assign tables, Staff), **Settings** (Setup); page header in the content column. The active item has `aria-current="page"` and a filled row. Sign out is in the account menu, never styled like a page action.
+- **Staff, desktop (≥ 1024):** left sidebar grouped **Service** (Floor, Requests, Kitchen, and for owners and managers Orders and Phone orders), **Manage** (Menu, Happy hours, Tables & QR, Assign tables, Staff), **Settings** (Setup); page header in the content column. The active item has `aria-current="page"` and a filled row. Sign out is in the account menu, never styled like a page action.
 - **Suspended restaurant:** the shell shows a warn `Notice` above the page ("This restaurant's account is suspended…") and wraps the page in `<fieldset class="readonly" disabled>`, which turns off every button and field while links, and so reading, still work. The picker card shows a danger `Suspended` badge. Never hide a suspended restaurant.
 - Role filtering of links stays (`NAV` in `apps/staff/lib/nav.ts`); hiding a link is convenience, the API is the check.
 

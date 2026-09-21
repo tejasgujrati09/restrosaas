@@ -560,4 +560,101 @@
     font: var(--f-h2);
     font-variant-numeric: tabular-nums;
   }
+
+  /* TabStrip: views of one list, scrolls sideways inside itself on a phone. */
+  .tabstrip {
+    display: flex;
+    gap: var(--s-1);
+    overflow-x: auto;
+    margin: 0 0 var(--s-3);
+    padding: var(--s-1);
+    background: var(--sunken);
+    border-radius: var(--r-md);
+  }
+  .tabstrip-tab {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: var(--hit);
+    padding: 0 var(--s-3);
+    border: 0;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--ink-2);
+    font: var(--f-body);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .tabstrip-tab[aria-selected="true"] {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+  }
+  .tabstrip-tab:focus-visible {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 2px;
+  }
+  .tabstrip-count {
+    min-width: 24px;
+    padding: 0 var(--s-2);
+    border-radius: var(--r-pill);
+    background: var(--border);
+    color: var(--ink);
+    font: var(--f-caption);
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* Stepper: things happening in order. */
+  .stepper {
+    list-style: none;
+    margin: var(--s-3) 0;
+    padding: 0;
+    display: grid;
+    gap: var(--s-2);
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    color: var(--ink-2);
+  }
+  .step-mark {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--border-strong);
+    font: var(--f-caption);
+    font-weight: 700;
+  }
+  .step.done {
+    color: var(--ink);
+  }
+  .step.done .step-mark {
+    background: var(--ok-bg);
+    border-color: var(--ok-line);
+    color: var(--ok);
+  }
+  .step.running {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .step.running .step-mark {
+    background: var(--info-bg);
+    border-color: var(--info-line);
+    color: var(--info);
+  }
+  .step.failed {
+    color: var(--danger);
+    font-weight: 700;
+  }
+  .step.failed .step-mark {
+    background: var(--danger-bg);
+    border-color: var(--danger-line);
+    color: var(--danger);
+  }
 }

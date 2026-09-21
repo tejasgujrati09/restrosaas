@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import time
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 import structlog
@@ -176,6 +177,26 @@ class GupshupPlatform:
 
     async def delete_agent(self, agent_id: str) -> None:
         await self._call("delete_agent", "DELETE", f"/api/v1/agents/{agent_id}")
+
+    async def find_agent_by_name(self, name: str) -> str | None:
+        data = await self._call(
+            "find_agent",
+            "GET",
+            f"/api/v1/agents?page_size=100&search={quote(name)}",
+        )
+        for item in (data or {}).get("items", []):
+            if isinstance(item, dict) and item.get("name") == name and item.get("id"):
+                return str(item["id"])
+        return None
+
+    async def agent_is_active(self, agent_id: str) -> bool | None:
+        try:
+            data = await self._call("get_agent", "GET", f"/api/v1/agents/{agent_id}")
+        except VoicePlatformError as exc:
+            if exc.status == 404:
+                return None
+            raise
+        return bool(data.get("is_active")) if isinstance(data, dict) else None
 
     async def list_numbers(self) -> list[PhoneNumber]:
         numbers = await self._call("list_numbers", "GET", "/api/v1/sr/numbers")

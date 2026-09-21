@@ -573,6 +573,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/outlets/{outlet_id}/staff/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Orders */
+        get: operations["list_orders_v1_outlets__outlet_id__staff_orders_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/staff/orders/{order_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Order */
+        get: operations["get_order_v1_outlets__outlet_id__staff_orders__order_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/outlets/{outlet_id}/staff/service-requests": {
         parameters: {
             query?: never;
@@ -1283,7 +1317,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Status */
+        /**
+         * Get Status
+         * @description Polled while setting up. Also queues a job again if its message was lost.
+         */
         get: operations["get_status_v1_outlets__outlet_id__voice_agent_get"];
         put?: never;
         post?: never;
@@ -1456,6 +1493,66 @@ export interface paths {
          */
         put: operations["set_restaurant_status_v1_platform_restaurants__restaurant_id__status_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/platform/restaurants/{restaurant_id}/voice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Restaurant Voice */
+        get: operations["get_restaurant_voice_v1_platform_restaurants__restaurant_id__voice_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/platform/restaurants/{restaurant_id}/voice-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Voice Orders Allowed
+         * @description Allow or stop voice ordering for a restaurant. Stopping also turns off whatever the
+         *     owner had switched on: the agent stops taking new calls and a call in progress can finish
+         *     (the same ten-minute window as an owner's disable). Nothing is deleted. Repeating it
+         *     changes nothing, so it takes no Idempotency-Key.
+         */
+        put: operations["set_voice_orders_allowed_v1_platform_restaurants__restaurant_id__voice_orders_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/platform/restaurants/{restaurant_id}/voice/{outlet_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry Voice
+         * @description Try a failed setup (or a failed turn-off) again. Steps that already succeeded are kept.
+         */
+        post: operations["retry_voice_v1_platform_restaurants__restaurant_id__voice__outlet_id__retry_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2163,6 +2260,166 @@ export interface components {
              */
             tab_id: string;
         };
+        /**
+         * OrderAction
+         * @enum {string}
+         */
+        OrderAction: "accept" | "reject" | "serve";
+        /** OrderCountsOut */
+        OrderCountsOut: {
+            /** Cancelled */
+            cancelled: number;
+            /** Completed */
+            completed: number;
+            /** In Progress */
+            in_progress: number;
+            /** New */
+            new: number;
+            /** Ready */
+            ready: number;
+        };
+        /** OrderDetailOut */
+        OrderDetailOut: {
+            /** Actions */
+            actions: components["schemas"]["OrderAction"][];
+            /** Call Id */
+            call_id: string | null;
+            /** Customer Name */
+            customer_name: string | null;
+            /** Customer Phone */
+            customer_phone: string | null;
+            /** Delivery Address */
+            delivery_address: string | null;
+            /** Fulfillment Type */
+            fulfillment_type: string;
+            group: components["schemas"]["OrderGroup"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lines */
+            lines: components["schemas"]["OrderLineOut"][];
+            /**
+             * Placed At
+             * Format: date-time
+             */
+            placed_at: string;
+            pricing: components["schemas"]["PricingOut"];
+            /** Short Id */
+            short_id: string;
+            /** Source */
+            source: string;
+            /** Status */
+            status: string;
+            /**
+             * Tab Id
+             * Format: uuid
+             */
+            tab_id: string;
+            /** Tab Status */
+            tab_status: string;
+            /** Table Label */
+            table_label: string | null;
+            /** Tickets */
+            tickets: components["schemas"]["OrderTicketOut"][];
+            /** Timeline */
+            timeline: components["schemas"]["TimelineEntryOut"][];
+        };
+        /**
+         * OrderGroup
+         * @enum {string}
+         */
+        OrderGroup: "new" | "in_progress" | "ready" | "completed" | "cancelled";
+        /** OrderItemOut */
+        OrderItemOut: {
+            /** Name */
+            name: string;
+            /** Qty */
+            qty: number;
+        };
+        /** OrderLineOut */
+        OrderLineOut: {
+            /** Line Total Paise */
+            line_total_paise: number;
+            /** Modifiers */
+            modifiers: string[];
+            /** Name */
+            name: string;
+            /** Notes */
+            notes: string | null;
+            /** Qty */
+            qty: number;
+            /** Status */
+            status: string;
+            /** Unit Price Paise */
+            unit_price_paise: number;
+            /** Void Reason */
+            void_reason: string | null;
+        };
+        /** OrderRowOut */
+        OrderRowOut: {
+            /** Customer Name */
+            customer_name: string | null;
+            /** Customer Phone */
+            customer_phone: string | null;
+            /** Fulfillment Type */
+            fulfillment_type: string;
+            group: components["schemas"]["OrderGroup"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Items */
+            items: components["schemas"]["OrderItemOut"][];
+            /**
+             * Placed At
+             * Format: date-time
+             */
+            placed_at: string;
+            /** Short Id */
+            short_id: string;
+            /** Source */
+            source: string;
+            /** Status */
+            status: string;
+            /** Table Label */
+            table_label: string | null;
+            /** Total Paise */
+            total_paise: number;
+        };
+        /** OrderTicketOut */
+        OrderTicketOut: {
+            /** Ready At */
+            ready_at: string | null;
+            /** Started At */
+            started_at: string | null;
+            /** Station */
+            station: string | null;
+            /** Status */
+            status: string;
+        };
+        /** OrdersOut */
+        OrdersOut: {
+            counts: components["schemas"]["OrderCountsOut"];
+            /**
+             * Date From
+             * Format: date
+             */
+            date_from: string;
+            /**
+             * Date To
+             * Format: date
+             */
+            date_to: string;
+            /** Earlier Open */
+            earlier_open: number;
+            /** Has More */
+            has_more: boolean;
+            /** Orders */
+            orders: components["schemas"]["OrderRowOut"][];
+        };
         /** OtpRequestIn */
         OtpRequestIn: {
             /** Phone */
@@ -2229,6 +2486,8 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "suspended";
+            /** Voice Orders Allowed */
+            voice_orders_allowed: boolean;
         };
         /** PlatformTokenOut */
         PlatformTokenOut: {
@@ -2239,6 +2498,18 @@ export interface components {
              * @default bearer
              */
             token_type: string;
+        };
+        /** PlatformVoiceOut */
+        PlatformVoiceOut: {
+            /** Allowed */
+            allowed: boolean;
+            /** Outlets */
+            outlets: components["schemas"]["VoiceOutletOut"][];
+            /**
+             * Restaurant Id
+             * Format: uuid
+             */
+            restaurant_id: string;
         };
         /** PriceRuleIn */
         PriceRuleIn: {
@@ -2308,6 +2579,23 @@ export interface components {
             valid_to?: string | null;
             /** Value */
             value: number;
+        };
+        /** PricingOut */
+        PricingOut: {
+            /** Cgst Paise */
+            cgst_paise: number;
+            /** Estimated Total Paise */
+            estimated_total_paise: number;
+            /** Items Paise */
+            items_paise: number;
+            /** Liquor Vat Paise */
+            liquor_vat_paise: number;
+            /** Service Charge Paise */
+            service_charge_paise: number;
+            /** Sgst Paise */
+            sgst_paise: number;
+            /** Taxes Included */
+            taxes_included: boolean;
         };
         /** QrSessionIn */
         QrSessionIn: {
@@ -2926,6 +3214,20 @@ export interface components {
             /** Recent */
             recent: components["schemas"]["TicketOut"][];
         };
+        /** TimelineEntryOut */
+        TimelineEntryOut: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** By */
+            by: string | null;
+            /** Label */
+            label: string;
+            /** Reason */
+            reason: string | null;
+        };
         /** TokenOut */
         TokenOut: {
             /** Access Token */
@@ -2987,16 +3289,59 @@ export interface components {
         };
         /** VoiceAgentOut */
         VoiceAgentOut: {
+            /** Allowed */
+            allowed: boolean;
+            /** Can Disable */
+            can_disable: boolean;
+            /** Can Enable */
+            can_enable: boolean;
             /** Enabled */
             enabled: boolean;
-            /** Last Error */
-            last_error: string | null;
+            /** Message */
+            message: string | null;
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "unavailable" | "off" | "setting_up" | "active" | "failed" | "turning_off";
             /** Phone Number */
             phone_number: string | null;
             /** Status */
             status: string;
+            /** Steps */
+            steps: components["schemas"]["VoiceStepOut"][];
             /** Updated At */
             updated_at: string | null;
+        };
+        /** VoiceAllowedIn */
+        VoiceAllowedIn: {
+            /** Allowed */
+            allowed: boolean;
+            /** Reason */
+            reason?: string | null;
+        };
+        /** VoiceAttemptOut */
+        VoiceAttemptOut: {
+            /** Error */
+            error: string | null;
+            /** Failed Step */
+            failed_step: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "enable" | "disable";
+            /** Outcome */
+            outcome: string | null;
+            /** Requested By Platform Admin */
+            requested_by_platform_admin: boolean;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
         };
         /** VoiceOrderLineOut */
         VoiceOrderLineOut: {
@@ -3040,6 +3385,48 @@ export interface components {
             tab_id: string;
             /** Total Paise */
             total_paise: number;
+        };
+        /** VoiceOutletOut */
+        VoiceOutletOut: {
+            /** Agent Id */
+            agent_id: string | null;
+            /** Attempts */
+            attempts: components["schemas"]["VoiceAttemptOut"][];
+            /** Can Retry */
+            can_retry: boolean;
+            /** Detail */
+            detail: string | null;
+            /** Message */
+            message: string | null;
+            /**
+             * Outlet Id
+             * Format: uuid
+             */
+            outlet_id: string;
+            /** Outlet Name */
+            outlet_name: string;
+            /** Phase */
+            phase: string;
+            /** Phone Number */
+            phone_number: string | null;
+            /** Status */
+            status: string;
+            /** Steps */
+            steps: components["schemas"]["VoiceStepOut"][];
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** VoiceStepOut */
+        VoiceStepOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "done" | "running" | "pending" | "failed";
         };
         /** WaiterOut */
         WaiterOut: {
@@ -5576,6 +5963,150 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GuestMenuOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    list_orders_v1_outlets__outlet_id__staff_orders_get: {
+        parameters: {
+            query?: {
+                group?: components["schemas"]["OrderGroup"];
+                source?: ("customer" | "waiter" | "voice" | "aggregator") | null;
+                table_id?: string | null;
+                placed_by?: string | null;
+                q?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrdersOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    get_order_v1_outlets__outlet_id__staff_orders__order_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailOut"];
                 };
             };
             /** @description Unauthorized */
@@ -8627,7 +9158,7 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Successful Response */
-            200: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8694,7 +9225,7 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Successful Response */
-            200: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9143,6 +9674,212 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlatformRestaurantOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    get_restaurant_voice_v1_platform_restaurants__restaurant_id__voice_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformVoiceOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    set_voice_orders_allowed_v1_platform_restaurants__restaurant_id__voice_orders_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoiceAllowedIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformVoiceOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    retry_voice_v1_platform_restaurants__restaurant_id__voice__outlet_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformVoiceOut"];
                 };
             };
             /** @description Unauthorized */

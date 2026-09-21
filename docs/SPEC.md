@@ -130,8 +130,10 @@ Permissions are enforced on the API per `restaurant_id` and role; the UI only hi
 | Generate table QRs | — | — | Yes | Yes | — |
 | Day-close and sales reports | — | — | Yes | Yes | — |
 | Export / integrations | — | — | — | Yes | — |
-| Enable the voice ordering agent | — | — | — | Yes | — |
+| Enable the voice ordering agent (only while allowed by a platform admin) | — | — | — | Yes | — |
+| Allow or stop voice ordering for a restaurant; see and retry its setup | — | — | — | — | Yes |
 | Accept or reject a phone order | — | — | Yes | Yes | — |
+| See every order on the Orders screen | — | — | Yes | Yes | — |
 | Subscription and billing plan | — | — | — | Yes | Yes |
 | Onboard, suspend restaurant; impersonate with audit | — | — | — | — | Yes |
 

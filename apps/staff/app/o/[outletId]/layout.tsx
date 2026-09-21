@@ -10,7 +10,7 @@ import { live, socketUrl, useLive } from "@/lib/live";
 import { sectionOf, splitForTabBar, usesDarkTheme, visibleNav, type NavItem } from "@/lib/nav";
 import { clearSession, getToken, rolesAt } from "@/lib/session";
 import { useToken } from "@/lib/use-token";
-import type { RequestRow, Settings } from "@/lib/types";
+import type { OrdersList, RequestRow, Settings } from "@/lib/types";
 
 export default function OutletLayout({ children }: { children: ReactNode }) {
   const { outletId } = useParams<{ outletId: string }>();
@@ -31,6 +31,15 @@ export default function OutletLayout({ children }: { children: ReactNode }) {
   const seesFloor = roles.some((r) => ["owner", "manager", "waiter"].includes(r));
   const requests = useResource<RequestRow[]>(token && seesFloor ? `/v1/outlets/${outletId}/staff/service-requests` : null, 30_000, true);
   const open = requests.data?.length ?? 0;
+  // Orders waiting for a first look. Owners and managers only, and today only: the Orders screen
+  // itself says when older orders are still open.
+  const seesOrders = roles.some((r) => ["owner", "manager"].includes(r));
+  const orders = useResource<OrdersList>(
+    token && seesOrders ? `/v1/outlets/${outletId}/staff/orders?group=new` : null,
+    30_000,
+    true,
+  );
+  const fresh = orders.data?.counts.new ?? 0;
 
   // `token` is null during hydration even when signed in, so ask storage directly.
   useEffect(() => {
@@ -70,6 +79,11 @@ export default function OutletLayout({ children }: { children: ReactNode }) {
       {item.href === "requests" && open > 0 ? (
         <span className="badge count" aria-label={`${open} open`}>
           {open}
+        </span>
+      ) : null}
+      {item.href === "orders" && fresh > 0 ? (
+        <span className="badge count" aria-label={`${fresh} new`}>
+          {fresh}
         </span>
       ) : null}
     </Link>

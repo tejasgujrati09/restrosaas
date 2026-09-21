@@ -9,15 +9,17 @@ import { useOffline } from "@/lib/offline";
  * `live` refetches whenever the server pushes a change and, with `pollMs`, polls far less
  * often while the socket is up (the poll is then only a safety net).
  */
-export function useResource<T>(path: string | null, pollMs?: number, live = false) {
+export function useResource<T>(path: string | null, pollMs?: number | ((data: T | null) => number | undefined), live = false) {
   const { tick: liveTick, connected } = useLive();
   const { synced } = useOffline();
   // A queued action reaching the server changes what is on screen just like a push does.
   const pushed = live ? liveTick + synced : 0;
-  const interval = pollMs && live && connected ? pollMs * 8 : pollMs;
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  // A function lets the screen ask more often while something it shows is still in flight.
+  const base = typeof pollMs === "function" ? pollMs(data) : pollMs;
+  const interval = base && live && connected ? base * 8 : base;
 
   useEffect(() => {
     if (!path) return;

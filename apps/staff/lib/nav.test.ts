@@ -35,6 +35,14 @@ describe("visibleNav", () => {
     }
   });
 
+  it("gives owners and managers the Orders screen and nobody on the floor or the pass", () => {
+    expect(hrefs(["owner"])).toContain("orders");
+    expect(hrefs(["manager"])).toContain("orders");
+    for (const role of ["waiter", "kitchen", "bar"]) expect(hrefs([role])).not.toContain("orders");
+    // Orders leads the Service group for those who have it, ahead of Phone orders.
+    expect(hrefs(["manager"]).indexOf("orders")).toBeLessThan(hrefs(["manager"]).indexOf("phone-orders"));
+  });
+
   it("merges several roles and shows nothing without one", () => {
     expect(hrefs(["waiter", "kitchen"])).toEqual(["floor", "requests", "kitchen", "menu"]);
     expect(visibleNav([])).toEqual([]);

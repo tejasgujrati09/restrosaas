@@ -619,3 +619,77 @@ main.picker-page {
   grid-area: go;
   color: var(--ink-3);
 }
+
+/* Labelled facts (a phone number, an agent, a status) */
+.facts {
+  display: grid;
+  gap: var(--s-2);
+  margin: var(--s-3) 0;
+}
+.facts > div {
+  display: flex;
+  gap: var(--s-3);
+  align-items: baseline;
+}
+.facts dt {
+  flex: 0 0 8em;
+  color: var(--ink-2);
+  font: var(--f-caption);
+  font-weight: 700;
+}
+.facts dd {
+  margin: 0;
+}
+
+/* Orders screen */
+.filters {
+  display: grid;
+  gap: var(--s-3);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  align-items: start;
+  margin-bottom: var(--s-3);
+}
+.orders {
+  list-style: none;
+  margin: 0 0 var(--s-3);
+  padding: 0;
+  display: grid;
+  gap: var(--s-3);
+}
+.order-card {
+  display: grid;
+  /* The shared button style centres its content; a card fills its width instead. */
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
+  align-content: start;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: var(--hit);
+  text-align: left;
+  font: var(--f-body);
+  color: var(--ink);
+  cursor: pointer;
+}
+.order-card .items {
+  display: grid;
+  gap: var(--s-1);
+}
+.plain {
+  list-style: none;
+  margin: 0 0 var(--s-3);
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.plain li {
+  display: grid;
+}
+.struck .grow {
+  text-decoration: line-through;
+}
+.timeline {
+  margin: 0 0 var(--s-3);
+  padding-left: var(--s-5);
+  display: grid;
+  gap: var(--s-1);
+}

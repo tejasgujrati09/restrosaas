@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Start, stop and inspect the whole local stack.
 #
-#   scripts/dev.sh up [--no-seed]   Postgres + Redis, migrations, API and the three web apps
+#   scripts/dev.sh up [--no-seed]   Postgres + Redis, migrations, API, job worker and the three web apps
 #   scripts/dev.sh down             stop the API and web apps (add --all to stop Postgres/Redis too)
 #   scripts/dev.sh status           what is running, and where
-#   scripts/dev.sh logs [name]      tail logs: api | guest | staff | admin (default: all)
+#   scripts/dev.sh logs [name]      tail logs: api | worker | guest | staff | admin (default: all)
 #   scripts/dev.sh restart          down, then up
 #
 # Default ports are API 8000, guest 3000, staff 3001, admin 3002. A port that is already
@@ -17,7 +17,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUN="$ROOT/.run"
 LOGS="$RUN/logs"
 PORTS_FILE="$RUN/ports.env"
-SERVICES=(api guest staff admin)
+SERVICES=(api worker guest staff admin)
 
 # Runtime role (subject to RLS) for the API; owner role for migrations. See README "Two database roles".
 RUNTIME_DB="postgresql+asyncpg://app:app@localhost:5432/app_dev"
@@ -137,6 +137,12 @@ PORTS
     DYLD_FALLBACK_LIBRARY_PATH="${DYLD_FALLBACK_LIBRARY_PATH:-/opt/homebrew/lib}" \
     uv run uvicorn app.main:app --port "$api_port" --reload
   wait_for api "$api_url/health" 60
+
+  # The job worker (voice provisioning). Same environment as the API; reads apps/api/.env too.
+  start_one worker "$ROOT/apps/api" env \
+    DATABASE_URL="$RUNTIME_DB" MIGRATION_DATABASE_URL="$OWNER_DB" REDIS_URL="$REDIS_URL" \
+    DYLD_FALLBACK_LIBRARY_PATH="${DYLD_FALLBACK_LIBRARY_PATH:-/opt/homebrew/lib}" \
+    uv run celery -A app.worker.celery_app worker --loglevel=info
 
   for app in guest staff admin; do
     local port_var

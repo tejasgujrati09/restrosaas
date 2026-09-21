@@ -194,3 +194,17 @@ main.auth form > button {
 .audit {
   margin-top: var(--s-4);
 }
+
+/* Voice orders sheet */
+.voice-outlet {
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--border);
+}
+.attempts {
+  margin: var(--s-2) 0 0;
+  padding-left: var(--s-5);
+  display: grid;
+  gap: var(--s-1);
+  font: var(--f-caption);
+}

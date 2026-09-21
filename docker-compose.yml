@@ -48,5 +48,24 @@ services:
     volumes:
       - ./apps/api:/app
 
+  # Runs the background jobs (voice ordering setup). One task at a time; run more workers to scale.
+  worker:
+    build:
+      context: apps/api
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+asyncpg://app:app@postgres:5432/app_dev
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uv run celery -A app.worker.celery_app worker --loglevel=info
+    volumes:
+      - ./apps/api:/app
+
 volumes:
   postgres_data:

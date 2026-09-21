@@ -9,6 +9,7 @@ const r = (brand: string, legal: string, status: "active" | "suspended"): Platfo
   gstin: null,
   plan: "trial",
   status,
+  voice_orders_allowed: false,
   created_at: "2026-09-01T00:00:00Z",
 });
 const list = [r("Copper Still", "Copper Hospitality Pvt Ltd", "active"), r("Demo Bar", "Demo LLP", "suspended"), r("Chai Point", "CP Foods", "active")];

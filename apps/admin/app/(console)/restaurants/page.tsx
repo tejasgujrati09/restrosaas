@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { countByStatus, filterRestaurants, formatDay, initialOf, type StatusFilter } from "@/lib/restaurants";
 import type { PlatformRestaurant } from "@/lib/types";
 import { useAction, useResource } from "@/lib/use-resource";
+import { VoiceSheet } from "./voice-sheet";
 
 const FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All" },
@@ -19,6 +20,7 @@ export default function RestaurantsPage() {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [target, setTarget] = useState<PlatformRestaurant | null>(null);
   const [reason, setReason] = useState("");
+  const [voiceFor, setVoiceFor] = useState<PlatformRestaurant | null>(null);
   const action = useAction();
 
   const shown = useMemo(() => filterRestaurants(list.data ?? [], query, status), [list.data, query, status]);
@@ -109,8 +111,12 @@ export default function RestaurantsPage() {
               <div className="meta">
                 <Badge tone={r.status === "active" ? "ok" : "danger"}>{r.status === "active" ? "Active" : "Suspended"}</Badge>
                 <Badge>Plan: {r.plan}</Badge>
+                <Badge tone={r.voice_orders_allowed ? "ok" : "neutral"}>Voice orders: {r.voice_orders_allowed ? "enabled" : "disabled"}</Badge>
                 <span className="since">Joined {formatDay(r.created_at)}</span>
               </div>
+              <button type="button" className="secondary" aria-label={`Voice orders for ${r.brand_name}`} onClick={() => setVoiceFor(r)}>
+                Voice orders
+              </button>
               <button
                 type="button"
                 className={r.status === "active" ? "danger" : "secondary"}
@@ -123,6 +129,8 @@ export default function RestaurantsPage() {
           ))}
         </ul>
       )}
+
+      <VoiceSheet restaurant={voiceFor} onClose={() => setVoiceFor(null)} onChanged={list.reload} />
 
       <Sheet open={target !== null} onClose={close} title={target ? `${suspending ? "Suspend" : "Reactivate"} ${target.brand_name}?` : ""}>
         {target ? (

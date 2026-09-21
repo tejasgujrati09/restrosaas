@@ -17,6 +17,7 @@ dependencies = [
   "weasyprint>=70.0",
   "redis>=5.2",
   "httpx>=0.27",
+  "celery[redis]>=5.4",
 ]
 
 [dependency-groups]
@@ -49,7 +50,7 @@ strict = true
 plugins = []
 
 [[tool.mypy.overrides]]
-module = "weasyprint.*"
+module = ["weasyprint.*", "celery.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

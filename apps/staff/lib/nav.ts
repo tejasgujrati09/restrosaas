@@ -12,6 +12,7 @@ export const NAV: NavGroup[] = [
       { href: "floor", label: "Floor", icon: "grid", roles: ["owner", "manager", "waiter"] },
       { href: "requests", label: "Requests", icon: "bell", roles: ["owner", "manager", "waiter"] },
       { href: "kitchen", label: "Kitchen", icon: "flame", roles: ["owner", "manager", "kitchen", "bar"] },
+      { href: "orders", label: "Orders", icon: "receipt", roles: ["owner", "manager"] },
       { href: "phone-orders", label: "Phone orders", icon: "phone", roles: ["owner", "manager"] },
     ],
   },

@@ -1,6 +1,6 @@
 import { isValidElement, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
-import { Badge, Card, EmptyState, ErrorBanner, Field, Money, Notice, PageHeader, Skeleton } from "./components";
+import { Badge, Card, EmptyState, ErrorBanner, Field, Money, Notice, PageHeader, Skeleton, Stepper, TabStrip } from "./components";
 
 const VOID = new Set(["input", "br", "img", "hr"]);
 
@@ -132,5 +132,50 @@ describe("Card and Money", () => {
 
   it("formats paise the Indian way", () => {
     expect(html(<Money paise={12345600} />)).toBe('<span class="money">₹1,23,456.00</span>');
+  });
+});
+
+describe("TabStrip", () => {
+  const tabs = [
+    { key: "new", label: "New", count: 5 },
+    { key: "done", label: "Completed" },
+  ];
+
+  it("is a tablist of tabs, with the selected one marked and counts as text", () => {
+    const out = html(<TabStrip label="Orders" tabs={tabs} value="new" onChange={() => {}} />);
+    expect(out).toContain('role="tablist" aria-label="Orders"');
+    expect(out).toContain('id="tab-new" aria-selected="true"');
+    expect(out.match(/aria-selected="true"/g)).toHaveLength(1); // only the chosen one
+    expect(out).toContain('<span class="tabstrip-count">5</span>');
+    expect(out.match(/tabstrip-count/g)).toHaveLength(1); // no count given, none shown
+  });
+
+  it("tells the caller which tab was chosen", () => {
+    let chosen = "";
+    const el = TabStrip({ label: "Orders", tabs, value: "new", onChange: (k) => (chosen = k) });
+    const buttons = (el.props as { children: ReactNode[] }).children as { props: { onClick: () => void } }[];
+    buttons[1]?.props.onClick();
+    expect(chosen).toBe("done");
+  });
+});
+
+describe("Stepper", () => {
+  it("says each step's state in words as well as a mark, and points at the current one", () => {
+    const out = html(
+      <Stepper
+        steps={[
+          { key: "a", label: "Assigning a phone number", state: "done" },
+          { key: "b", label: "Creating the voice agent", state: "running" },
+          { key: "c", label: "Verifying the setup", state: "pending" },
+          { key: "d", label: "Connecting", state: "failed" },
+        ]}
+      />,
+    );
+    expect(out).toContain(": Done");
+    expect(out).toContain(": In progress");
+    expect(out).toContain(": Waiting");
+    expect(out).toContain(": Failed");
+    expect(out.match(/aria-current="step"/g)).toHaveLength(1);
+    expect(out).toContain('class="step running"');
   });
 });

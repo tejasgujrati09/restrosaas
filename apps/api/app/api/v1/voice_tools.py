@@ -57,6 +57,14 @@ class VoiceContext:
     agent_id: UUID
 
 
+def accepts_calls(agent: VoiceAgent, now: datetime) -> bool:
+    """On, or turned off so recently that a call already in progress may still finish its
+    order (`drain_until`, ten minutes after a disable). New calls are stopped at the platform."""
+    if agent.status == "active":
+        return True
+    return agent.drain_until is not None and now < agent.drain_until
+
+
 _REFUSED = ApiError(401, "invalid_voice_key", "This voice agent is not authorised.")
 
 
@@ -73,7 +81,11 @@ async def get_voice_context(
         raise _REFUSED from exc
     async with tenant_session(restaurant_id) as session:
         agent = await session.scalar(select(VoiceAgent).where(VoiceAgent.key_hash == key_hash))
-        if agent is None or not matches(agent.key_hash, key_hash) or agent.status != "active":
+        if (
+            agent is None
+            or not matches(agent.key_hash, key_hash)
+            or not accepts_calls(agent, clock.utcnow())
+        ):
             raise _REFUSED
         bind_outlet(session, agent.outlet_id)
         structlog.contextvars.bind_contextvars(

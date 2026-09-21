@@ -20,6 +20,8 @@ class Restaurant(Base):
     gstin: Mapped[str | None] = mapped_column(Text)
     subscription_plan: Mapped[str] = mapped_column(Text, default="trial")
     status: Mapped[str] = mapped_column(Text, default="active")
+    # Set by a platform admin only. The owner's own switch lives on `voice_agent`.
+    voice_orders_allowed: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

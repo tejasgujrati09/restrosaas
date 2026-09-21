@@ -161,3 +161,67 @@ def derive_order_status(current: OrderState, line_statuses: Sequence[str]) -> Or
     else:
         return current
     return target if _ORDER_RANK[target] > _ORDER_RANK[current] else current
+
+
+class VoiceState(StrEnum):
+    """The owner's phone ordering agent for an outlet. No row at all is "off"."""
+
+    ENABLE_REQUESTED = "enable_requested"
+    PROVISIONING = "provisioning"
+    ACTIVE = "active"
+    PROVISIONING_FAILED = "provisioning_failed"
+    DISABLE_REQUESTED = "disable_requested"
+    DEPROVISIONING = "deprovisioning"
+    DISABLED = "disabled"
+    DEPROVISIONING_FAILED = "deprovisioning_failed"
+
+
+# provisioning -> enable_requested and deprovisioning -> disable_requested are "try again
+# shortly" after a transient platform error; the job is queued again with a delay.
+# Disabling from enable_requested/provisioning/provisioning_failed is how an owner (or an
+# admin revoking the allowance) cancels a setup that has not finished.
+_VOICE_TRANSITIONS: dict[VoiceState, frozenset[VoiceState]] = {
+    VoiceState.ENABLE_REQUESTED: frozenset({VoiceState.PROVISIONING, VoiceState.DISABLE_REQUESTED}),
+    VoiceState.PROVISIONING: frozenset(
+        {
+            VoiceState.ACTIVE,
+            VoiceState.PROVISIONING_FAILED,
+            VoiceState.ENABLE_REQUESTED,
+            VoiceState.DISABLE_REQUESTED,
+        }
+    ),
+    VoiceState.ACTIVE: frozenset({VoiceState.DISABLE_REQUESTED}),
+    VoiceState.PROVISIONING_FAILED: frozenset(
+        {VoiceState.ENABLE_REQUESTED, VoiceState.DISABLE_REQUESTED}
+    ),
+    VoiceState.DISABLE_REQUESTED: frozenset({VoiceState.DEPROVISIONING}),
+    VoiceState.DEPROVISIONING: frozenset(
+        {
+            VoiceState.DISABLED,
+            VoiceState.DEPROVISIONING_FAILED,
+            VoiceState.DISABLE_REQUESTED,
+        }
+    ),
+    VoiceState.DISABLED: frozenset({VoiceState.ENABLE_REQUESTED}),
+    VoiceState.DEPROVISIONING_FAILED: frozenset({VoiceState.DISABLE_REQUESTED}),
+}
+
+# States in which a job is queued or running; the owner is told "setting up" or "turning off".
+VOICE_IN_FLIGHT = frozenset(
+    {
+        VoiceState.ENABLE_REQUESTED,
+        VoiceState.PROVISIONING,
+        VoiceState.DISABLE_REQUESTED,
+        VoiceState.DEPROVISIONING,
+    }
+)
+
+
+def can_transition_voice(current: VoiceState, target: VoiceState) -> bool:
+    return target in _VOICE_TRANSITIONS[current]
+
+
+def transition_voice(current: VoiceState, target: VoiceState) -> VoiceState:
+    if not can_transition_voice(current, target):
+        raise IllegalTransitionError("voice agent", current, target)
+    return target

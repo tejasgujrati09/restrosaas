@@ -184,3 +184,34 @@ def test_round_status_follows_its_lines(
     from app.core.state import derive_order_status
 
     assert derive_order_status(current, lines) == expected
+
+
+def test_every_voice_transition_is_either_allowed_or_refused_exactly_as_declared() -> None:
+    from app.core.state import VoiceState, can_transition_voice, transition_voice
+
+    allowed = {
+        ("enable_requested", "provisioning"),
+        ("enable_requested", "disable_requested"),
+        ("provisioning", "active"),
+        ("provisioning", "provisioning_failed"),
+        ("provisioning", "enable_requested"),
+        ("provisioning", "disable_requested"),
+        ("active", "disable_requested"),
+        ("provisioning_failed", "enable_requested"),
+        ("provisioning_failed", "disable_requested"),
+        ("disable_requested", "deprovisioning"),
+        ("deprovisioning", "disabled"),
+        ("deprovisioning", "deprovisioning_failed"),
+        ("deprovisioning", "disable_requested"),
+        ("disabled", "enable_requested"),
+        ("deprovisioning_failed", "disable_requested"),
+    }
+    for current in VoiceState:
+        for target in VoiceState:
+            expected = (current.value, target.value) in allowed
+            assert can_transition_voice(current, target) is expected
+            if expected:
+                assert transition_voice(current, target) == target
+            else:
+                with pytest.raises(IllegalTransitionError):
+                    transition_voice(current, target)

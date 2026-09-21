@@ -211,3 +211,48 @@ async def test_set_agent_active_sends_only_the_flag() -> None:
     await platform.set_agent_active("agent-5", False)
     assert seen == {"method": "PUT", "path": "/api/v1/agents/agent-5", "body": {"is_active": False}}
     await platform.aclose()
+
+
+async def test_find_agent_matches_only_the_exact_name() -> None:
+    seen: dict[str, Any] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        return httpx.Response(
+            200,
+            json={
+                "items": [
+                    {"id": "a-1", "name": "Test Kitchen phone orders [abcd1234] (copy)"},
+                    {"id": "a-2", "name": "Test Kitchen phone orders [abcd1234]"},
+                ]
+            },
+        )
+
+    platform = _platform(handler)
+    assert await platform.find_agent_by_name("Test Kitchen phone orders [abcd1234]") == "a-2"
+    assert "search=Test%20Kitchen" in seen["url"] and "page_size=100" in seen["url"]
+    assert await platform.find_agent_by_name("Somebody else") is None
+    await platform.aclose()
+
+
+async def test_agent_is_active_reads_the_flag_and_treats_404_as_missing() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/gone"):
+            return httpx.Response(404, json={"detail": "not found"})
+        return httpx.Response(
+            200, json={"id": "a-1", "is_active": request.url.path.endswith("/on")}
+        )
+
+    platform = _platform(handler)
+    assert await platform.agent_is_active("on") is True
+    assert await platform.agent_is_active("off") is False
+    assert await platform.agent_is_active("gone") is None
+    await platform.aclose()
+
+
+async def test_agent_is_active_still_raises_for_other_errors() -> None:
+    platform = _platform(lambda r: httpx.Response(500, json={"detail": "boom"}))
+    with pytest.raises(VoicePlatformError) as caught:
+        await platform.agent_is_active("a-1")
+    assert caught.value.retryable is True
+    await platform.aclose()

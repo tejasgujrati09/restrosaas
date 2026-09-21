@@ -10,6 +10,9 @@ export {
   Notice,
   PageHeader,
   Skeleton,
+  Stepper,
+  TabStrip,
+  type StepState,
   type Tone,
 } from "./components";
 export { Icon, type IconName } from "./icons";

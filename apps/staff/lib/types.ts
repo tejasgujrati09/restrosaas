@@ -32,3 +32,7 @@ export type TableAssignment = S["TableAssignmentOut"];
 export type OpenTab = S["OpenTabOut"];
 export type VoiceOrder = S["VoiceOrderOut"];
 export type VoiceAgent = S["VoiceAgentOut"];
+export type OrdersList = S["OrdersOut"];
+export type OrderRow = S["OrderRowOut"];
+export type OrderDetail = S["OrderDetailOut"];
+export type OrderGroup = S["OrderGroup"];

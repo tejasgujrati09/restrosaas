@@ -95,6 +95,15 @@ class VoicePlatform(Protocol):
 
     async def delete_agent(self, agent_id: str) -> None: ...
 
+    async def find_agent_by_name(self, name: str) -> str | None:
+        """The id of the agent with exactly this name, or None. Used before creating one, so a
+        create whose response was lost is found rather than repeated."""
+        ...
+
+    async def agent_is_active(self, agent_id: str) -> bool | None:
+        """Whether the agent answers calls, or None if it does not exist."""
+        ...
+
     async def list_numbers(self) -> list[PhoneNumber]:
         """Every phone number on the account, with the agent it is linked to, if any."""
         ...

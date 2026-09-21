@@ -1713,6 +1713,479 @@
         "title": "OpenTabOut",
         "type": "object"
       },
+      "OrderAction": {
+        "enum": [
+          "accept",
+          "reject",
+          "serve"
+        ],
+        "title": "OrderAction",
+        "type": "string"
+      },
+      "OrderCountsOut": {
+        "properties": {
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "completed": {
+            "title": "Completed",
+            "type": "integer"
+          },
+          "in_progress": {
+            "title": "In Progress",
+            "type": "integer"
+          },
+          "new": {
+            "title": "New",
+            "type": "integer"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "new",
+          "in_progress",
+          "ready",
+          "completed",
+          "cancelled"
+        ],
+        "title": "OrderCountsOut",
+        "type": "object"
+      },
+      "OrderDetailOut": {
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/OrderAction"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "call_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Call Id"
+          },
+          "customer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
+          },
+          "customer_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Phone"
+          },
+          "delivery_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Address"
+          },
+          "fulfillment_type": {
+            "title": "Fulfillment Type",
+            "type": "string"
+          },
+          "group": {
+            "$ref": "#/components/schemas/OrderGroup"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/OrderLineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "placed_at": {
+            "format": "date-time",
+            "title": "Placed At",
+            "type": "string"
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/PricingOut"
+          },
+          "short_id": {
+            "title": "Short Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tab_id": {
+            "format": "uuid",
+            "title": "Tab Id",
+            "type": "string"
+          },
+          "tab_status": {
+            "title": "Tab Status",
+            "type": "string"
+          },
+          "table_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Label"
+          },
+          "tickets": {
+            "items": {
+              "$ref": "#/components/schemas/OrderTicketOut"
+            },
+            "title": "Tickets",
+            "type": "array"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineEntryOut"
+            },
+            "title": "Timeline",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "short_id",
+          "tab_id",
+          "status",
+          "group",
+          "source",
+          "fulfillment_type",
+          "placed_at",
+          "table_label",
+          "customer_name",
+          "customer_phone",
+          "delivery_address",
+          "call_id",
+          "tab_status",
+          "lines",
+          "pricing",
+          "tickets",
+          "timeline",
+          "actions"
+        ],
+        "title": "OrderDetailOut",
+        "type": "object"
+      },
+      "OrderGroup": {
+        "enum": [
+          "new",
+          "in_progress",
+          "ready",
+          "completed",
+          "cancelled"
+        ],
+        "title": "OrderGroup",
+        "type": "string"
+      },
+      "OrderItemOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "qty"
+        ],
+        "title": "OrderItemOut",
+        "type": "object"
+      },
+      "OrderLineOut": {
+        "properties": {
+          "line_total_paise": {
+            "title": "Line Total Paise",
+            "type": "integer"
+          },
+          "modifiers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "unit_price_paise": {
+            "title": "Unit Price Paise",
+            "type": "integer"
+          },
+          "void_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Void Reason"
+          }
+        },
+        "required": [
+          "name",
+          "qty",
+          "unit_price_paise",
+          "modifiers",
+          "notes",
+          "line_total_paise",
+          "status",
+          "void_reason"
+        ],
+        "title": "OrderLineOut",
+        "type": "object"
+      },
+      "OrderRowOut": {
+        "properties": {
+          "customer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
+          },
+          "customer_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Phone"
+          },
+          "fulfillment_type": {
+            "title": "Fulfillment Type",
+            "type": "string"
+          },
+          "group": {
+            "$ref": "#/components/schemas/OrderGroup"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "placed_at": {
+            "format": "date-time",
+            "title": "Placed At",
+            "type": "string"
+          },
+          "short_id": {
+            "title": "Short Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "table_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Label"
+          },
+          "total_paise": {
+            "title": "Total Paise",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "short_id",
+          "status",
+          "group",
+          "source",
+          "fulfillment_type",
+          "placed_at",
+          "table_label",
+          "customer_name",
+          "customer_phone",
+          "items",
+          "total_paise"
+        ],
+        "title": "OrderRowOut",
+        "type": "object"
+      },
+      "OrderTicketOut": {
+        "properties": {
+          "ready_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "station": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "station",
+          "status",
+          "started_at",
+          "ready_at"
+        ],
+        "title": "OrderTicketOut",
+        "type": "object"
+      },
+      "OrdersOut": {
+        "properties": {
+          "counts": {
+            "$ref": "#/components/schemas/OrderCountsOut"
+          },
+          "date_from": {
+            "format": "date",
+            "title": "Date From",
+            "type": "string"
+          },
+          "date_to": {
+            "format": "date",
+            "title": "Date To",
+            "type": "string"
+          },
+          "earlier_open": {
+            "title": "Earlier Open",
+            "type": "integer"
+          },
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/OrderRowOut"
+            },
+            "title": "Orders",
+            "type": "array"
+          }
+        },
+        "required": [
+          "date_from",
+          "date_to",
+          "counts",
+          "earlier_open",
+          "orders",
+          "has_more"
+        ],
+        "title": "OrdersOut",
+        "type": "object"
+      },
       "OtpRequestIn": {
         "properties": {
           "phone": {
@@ -1874,6 +2347,10 @@
             ],
             "title": "Status",
             "type": "string"
+          },
+          "voice_orders_allowed": {
+            "title": "Voice Orders Allowed",
+            "type": "boolean"
           }
         },
         "required": [
@@ -1883,6 +2360,7 @@
           "gstin",
           "plan",
           "status",
+          "voice_orders_allowed",
           "created_at"
         ],
         "title": "PlatformRestaurantOut",
@@ -1904,6 +2382,33 @@
           "access_token"
         ],
         "title": "PlatformTokenOut",
+        "type": "object"
+      },
+      "PlatformVoiceOut": {
+        "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "outlets": {
+            "items": {
+              "$ref": "#/components/schemas/VoiceOutletOut"
+            },
+            "title": "Outlets",
+            "type": "array"
+          },
+          "restaurant_id": {
+            "format": "uuid",
+            "title": "Restaurant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "restaurant_id",
+          "allowed",
+          "outlets"
+        ],
+        "title": "PlatformVoiceOut",
         "type": "object"
       },
       "PriceRuleIn": {
@@ -2098,6 +2603,49 @@
           "id"
         ],
         "title": "PriceRuleOut",
+        "type": "object"
+      },
+      "PricingOut": {
+        "properties": {
+          "cgst_paise": {
+            "title": "Cgst Paise",
+            "type": "integer"
+          },
+          "estimated_total_paise": {
+            "title": "Estimated Total Paise",
+            "type": "integer"
+          },
+          "items_paise": {
+            "title": "Items Paise",
+            "type": "integer"
+          },
+          "liquor_vat_paise": {
+            "title": "Liquor Vat Paise",
+            "type": "integer"
+          },
+          "service_charge_paise": {
+            "title": "Service Charge Paise",
+            "type": "integer"
+          },
+          "sgst_paise": {
+            "title": "Sgst Paise",
+            "type": "integer"
+          },
+          "taxes_included": {
+            "title": "Taxes Included",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "taxes_included",
+          "items_paise",
+          "cgst_paise",
+          "sgst_paise",
+          "liquor_vat_paise",
+          "service_charge_paise",
+          "estimated_total_paise"
+        ],
+        "title": "PricingOut",
         "type": "object"
       },
       "QrSessionIn": {
@@ -3772,6 +4320,49 @@
         "title": "TicketQueueOut",
         "type": "object"
       },
+      "TimelineEntryOut": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "By"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "at",
+          "label",
+          "by",
+          "reason"
+        ],
+        "title": "TimelineEntryOut",
+        "type": "object"
+      },
       "TokenOut": {
         "properties": {
           "access_token": {
@@ -3909,11 +4500,23 @@
       },
       "VoiceAgentOut": {
         "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "can_disable": {
+            "title": "Can Disable",
+            "type": "boolean"
+          },
+          "can_enable": {
+            "title": "Can Enable",
+            "type": "boolean"
+          },
           "enabled": {
             "title": "Enabled",
             "type": "boolean"
           },
-          "last_error": {
+          "message": {
             "anyOf": [
               {
                 "type": "string"
@@ -3922,7 +4525,19 @@
                 "type": "null"
               }
             ],
-            "title": "Last Error"
+            "title": "Message"
+          },
+          "phase": {
+            "enum": [
+              "unavailable",
+              "off",
+              "setting_up",
+              "active",
+              "failed",
+              "turning_off"
+            ],
+            "title": "Phase",
+            "type": "string"
           },
           "phone_number": {
             "anyOf": [
@@ -3939,6 +4554,13 @@
             "title": "Status",
             "type": "string"
           },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/VoiceStepOut"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
           "updated_at": {
             "anyOf": [
               {
@@ -3953,13 +4575,120 @@
           }
         },
         "required": [
-          "enabled",
+          "allowed",
+          "phase",
           "status",
+          "enabled",
+          "steps",
           "phone_number",
-          "last_error",
+          "message",
+          "can_enable",
+          "can_disable",
           "updated_at"
         ],
         "title": "VoiceAgentOut",
+        "type": "object"
+      },
+      "VoiceAllowedIn": {
+        "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "allowed"
+        ],
+        "title": "VoiceAllowedIn",
+        "type": "object"
+      },
+      "VoiceAttemptOut": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "failed_step": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failed Step"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "kind": {
+            "enum": [
+              "enable",
+              "disable"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "requested_by_platform_admin": {
+            "title": "Requested By Platform Admin",
+            "type": "boolean"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "started_at",
+          "finished_at",
+          "outcome",
+          "failed_step",
+          "error",
+          "requested_by_platform_admin"
+        ],
+        "title": "VoiceAttemptOut",
         "type": "object"
       },
       "VoiceOrderLineOut": {
@@ -4080,6 +4809,146 @@
           "lines"
         ],
         "title": "VoiceOrderOut",
+        "type": "object"
+      },
+      "VoiceOutletOut": {
+        "properties": {
+          "agent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Id"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/VoiceAttemptOut"
+            },
+            "title": "Attempts",
+            "type": "array"
+          },
+          "can_retry": {
+            "title": "Can Retry",
+            "type": "boolean"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "outlet_id": {
+            "format": "uuid",
+            "title": "Outlet Id",
+            "type": "string"
+          },
+          "outlet_name": {
+            "title": "Outlet Name",
+            "type": "string"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/VoiceStepOut"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "outlet_id",
+          "outlet_name",
+          "status",
+          "phase",
+          "steps",
+          "phone_number",
+          "agent_id",
+          "message",
+          "detail",
+          "can_retry",
+          "updated_at",
+          "attempts"
+        ],
+        "title": "VoiceOutletOut",
+        "type": "object"
+      },
+      "VoiceStepOut": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "done",
+              "running",
+              "pending",
+              "failed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "state"
+        ],
+        "title": "VoiceStepOut",
         "type": "object"
       },
       "WaiterOut": {
@@ -8016,6 +8885,319 @@
         "summary": "Staff Menu",
         "tags": [
           "floor"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/staff/orders": {
+      "get": {
+        "operationId": "list_orders_v1_outlets__outlet_id__staff_orders_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "group",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OrderGroup",
+              "default": "new"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "customer",
+                    "waiter",
+                    "voice",
+                    "aggregator"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "in": "query",
+            "name": "table_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Table Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "placed_by",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Placed By"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 60,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdersOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Orders",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/staff/orders/{order_id}": {
+      "get": {
+        "operationId": "get_order_v1_outlets__outlet_id__staff_orders__order_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Order",
+        "tags": [
+          "orders"
         ]
       }
     },
@@ -12736,6 +13918,7 @@
     },
     "/v1/outlets/{outlet_id}/voice-agent": {
       "get": {
+        "description": "Polled while setting up. Also queues a job again if its message was lost.",
         "operationId": "get_status_v1_outlets__outlet_id__voice_agent_get",
         "parameters": [
           {
@@ -12838,7 +14021,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "202": {
             "content": {
               "application/json": {
                 "schema": {
@@ -12926,7 +14109,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "202": {
             "content": {
               "application/json": {
                 "schema": {
@@ -13643,6 +14826,292 @@
           }
         ],
         "summary": "Set Restaurant Status",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/v1/platform/restaurants/{restaurant_id}/voice": {
+      "get": {
+        "operationId": "get_restaurant_voice_v1_platform_restaurants__restaurant_id__voice_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "restaurant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Restaurant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformVoiceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Restaurant Voice",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/v1/platform/restaurants/{restaurant_id}/voice-orders": {
+      "put": {
+        "description": "Allow or stop voice ordering for a restaurant. Stopping also turns off whatever the\nowner had switched on: the agent stops taking new calls and a call in progress can finish\n(the same ten-minute window as an owner's disable). Nothing is deleted. Repeating it\nchanges nothing, so it takes no Idempotency-Key.",
+        "operationId": "set_voice_orders_allowed_v1_platform_restaurants__restaurant_id__voice_orders_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "restaurant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Restaurant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceAllowedIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformVoiceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Voice Orders Allowed",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/v1/platform/restaurants/{restaurant_id}/voice/{outlet_id}/retry": {
+      "post": {
+        "description": "Try a failed setup (or a failed turn-off) again. Steps that already succeeded are kept.",
+        "operationId": "retry_voice_v1_platform_restaurants__restaurant_id__voice__outlet_id__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "restaurant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Restaurant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformVoiceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Retry Voice",
         "tags": [
           "platform"
         ]

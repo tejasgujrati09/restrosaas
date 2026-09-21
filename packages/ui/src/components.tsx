@@ -132,3 +132,65 @@ export function PageHeader({
 export function Money({ paise }: { paise: number }) {
   return <span className="money">{formatInr(paise)}</span>;
 }
+
+/** Views of one list, each with its own count (an order list's New / Ready / Done). Buttons in a
+ *  `tablist`, so a screen reader announces "3 of 5" and the selected one. A count is text, not a
+ *  colour. The caller shows the panel and labels it with the selected tab's id. */
+export function TabStrip<K extends string>({
+  label,
+  tabs,
+  value,
+  onChange,
+}: {
+  label: string;
+  tabs: { key: K; label: string; count?: number }[];
+  value: K;
+  onChange: (key: K) => void;
+}) {
+  return (
+    <div className="tabstrip" role="tablist" aria-label={label}>
+      {tabs.map((t) => (
+        <button
+          key={t.key}
+          type="button"
+          role="tab"
+          id={`tab-${t.key}`}
+          aria-selected={t.key === value}
+          className="tabstrip-tab"
+          onClick={() => onChange(t.key)}
+        >
+          {t.label}
+          {t.count !== undefined ? <span className="tabstrip-count">{t.count}</span> : null}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export type StepState = "done" | "running" | "pending" | "failed";
+
+const STEP_TEXT: Record<StepState, string> = {
+  done: "Done",
+  running: "In progress",
+  pending: "Waiting",
+  failed: "Failed",
+};
+const STEP_MARK: Record<StepState, string> = { done: "✓", running: "●", pending: "○", failed: "!" };
+
+/** A short list of things happening in order (setting something up). Each step has a mark and
+ *  hidden text for its state, so it never depends on colour. */
+export function Stepper({ steps }: { steps: { key: string; label: string; state: StepState }[] }) {
+  return (
+    <ol className="stepper">
+      {steps.map((s) => (
+        <li key={s.key} className={`step ${s.state}`} aria-current={s.state === "running" ? "step" : undefined}>
+          <span className="step-mark" aria-hidden="true">
+            {STEP_MARK[s.state]}
+          </span>
+          <span>{s.label}</span>
+          <span className="visually-hidden">: {STEP_TEXT[s.state]}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}

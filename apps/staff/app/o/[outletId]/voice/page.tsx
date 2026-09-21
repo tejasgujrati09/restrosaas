@@ -2,36 +2,27 @@
 
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { Badge, Card, EmptyState, Notice, PageHeader, Skeleton, type Tone } from "@restosaas/ui";
+import { Badge, Card, Notice, PageHeader, Skeleton, Stepper } from "@restosaas/ui";
 import { ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
+import { voicePollMs } from "@/lib/orders";
 import type { VoiceAgent } from "@/lib/types";
 
-const STATUS: Record<string, { tone: Tone; label: string }> = {
-  off: { tone: "neutral", label: "Off" },
-  pending: { tone: "info", label: "Setting up" },
-  active: { tone: "ok", label: "On" },
-  disabled: { tone: "neutral", label: "Paused" },
-  failed: { tone: "danger", label: "Needs attention" },
-};
-
-/** The owner turns the phone assistant on or off. It reads this restaurant's own menu, answers
- *  calls to a phone number, and sends each order to Phone orders for someone to accept. */
+/** The owner turns the phone assistant on or off. Turning it on is set up in the background:
+ *  this page shows the steps as they happen and never shows a vendor's words or ids. */
 export default function VoiceOrderingPage() {
   const { outletId } = useParams<{ outletId: string }>();
   const base = `/v1/outlets/${outletId}/voice-agent`;
-  const agent = useResource<VoiceAgent>(base);
+  const agent = useResource<VoiceAgent>(base, (v) => voicePollMs(v?.phase), true);
   const action = useAction();
   const [confirmOff, setConfirmOff] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
-  if (!agent.data) return agent.error ? <ErrorBanner message={agent.error} /> : <Skeleton what="voice ordering" lines={3} block />;
-
   const a = agent.data;
-  const status = STATUS[a.status] ?? { tone: "neutral" as Tone, label: a.status };
+  if (!a) return agent.error ? <ErrorBanner message={agent.error} /> : <Skeleton what="voice ordering" lines={3} block />;
 
-  async function call(path: string, done: string) {
+  async function call(path: string, done: string | null) {
     setNote(null);
     if (await action.run(() => api<VoiceAgent>(`${base}/${path}`, { method: "POST" }))) {
       setNote(done);
@@ -40,34 +31,74 @@ export default function VoiceOrderingPage() {
     }
   }
 
+  const turnOffFailed = a.status === "deprovisioning_failed";
+
   return (
     <>
       <PageHeader
         title="Voice ordering"
         subtitle="Let customers order by phone. An assistant answers, takes the order and sends it to you to accept."
       />
-      <ErrorBanner message={action.error} />
+      <ErrorBanner message={action.error ?? agent.error} />
       {note ? <Notice tone="info">{note}</Notice> : null}
-      <Card title="Status">
-        <p className="inline">
-          <Badge tone={status.tone}>{status.label}</Badge>
-          {a.phone_number ? (
-            <span>
-              Customers call <a href={`tel:${a.phone_number}`}>{a.phone_number}</a>
-            </span>
-          ) : null}
-        </p>
-        {a.last_error ? (
-          <Notice tone="warn">
-            Something went wrong: {a.last_error}. Try again. If it keeps happening, contact support.
-          </Notice>
-        ) : null}
-        {a.status === "active" ? (
-          confirmOff ? (
+
+      {a.phase === "unavailable" ? (
+        <Card title="Voice ordering">
+          <p className="inline">
+            <Badge tone="neutral">Not available</Badge>
+          </p>
+          <p>Voice ordering is currently unavailable. Please contact your administrator.</p>
+        </Card>
+      ) : null}
+
+      {a.phase === "off" ? (
+        <Card title="Voice ordering">
+          <p className="inline">
+            <Badge tone="neutral">Off</Badge>
+          </p>
+          <p>
+            Enable voice ordering for your restaurant. We set up the phone number and the assistant for you. Only items that are on the menu and in stock are offered to callers.
+          </p>
+          <button type="button" disabled={action.busy || !a.can_enable} onClick={() => call("enable", null)}>
+            Turn on voice ordering
+          </button>
+        </Card>
+      ) : null}
+
+      {a.phase === "setting_up" ? (
+        <Card title="Setting up voice ordering…">
+          <p role="status">This takes a moment. You can leave this page; setup carries on.</p>
+          <Stepper steps={a.steps} />
+          <button type="button" className="tertiary" disabled={action.busy} onClick={() => call("disable", "Setup cancelled.")}>
+            Cancel setup
+          </button>
+        </Card>
+      ) : null}
+
+      {a.phase === "active" ? (
+        <Card title="Voice ordering is on">
+          <p className="inline">
+            <Badge tone="ok">Active</Badge>
+          </p>
+          <dl className="facts">
+            <div>
+              <dt>Phone number</dt>
+              <dd>{a.phone_number ? <a href={`tel:${a.phone_number}`}>{a.phone_number}</a> : "Not available"}</dd>
+            </div>
+            <div>
+              <dt>Voice agent</dt>
+              <dd>Phone ordering assistant</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>● Active</dd>
+            </div>
+          </dl>
+          {confirmOff ? (
             <>
-              <p>Customers who call will not be able to order. Turn voice ordering off?</p>
+              <p>Callers will no longer be able to order. Someone already on a call can still finish their order. Turn voice ordering off?</p>
               <div className="inline">
-                <button type="button" className="danger-solid" disabled={action.busy} onClick={() => call("disable", "Voice ordering is off.")}>
+                <button type="button" className="danger-solid" disabled={action.busy} onClick={() => call("disable", null)}>
                   Yes, turn it off
                 </button>
                 <button type="button" className="secondary" disabled={action.busy} onClick={() => setConfirmOff(false)}>
@@ -84,23 +115,39 @@ export default function VoiceOrderingPage() {
                 Turn off…
               </button>
             </div>
-          )
-        ) : (
-          <button type="button" disabled={action.busy} onClick={() => call("enable", "Voice ordering is on.")}>
-            {a.status === "failed" ? "Try again" : a.status === "disabled" ? "Turn voice ordering back on" : "Turn on voice ordering"}
-          </button>
-        )}
-      </Card>
-      {a.status === "off" ? (
-        <EmptyState title="Not set up yet.">
-          Turning it on creates the assistant from your menu and gives it a phone number. Only items that are on the menu and in stock are offered to callers.
-        </EmptyState>
+          )}
+        </Card>
       ) : null}
+
+      {a.phase === "failed" ? (
+        <Card title={turnOffFailed ? "Voice ordering could not be turned off" : "Voice ordering setup failed"}>
+          <p className="inline">
+            <Badge tone="danger">Needs attention</Badge>
+          </p>
+          <p role="alert">{a.message ?? "We couldn't complete the setup."}</p>
+          {a.steps.length > 0 ? <Stepper steps={a.steps} /> : null}
+          <button
+            type="button"
+            disabled={action.busy || (!turnOffFailed && !a.can_enable)}
+            onClick={() => call(turnOffFailed ? "disable" : "enable", null)}
+          >
+            Retry
+          </button>
+          <p className="muted">If it keeps failing, contact your administrator.</p>
+        </Card>
+      ) : null}
+
+      {a.phase === "turning_off" ? (
+        <Card title="Turning voice ordering off…">
+          <p role="status">New calls have stopped. Anyone already on a call can finish their order.</p>
+        </Card>
+      ) : null}
+
       <Card title="How it works">
         <ol>
           <li>A customer calls. The assistant greets them and knows returning customers by their number.</li>
           <li>It only offers what is on your menu, at your prices, and asks for pickup or delivery.</li>
-          <li>The order appears under Phone orders. The kitchen sees it only after you accept it.</li>
+          <li>The order appears under Orders and Phone orders. The kitchen sees it only after you accept it.</li>
           <li>The assistant tells the caller the restaurant will confirm. Nothing is promised until you accept.</li>
         </ol>
         <p className="muted">After you change your menu, tap Update menu on the assistant so callers hear the new one.</p>

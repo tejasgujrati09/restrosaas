@@ -26,7 +26,8 @@ class EventBus:
 
     def _redis(self) -> redis.Redis:
         if self._client is None:
-            self._client = redis.from_url(self._url, decode_responses=True)
+            # redis 6.4 (the newest Celery's transport supports) leaves `from_url` untyped.
+            self._client = redis.from_url(self._url, decode_responses=True)  # type: ignore[no-untyped-call]
         return self._client
 
     async def publish(self, channel: str, message: dict[str, Any]) -> None:

@@ -23,6 +23,8 @@ export function countByStatus(list: PlatformRestaurant[]): Record<StatusFilter, 
 const ACTIONS: Record<string, string> = {
   "restaurant.suspended": "Suspended",
   "restaurant.reactivated": "Reactivated",
+  "restaurant.voice_allowed": "Allowed voice orders",
+  "restaurant.voice_disallowed": "Turned voice orders off",
 };
 
 /** "restaurant.suspended" -> "Suspended"; anything unknown is made readable rather than hidden. */
