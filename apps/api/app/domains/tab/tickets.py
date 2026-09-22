@@ -320,6 +320,7 @@ async def serve_lines(
     served = [line for line in chosen if line.status == "ready"]
     for line in served:
         line.status = "served"
+        line.served_at, line.served_by = now, user_id
         _log(
             session,
             restaurant_id,

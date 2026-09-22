@@ -690,3 +690,236 @@ main.picker-page {
   display: grid;
   gap: var(--s-1);
 }
+
+/* Analytics. Tokens only. The charts are plain HTML so their labels keep the caption size
+   on a phone. */
+.range-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-3);
+}
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  margin-bottom: var(--s-5);
+  border-bottom: 1px solid var(--border-strong);
+}
+.tabs button {
+  min-height: calc(var(--s-10) + var(--s-1));
+  padding: var(--s-2) var(--s-4);
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  background: none;
+  color: var(--ink-2);
+}
+.tabs button:hover {
+  background: var(--sunken);
+  color: var(--ink);
+}
+.tabs button[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--accent-text);
+}
+.an-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.an-panel > .card,
+.an-panel > .kpi-grid,
+.an-panel > p {
+  margin-bottom: 0;
+}
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+.section-head h2 {
+  margin: 0;
+}
+.section-head .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.two-col {
+  display: grid;
+  gap: var(--s-3);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .two-col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.two-col > .card {
+  margin: 0;
+}
+.notes li {
+  display: block;
+  color: var(--ink-2);
+  font: var(--f-small);
+}
+
+/* KPI cards */
+.kpi-grid {
+  display: grid;
+  gap: var(--s-3);
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--s-12) * 3), 1fr));
+}
+@media (max-width: 639px) {
+  .kpi-value {
+    font: var(--f-h1);
+  }
+}
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+.kpi h3 {
+  font: var(--f-label);
+  color: var(--ink-2);
+}
+.kpi-value {
+  font: var(--f-display);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.kpi-basis {
+  font: var(--f-caption);
+  color: var(--ink-3);
+}
+.kpi-change {
+  font: var(--f-small);
+  font-weight: 700;
+  color: var(--ink);
+}
+.kpi-how {
+  margin-top: var(--s-2);
+  font: var(--f-small);
+  color: var(--ink-2);
+}
+.kpi-how p {
+  margin-top: var(--s-2);
+}
+
+/* Segmented choice (which measure a chart shows) */
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+}
+.seg button {
+  min-height: calc(var(--s-10) + var(--s-1));
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--ink-2);
+  font: var(--f-small);
+  font-weight: 700;
+}
+.seg button:hover {
+  background: var(--sunken);
+  color: var(--ink);
+}
+.seg button[aria-pressed="true"] {
+  border-color: var(--accent-text);
+  background: var(--accent-bg);
+  color: var(--accent-text);
+}
+
+/* Bar chart */
+.chart {
+  margin: 0;
+}
+.bars {
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-1);
+  height: calc(var(--s-12) * 4);
+  padding-bottom: var(--s-6);
+}
+.bar-col {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.bar-track {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--border-strong);
+}
+.bar {
+  width: 100%;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  background: var(--accent);
+}
+.bar-col:hover .bar {
+  background: var(--accent-hover);
+}
+.bar-label {
+  position: absolute;
+  bottom: calc(var(--s-6) * -1);
+  left: 50%;
+  transform: translateX(-50%);
+  font: var(--f-caption);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.chart-table {
+  margin-top: var(--s-3);
+  font: var(--f-small);
+}
+.chart-table summary {
+  cursor: pointer;
+  color: var(--accent-text);
+}
+
+/* Weekday x hour heatmap */
+.heat-wrap {
+  overflow-x: auto;
+}
+.heat {
+  table-layout: fixed;
+  min-width: calc(var(--s-12) * 7);
+}
+.heat th,
+.heat td {
+  padding: 0;
+  border: 0;
+  text-align: center;
+  font: var(--f-caption);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.heat th:first-child {
+  width: calc(var(--s-10));
+  text-align: left;
+}
+.heat-h {
+  white-space: nowrap;
+  overflow: visible;
+}
+.heat-cell {
+  height: var(--s-6);
+  border: 1px solid var(--surface);
+  background: color-mix(in srgb, var(--accent) var(--heat, 0%), var(--sunken));
+}
+.heat tbody tr:hover td {
+  background: color-mix(in srgb, var(--accent) var(--heat, 0%), var(--sunken));
+}

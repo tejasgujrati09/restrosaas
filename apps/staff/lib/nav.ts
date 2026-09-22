@@ -17,6 +17,10 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    label: "Insights",
+    items: [{ href: "analytics", label: "Analytics", icon: "chart", roles: ["owner", "manager"] }],
+  },
+  {
     label: "Manage",
     items: [
       { href: "menu", label: "Menu", icon: "book", roles: ["owner", "manager", "waiter", "kitchen", "bar"] },

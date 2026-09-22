@@ -87,6 +87,1470 @@
         "title": "AlertOut",
         "type": "object"
       },
+      "AnalyticsCancellationsOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsCancelledItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "rate_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Pct"
+          },
+          "rounds": {
+            "title": "Rounds",
+            "type": "integer"
+          },
+          "value_paise": {
+            "title": "Value Paise",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rounds",
+          "rate_pct",
+          "value_paise",
+          "items",
+          "note"
+        ],
+        "title": "AnalyticsCancellationsOut",
+        "type": "object"
+      },
+      "AnalyticsCancelledItem": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "units": {
+            "title": "Units",
+            "type": "integer"
+          },
+          "value_paise": {
+            "title": "Value Paise",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "units",
+          "value_paise"
+        ],
+        "title": "AnalyticsCancelledItem",
+        "type": "object"
+      },
+      "AnalyticsCoverage": {
+        "description": "How many tickets the timings could use, and why the rest were left out.",
+        "properties": {
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "invalid": {
+            "title": "Invalid",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "unfinished": {
+            "title": "Unfinished",
+            "type": "integer"
+          },
+          "used": {
+            "title": "Used",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "used",
+          "cancelled",
+          "unfinished",
+          "invalid"
+        ],
+        "title": "AnalyticsCoverage",
+        "type": "object"
+      },
+      "AnalyticsExpectedPrepIn": {
+        "properties": {
+          "minutes": {
+            "maximum": 240.0,
+            "minimum": 1.0,
+            "title": "Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "minutes"
+        ],
+        "title": "AnalyticsExpectedPrepIn",
+        "type": "object"
+      },
+      "AnalyticsExpectedPrepOut": {
+        "properties": {
+          "expected_prep_minutes": {
+            "title": "Expected Prep Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_prep_minutes"
+        ],
+        "title": "AnalyticsExpectedPrepOut",
+        "type": "object"
+      },
+      "AnalyticsHourPoint": {
+        "properties": {
+          "hour": {
+            "title": "Hour",
+            "type": "integer"
+          },
+          "lines_served": {
+            "title": "Lines Served",
+            "type": "integer"
+          },
+          "order_value_paise": {
+            "title": "Order Value Paise",
+            "type": "integer"
+          },
+          "orders": {
+            "title": "Orders",
+            "type": "integer"
+          },
+          "tickets": {
+            "title": "Tickets",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "hour",
+          "orders",
+          "order_value_paise",
+          "tickets",
+          "lines_served"
+        ],
+        "title": "AnalyticsHourPoint",
+        "type": "object"
+      },
+      "AnalyticsKitchenKpis": {
+        "properties": {
+          "avg_prep": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          },
+          "avg_ready_to_served": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          },
+          "avg_to_ready": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          },
+          "avg_wait": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          },
+          "over_expected": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          }
+        },
+        "required": [
+          "avg_prep",
+          "avg_wait",
+          "avg_to_ready",
+          "avg_ready_to_served",
+          "over_expected"
+        ],
+        "title": "AnalyticsKitchenKpis",
+        "type": "object"
+      },
+      "AnalyticsKitchenOut": {
+        "properties": {
+          "by_category": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsPrepGroup"
+            },
+            "title": "By Category",
+            "type": "array"
+          },
+          "by_hour": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsPrepPoint"
+            },
+            "title": "By Hour",
+            "type": "array"
+          },
+          "can_edit_expected_prep": {
+            "title": "Can Edit Expected Prep",
+            "type": "boolean"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/AnalyticsCoverage"
+          },
+          "expected_prep_minutes": {
+            "title": "Expected Prep Minutes",
+            "type": "integer"
+          },
+          "fastest": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsPrepItem"
+            },
+            "title": "Fastest",
+            "type": "array"
+          },
+          "items_hidden_low_sample": {
+            "title": "Items Hidden Low Sample",
+            "type": "integer"
+          },
+          "kpis": {
+            "$ref": "#/components/schemas/AnalyticsKitchenKpis"
+          },
+          "live": {
+            "$ref": "#/components/schemas/AnalyticsLiveOut"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "range": {
+            "$ref": "#/components/schemas/AnalyticsRangeOut"
+          },
+          "slowest": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsPrepItem"
+            },
+            "title": "Slowest",
+            "type": "array"
+          },
+          "trend": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsPrepPoint"
+            },
+            "title": "Trend",
+            "type": "array"
+          }
+        },
+        "required": [
+          "range",
+          "expected_prep_minutes",
+          "can_edit_expected_prep",
+          "kpis",
+          "coverage",
+          "trend",
+          "by_hour",
+          "by_category",
+          "slowest",
+          "fastest",
+          "items_hidden_low_sample",
+          "live",
+          "note"
+        ],
+        "title": "AnalyticsKitchenOut",
+        "type": "object"
+      },
+      "AnalyticsKpi": {
+        "description": "`value` is None when there is no data. `change_pct` is None unless the previous period\nhas a valid, non-zero value to compare with.",
+        "properties": {
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          },
+          "change_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Pct"
+          },
+          "definition": {
+            "title": "Definition",
+            "type": "string"
+          },
+          "excluded": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excluded"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous"
+          },
+          "previous_n": {
+            "title": "Previous N",
+            "type": "integer"
+          },
+          "unit": {
+            "enum": [
+              "count",
+              "paise",
+              "seconds",
+              "percent",
+              "ratio"
+            ],
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "previous",
+          "change_pct",
+          "n",
+          "previous_n",
+          "unit",
+          "basis",
+          "definition"
+        ],
+        "title": "AnalyticsKpi",
+        "type": "object"
+      },
+      "AnalyticsLiveBucket": {
+        "properties": {
+          "longest_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longest Seconds"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "over_expected": {
+            "title": "Over Expected",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "n",
+          "over_expected",
+          "longest_seconds"
+        ],
+        "title": "AnalyticsLiveBucket",
+        "type": "object"
+      },
+      "AnalyticsLiveOut": {
+        "properties": {
+          "preparing": {
+            "$ref": "#/components/schemas/AnalyticsLiveBucket"
+          },
+          "ready_awaiting_serve": {
+            "$ref": "#/components/schemas/AnalyticsLiveBucket"
+          },
+          "waiting_for_kitchen": {
+            "$ref": "#/components/schemas/AnalyticsLiveBucket"
+          }
+        },
+        "required": [
+          "waiting_for_kitchen",
+          "preparing",
+          "ready_awaiting_serve"
+        ],
+        "title": "AnalyticsLiveOut",
+        "type": "object"
+      },
+      "AnalyticsMenuCategoryOut": {
+        "properties": {
+          "avg_order_value_paise": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Order Value Paise"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order_value_paise": {
+            "title": "Order Value Paise",
+            "type": "integer"
+          },
+          "rounds": {
+            "title": "Rounds",
+            "type": "integer"
+          },
+          "share_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Pct"
+          },
+          "units": {
+            "title": "Units",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "rounds",
+          "units",
+          "order_value_paise",
+          "share_pct",
+          "avg_order_value_paise"
+        ],
+        "title": "AnalyticsMenuCategoryOut",
+        "type": "object"
+      },
+      "AnalyticsMenuItemOut": {
+        "properties": {
+          "avg_prep_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Prep Seconds"
+          },
+          "avg_price_paise": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Price Paise"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "dropped_rate_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dropped Rate Pct"
+          },
+          "dropped_units": {
+            "title": "Dropped Units",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order_value_paise": {
+            "title": "Order Value Paise",
+            "type": "integer"
+          },
+          "prep_n": {
+            "title": "Prep N",
+            "type": "integer"
+          },
+          "quadrant": {
+            "$ref": "#/components/schemas/Quadrant"
+          },
+          "rounds": {
+            "title": "Rounds",
+            "type": "integer"
+          },
+          "share_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Pct"
+          },
+          "units": {
+            "title": "Units",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "category_id",
+          "rounds",
+          "units",
+          "order_value_paise",
+          "share_pct",
+          "avg_price_paise",
+          "dropped_units",
+          "dropped_rate_pct",
+          "avg_prep_seconds",
+          "prep_n",
+          "quadrant"
+        ],
+        "title": "AnalyticsMenuItemOut",
+        "type": "object"
+      },
+      "AnalyticsMenuOut": {
+        "properties": {
+          "can_export": {
+            "title": "Can Export",
+            "type": "boolean"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsMenuCategoryOut"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsMenuItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "median_order_value_paise": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Order Value Paise"
+          },
+          "median_units": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Units"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "range": {
+            "$ref": "#/components/schemas/AnalyticsRangeOut"
+          },
+          "total_order_value_paise": {
+            "title": "Total Order Value Paise",
+            "type": "integer"
+          },
+          "total_units": {
+            "title": "Total Units",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "range",
+          "can_export",
+          "total_units",
+          "total_order_value_paise",
+          "median_units",
+          "median_order_value_paise",
+          "items",
+          "categories",
+          "notes"
+        ],
+        "title": "AnalyticsMenuOut",
+        "type": "object"
+      },
+      "AnalyticsOrderRowOut": {
+        "properties": {
+          "delayed": {
+            "title": "Delayed",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Items"
+          },
+          "order_value_paise": {
+            "title": "Order Value Paise",
+            "type": "integer"
+          },
+          "placed_at": {
+            "format": "date-time",
+            "title": "Placed At",
+            "type": "string"
+          },
+          "prep_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prep Seconds"
+          },
+          "seq_no": {
+            "title": "Seq No",
+            "type": "integer"
+          },
+          "served_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served By"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tab_id": {
+            "format": "uuid",
+            "title": "Tab Id",
+            "type": "string"
+          },
+          "table_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Label"
+          }
+        },
+        "required": [
+          "id",
+          "tab_id",
+          "seq_no",
+          "status",
+          "source",
+          "placed_at",
+          "table_label",
+          "order_value_paise",
+          "items",
+          "prep_seconds",
+          "delayed",
+          "served_by"
+        ],
+        "title": "AnalyticsOrderRowOut",
+        "type": "object"
+      },
+      "AnalyticsOrdersOut": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "range": {
+            "$ref": "#/components/schemas/AnalyticsRangeOut"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsOrderRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "range",
+          "rows",
+          "next_cursor"
+        ],
+        "title": "AnalyticsOrdersOut",
+        "type": "object"
+      },
+      "AnalyticsOverviewKpis": {
+        "properties": {
+          "avg_order_value": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          },
+          "avg_prep": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          },
+          "avg_ready_to_served": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          },
+          "cancellation_rate": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          },
+          "items_per_order": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          },
+          "order_value": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          },
+          "orders": {
+            "$ref": "#/components/schemas/AnalyticsKpi"
+          }
+        },
+        "required": [
+          "orders",
+          "order_value",
+          "avg_order_value",
+          "items_per_order",
+          "avg_prep",
+          "avg_ready_to_served",
+          "cancellation_rate"
+        ],
+        "title": "AnalyticsOverviewKpis",
+        "type": "object"
+      },
+      "AnalyticsOverviewOut": {
+        "properties": {
+          "can_edit_expected_prep": {
+            "title": "Can Edit Expected Prep",
+            "type": "boolean"
+          },
+          "can_export": {
+            "title": "Can Export",
+            "type": "boolean"
+          },
+          "cancellations": {
+            "$ref": "#/components/schemas/AnalyticsCancellationsOut"
+          },
+          "expected_prep_minutes": {
+            "title": "Expected Prep Minutes",
+            "type": "integer"
+          },
+          "kpis": {
+            "$ref": "#/components/schemas/AnalyticsOverviewKpis"
+          },
+          "peak": {
+            "$ref": "#/components/schemas/AnalyticsPeakOut"
+          },
+          "pending_orders": {
+            "title": "Pending Orders",
+            "type": "integer"
+          },
+          "range": {
+            "$ref": "#/components/schemas/AnalyticsRangeOut"
+          },
+          "status_mix": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsStatusCount"
+            },
+            "title": "Status Mix",
+            "type": "array"
+          },
+          "trend": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsTrendPoint"
+            },
+            "title": "Trend",
+            "type": "array"
+          }
+        },
+        "required": [
+          "range",
+          "expected_prep_minutes",
+          "can_edit_expected_prep",
+          "can_export",
+          "kpis",
+          "pending_orders",
+          "trend",
+          "status_mix",
+          "peak",
+          "cancellations"
+        ],
+        "title": "AnalyticsOverviewOut",
+        "type": "object"
+      },
+      "AnalyticsPeakOut": {
+        "properties": {
+          "by_hour": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsHourPoint"
+            },
+            "title": "By Hour",
+            "type": "array"
+          },
+          "heatmap": {
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "title": "Heatmap",
+            "type": "array"
+          },
+          "windows": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsPeakWindow"
+            },
+            "title": "Windows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "by_hour",
+          "heatmap",
+          "windows"
+        ],
+        "title": "AnalyticsPeakOut",
+        "type": "object"
+      },
+      "AnalyticsPeakWindow": {
+        "properties": {
+          "end_hour": {
+            "title": "End Hour",
+            "type": "integer"
+          },
+          "start_hour": {
+            "title": "Start Hour",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start_hour",
+          "end_hour"
+        ],
+        "title": "AnalyticsPeakWindow",
+        "type": "object"
+      },
+      "AnalyticsPrepGroup": {
+        "properties": {
+          "avg_prep_seconds": {
+            "title": "Avg Prep Seconds",
+            "type": "number"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "low_sample": {
+            "title": "Low Sample",
+            "type": "boolean"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "n",
+          "avg_prep_seconds",
+          "low_sample"
+        ],
+        "title": "AnalyticsPrepGroup",
+        "type": "object"
+      },
+      "AnalyticsPrepItem": {
+        "properties": {
+          "avg_prep_seconds": {
+            "title": "Avg Prep Seconds",
+            "type": "number"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "low_sample": {
+            "title": "Low Sample",
+            "type": "boolean"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "n",
+          "avg_prep_seconds",
+          "low_sample",
+          "category"
+        ],
+        "title": "AnalyticsPrepItem",
+        "type": "object"
+      },
+      "AnalyticsPrepPoint": {
+        "properties": {
+          "avg_prep_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Prep Seconds"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "n",
+          "avg_prep_seconds"
+        ],
+        "title": "AnalyticsPrepPoint",
+        "type": "object"
+      },
+      "AnalyticsRangeOut": {
+        "properties": {
+          "bucket": {
+            "$ref": "#/components/schemas/Bucket"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "preset": {
+            "$ref": "#/components/schemas/RangePreset"
+          },
+          "previous_end": {
+            "format": "date",
+            "title": "Previous End",
+            "type": "string"
+          },
+          "previous_start": {
+            "format": "date",
+            "title": "Previous Start",
+            "type": "string"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "preset",
+          "start",
+          "end",
+          "days",
+          "previous_start",
+          "previous_end",
+          "bucket",
+          "timezone",
+          "generated_at"
+        ],
+        "title": "AnalyticsRangeOut",
+        "type": "object"
+      },
+      "AnalyticsStaffHour": {
+        "properties": {
+          "hour": {
+            "title": "Hour",
+            "type": "integer"
+          },
+          "lines_per_staff": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lines Per Staff"
+          },
+          "lines_served": {
+            "title": "Lines Served",
+            "type": "integer"
+          },
+          "staff_active": {
+            "title": "Staff Active",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "hour",
+          "lines_served",
+          "staff_active",
+          "lines_per_staff"
+        ],
+        "title": "AnalyticsStaffHour",
+        "type": "object"
+      },
+      "AnalyticsStaffOut": {
+        "properties": {
+          "by_hour": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsStaffHour"
+            },
+            "title": "By Hour",
+            "type": "array"
+          },
+          "can_export": {
+            "title": "Can Export",
+            "type": "boolean"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "range": {
+            "$ref": "#/components/schemas/AnalyticsRangeOut"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsStaffRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "range",
+          "can_export",
+          "rows",
+          "by_hour",
+          "notes"
+        ],
+        "title": "AnalyticsStaffOut",
+        "type": "object"
+      },
+      "AnalyticsStaffRowOut": {
+        "properties": {
+          "active_days": {
+            "title": "Active Days",
+            "type": "integer"
+          },
+          "avg_ready_to_served_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Ready To Served Seconds"
+          },
+          "lines_per_active_day": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lines Per Active Day"
+          },
+          "lines_served": {
+            "title": "Lines Served",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order_value_entered_paise": {
+            "title": "Order Value Entered Paise",
+            "type": "integer"
+          },
+          "order_value_served_paise": {
+            "title": "Order Value Served Paise",
+            "type": "integer"
+          },
+          "peak_hour": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peak Hour"
+          },
+          "peak_hour_lines": {
+            "title": "Peak Hour Lines",
+            "type": "integer"
+          },
+          "ready_to_served_n": {
+            "title": "Ready To Served N",
+            "type": "integer"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "rounds_entered": {
+            "title": "Rounds Entered",
+            "type": "integer"
+          },
+          "rounds_served": {
+            "title": "Rounds Served",
+            "type": "integer"
+          },
+          "tables_served": {
+            "title": "Tables Served",
+            "type": "integer"
+          },
+          "units_served": {
+            "title": "Units Served",
+            "type": "integer"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "role",
+          "lines_served",
+          "units_served",
+          "rounds_served",
+          "tables_served",
+          "order_value_served_paise",
+          "avg_ready_to_served_seconds",
+          "ready_to_served_n",
+          "active_days",
+          "lines_per_active_day",
+          "rounds_entered",
+          "order_value_entered_paise",
+          "peak_hour",
+          "peak_hour_lines"
+        ],
+        "title": "AnalyticsStaffRowOut",
+        "type": "object"
+      },
+      "AnalyticsStatusCount": {
+        "properties": {
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "n"
+        ],
+        "title": "AnalyticsStatusCount",
+        "type": "object"
+      },
+      "AnalyticsTableRowOut": {
+        "properties": {
+          "avg_round_value_paise": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Round Value Paise"
+          },
+          "guests": {
+            "title": "Guests",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "order_value_paise": {
+            "title": "Order Value Paise",
+            "type": "integer"
+          },
+          "rounds": {
+            "title": "Rounds",
+            "type": "integer"
+          },
+          "seats": {
+            "title": "Seats",
+            "type": "integer"
+          },
+          "visits": {
+            "title": "Visits",
+            "type": "integer"
+          },
+          "zone": {
+            "title": "Zone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "zone",
+          "seats",
+          "visits",
+          "rounds",
+          "order_value_paise",
+          "avg_round_value_paise",
+          "guests"
+        ],
+        "title": "AnalyticsTableRowOut",
+        "type": "object"
+      },
+      "AnalyticsTablesOut": {
+        "properties": {
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "range": {
+            "$ref": "#/components/schemas/AnalyticsRangeOut"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsTableRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "range",
+          "rows",
+          "notes"
+        ],
+        "title": "AnalyticsTablesOut",
+        "type": "object"
+      },
+      "AnalyticsTrendPoint": {
+        "properties": {
+          "avg_prep_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Prep Seconds"
+          },
+          "bucket": {
+            "format": "date",
+            "title": "Bucket",
+            "type": "string"
+          },
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "order_value_paise": {
+            "title": "Order Value Paise",
+            "type": "integer"
+          },
+          "orders": {
+            "title": "Orders",
+            "type": "integer"
+          },
+          "prep_n": {
+            "title": "Prep N",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bucket",
+          "orders",
+          "order_value_paise",
+          "cancelled",
+          "avg_prep_seconds",
+          "prep_n"
+        ],
+        "title": "AnalyticsTrendPoint",
+        "type": "object"
+      },
       "AssigneesIn": {
         "properties": {
           "user_ids": {
@@ -222,6 +1686,15 @@
         ],
         "title": "AvailabilityIn",
         "type": "object"
+      },
+      "Bucket": {
+        "enum": [
+          "day",
+          "week",
+          "month"
+        ],
+        "title": "Bucket",
+        "type": "string"
       },
       "BulkTablesIn": {
         "properties": {
@@ -2724,6 +4197,17 @@
         "title": "QrSessionOut",
         "type": "object"
       },
+      "Quadrant": {
+        "description": "Neutral labels: the owner decides what each means for their menu.",
+        "enum": [
+          "high_volume_high_value",
+          "high_volume_low_value",
+          "low_volume_high_value",
+          "low_volume_low_value"
+        ],
+        "title": "Quadrant",
+        "type": "string"
+      },
       "QuoteLineOut": {
         "properties": {
           "line_total_paise": {
@@ -2801,6 +4285,20 @@
         ],
         "title": "QuoteOut",
         "type": "object"
+      },
+      "RangePreset": {
+        "enum": [
+          "today",
+          "yesterday",
+          "last_7_days",
+          "last_30_days",
+          "this_week",
+          "this_month",
+          "previous_month",
+          "custom"
+        ],
+        "title": "RangePreset",
+        "type": "string"
       },
       "RejectIn": {
         "properties": {
@@ -5240,6 +6738,1216 @@
         "summary": "Request Invite Otp",
         "tags": [
           "invites"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/analytics/expected-prep": {
+      "put": {
+        "description": "The outlet-wide yardstick for a delayed order. Owner or manager.",
+        "operationId": "set_expected_prep_v1_outlets__outlet_id__analytics_expected_prep_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyticsExpectedPrepIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsExpectedPrepOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Expected Prep",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/analytics/export/{kind}": {
+      "get": {
+        "description": "CSV of what the matching screen shows. Owner only, like every export (SPEC \u00a76).",
+        "operationId": "export_v1_outlets__outlet_id__analytics_export__kind__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "orders",
+                "staff",
+                "menu"
+              ],
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/RangePreset",
+              "default": "last_7_days"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Export",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/analytics/kitchen": {
+      "get": {
+        "operationId": "kitchen_v1_outlets__outlet_id__analytics_kitchen_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/RangePreset",
+              "default": "last_7_days"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsKitchenOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Kitchen",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/analytics/menu": {
+      "get": {
+        "operationId": "menu_v1_outlets__outlet_id__analytics_menu_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/RangePreset",
+              "default": "last_30_days"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsMenuOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Menu",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/analytics/orders": {
+      "get": {
+        "description": "The rounds behind a dashboard number, newest first, 50 per page.",
+        "operationId": "orders_v1_outlets__outlet_id__analytics_orders_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/RangePreset",
+              "default": "last_7_days"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "item_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Item Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "served_by",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Served By"
+            }
+          },
+          {
+            "in": "query",
+            "name": "table_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Table Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "weekday",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 7,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Weekday"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hour",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 23,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Hour"
+            }
+          },
+          {
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "delayed",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Delayed",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsOrdersOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Orders",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/analytics/overview": {
+      "get": {
+        "operationId": "overview_v1_outlets__outlet_id__analytics_overview_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/RangePreset",
+              "default": "last_7_days"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsOverviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Overview",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/analytics/staff": {
+      "get": {
+        "operationId": "staff_v1_outlets__outlet_id__analytics_staff_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/RangePreset",
+              "default": "last_7_days"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsStaffOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Staff",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/analytics/tables": {
+      "get": {
+        "operationId": "tables_v1_outlets__outlet_id__analytics_tables_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/RangePreset",
+              "default": "last_30_days"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsTablesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Tables",
+        "tags": [
+          "analytics"
         ]
       }
     },

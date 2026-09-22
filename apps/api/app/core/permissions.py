@@ -54,6 +54,9 @@ class Capability(StrEnum):
     # The owner's Orders screen (all sources). Not in docs/SPEC.md §6; see docs/DECISIONS.md
     # "Owner Orders screen".
     VIEW_ORDERS = "view_orders"
+    # Not in docs/SPEC.md §6; see docs/DECISIONS.md "Owner analytics".
+    VIEW_ANALYTICS = "view_analytics"
+    EDIT_EXPECTED_PREP = "edit_expected_prep"
 
 
 # Capability -> the outlet-scoped staff roles that hold it. A role missing
@@ -88,6 +91,8 @@ CAPABILITY_MATRIX: dict[Capability, frozenset[Role]] = {
     Capability.ENABLE_VOICE_AGENT: frozenset({Role.OWNER}),
     Capability.ACCEPT_VOICE_ORDERS: frozenset({Role.MANAGER, Role.OWNER}),
     Capability.VIEW_ORDERS: frozenset({Role.MANAGER, Role.OWNER}),
+    Capability.VIEW_ANALYTICS: frozenset({Role.MANAGER, Role.OWNER}),
+    Capability.EDIT_EXPECTED_PREP: frozenset({Role.MANAGER, Role.OWNER}),
 }
 
 
