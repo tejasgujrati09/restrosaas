@@ -124,8 +124,6 @@ main > h2,
   margin: 0 0 var(--s-1);
   padding: 0 var(--s-3);
   font: var(--f-label);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--ink-2);
 }
 .nav-group {
@@ -266,7 +264,6 @@ main > h2,
 /* Legend, zone titles and manager alerts */
 .zone {
   margin: var(--s-5) 0 var(--s-3);
-  text-transform: capitalize;
 }
 .legend {
   display: flex;

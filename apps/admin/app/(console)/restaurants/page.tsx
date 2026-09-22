@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Badge, EmptyState, ErrorBanner, Field, PageHeader, Sheet, Skeleton } from "@restosaas/ui";
+import { Badge, EmptyState, ErrorBanner, Field, PageHeader, Sheet, Skeleton, sentenceCase } from "@restosaas/ui";
 import { api } from "@/lib/api";
 import { countByStatus, filterRestaurants, formatDay, initialOf, type StatusFilter } from "@/lib/restaurants";
 import type { PlatformRestaurant } from "@/lib/types";
@@ -110,7 +110,7 @@ export default function RestaurantsPage() {
               </div>
               <div className="meta">
                 <Badge tone={r.status === "active" ? "ok" : "danger"}>{r.status === "active" ? "Active" : "Suspended"}</Badge>
-                <Badge>Plan: {r.plan}</Badge>
+                <Badge>Plan: {sentenceCase(r.plan)}</Badge>
                 <Badge tone={r.voice_orders_allowed ? "ok" : "neutral"}>Voice orders: {r.voice_orders_allowed ? "enabled" : "disabled"}</Badge>
                 <span className="since">Joined {formatDay(r.created_at)}</span>
               </div>

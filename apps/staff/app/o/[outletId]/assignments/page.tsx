@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { EmptyState, PageHeader, Skeleton } from "@restosaas/ui";
+import { EmptyState, PageHeader, sentenceCase, Skeleton } from "@restosaas/ui";
 import { ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
@@ -46,7 +46,7 @@ export default function AssignmentsPage() {
       {waiters.length === 0 ? <EmptyState title="There are no active waiters yet">Invite some under Staff, then tick the tables they serve here.</EmptyState> : null}
       {[...zones.entries()].map(([zone, list]) => (
         <section key={zone} className="card" aria-label={zone}>
-          <h2>{zone}</h2>
+          <h2>{sentenceCase(zone)}</h2>
           <div className="scroll-x">
           <table className="matrix">
             <thead>

@@ -20,7 +20,7 @@
   .row {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: var(--s-3);
   }
   .row > * {
@@ -29,6 +29,8 @@
   .row > button,
   .row > .button {
     flex: 0 0 auto;
+    /* Lines up with the inputs beside it: one label line and the gap under it. */
+    margin-top: calc(18px + var(--s-1));
   }
   .inline {
     display: flex;
@@ -445,8 +447,6 @@
   }
   th {
     font: var(--f-label);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     color: var(--ink-2);
     text-align: left;
     padding: var(--s-2) var(--s-3);

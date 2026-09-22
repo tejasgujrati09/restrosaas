@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Badge, EmptyState, formatInr, Icon, PageHeader, Skeleton } from "@restosaas/ui";
+import { Badge, EmptyState, formatInr, humanize, Icon, PageHeader, Skeleton } from "@restosaas/ui";
 import { Card, ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
@@ -88,8 +88,8 @@ export default function TablePage() {
         <Card title="Requests">
           {mine.map((r) => (
             <div key={r.id} className="line-row">
-              <span className="grow">{r.type} · since {timeOf(r.created_at)}</span>
-              <button type="button" disabled={action.busy} onClick={() => run(() => act("POST", `${base}/staff/service-requests/${r.id}/resolve`, undefined, `Finish ${r.type} request at ${view.table_label ?? "a table"}`))}>Done</button>
+              <span className="grow">{humanize(r.type)} · since {timeOf(r.created_at)}</span>
+              <button type="button" disabled={action.busy} onClick={() => run(() => act("POST", `${base}/staff/service-requests/${r.id}/resolve`, undefined, `Finish ${humanize(r.type).toLowerCase()} request at ${view.table_label ?? "a table"}`))}>Done</button>
             </div>
           ))}
         </Card>

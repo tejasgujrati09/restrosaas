@@ -2,12 +2,13 @@
 
 import { useParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Badge, PageHeader } from "@restosaas/ui";
+import { Badge, PageHeader, roleLabel } from "@restosaas/ui";
 import { Card, ErrorBanner, Field } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
 import { toE164 } from "@/lib/phone";
-import { getToken, rolesAt } from "@/lib/session";
+import { rolesAt } from "@/lib/session";
+import { useToken } from "@/lib/use-token";
 import type { Invite, Staff } from "@/lib/types";
 
 const ALL_ROLES = ["waiter", "kitchen", "bar", "manager", "owner"] as const;
@@ -17,7 +18,9 @@ export default function StaffPage() {
   const base = `/v1/outlets/${outletId}`;
   const staff = useResource<Staff[]>(`${base}/staff`);
   const invites = useResource<Invite[]>(`${base}/invites`);
-  const isOwner = typeof window !== "undefined" && rolesAt(getToken(), outletId).includes("owner");
+  // Read after hydration (the token is null on the server), so both renders start the same.
+  const token = useToken();
+  const isOwner = rolesAt(token, outletId).includes("owner");
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<string>("waiter");
   const [created, setCreated] = useState<Invite | null>(null);
@@ -45,7 +48,7 @@ export default function StaffPage() {
             </Field>
             <Field label="Role">
               <select value={role} onChange={(e) => setRole(e.target.value)}>
-                {roleOptions.map((r) => <option key={r} value={r}>{r}</option>)}
+                {roleOptions.map((r) => <option key={r} value={r}>{roleLabel(r)}</option>)}
               </select>
             </Field>
             <button type="submit" disabled={action.busy || !e164}>Create invite</button>
@@ -68,7 +71,7 @@ export default function StaffPage() {
         <Card title="Waiting to join">
           <ul className="list">
             {invites.data.map((i) => (
-              <li key={i.id}><span>{i.phone} <Badge>{i.role}</Badge></span>
+              <li key={i.id}><span>{i.phone} <Badge>{roleLabel(i.role)}</Badge></span>
                 <button type="button" className="danger" onClick={() => action.run(async () => { await api(`${base}/invites/${i.id}`, { method: "DELETE" }); invites.reload(); })}>Cancel</button>
               </li>
             ))}
@@ -85,7 +88,7 @@ export default function StaffPage() {
               <tr key={s.id}>
                 <td data-label="Name">{s.name ?? "—"} {!s.active ? <Badge tone="danger">Inactive</Badge> : null}</td>
                 <td data-label="Phone">{s.phone}</td>
-                <td data-label="Role">{s.role}</td>
+                <td data-label="Role">{roleLabel(s.role)}</td>
                 <td>
                   <button type="button" className={s.active ? "tertiary" : "secondary"}
                     onClick={() => action.run(async () => { await api(`${base}/staff/${s.id}`, { method: "PATCH", body: { active: !s.active } }); staff.reload(); })}>

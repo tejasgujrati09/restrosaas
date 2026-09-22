@@ -79,6 +79,12 @@ Nothing below 12 px. Uppercase only for Label.
 - **Touch targets:** 44 px minimum; 48 px for bar actions; 52 px for the main call to action.
 - **Breakpoints:** phone < 640, tablet 640–1023, desktop ≥ 1024.
 
+### Type weight and capitalization (one standard, set once)
+- **Headings are bold (700):** page title, card and section headings, and h3 subsections all take the `--f-h1`, `--f-h2` and `--f-h3` tokens; never a weight set on a page. Fraunces ships as a single static weight-600 file (see `packages/ui/fonts/README.md`), so display headings render from that face until a true 700 is added; the declared weight is still 700 so they follow the token if the font changes.
+- **Table column headings and form labels are bold, small, and sentence case.** No CSS `text-transform`: not uppercase, not `capitalize` (which would Title Case every word).
+- **Sentence case everywhere:** "Invite someone", "Their mobile number", "Phone orders". Only proper names and acronyms (QR, PDF, GSTIN, OTP, API, SMS, UPI) keep their capitals.
+- **Stored values are shown through a label helper, never edited.** Enums and free text a person typed (a role, a zone, a plan, a request type) are formatted at display time with `roleLabel`, `sentenceCase` or `humanize` from `@restosaas/ui`. The stored value is what the API takes, returns and compares; do not compare or send display text.
+
 ## 3. Components (in `packages/ui`)
 
 Plain CSS classes and small React components; **no new UI library** (CLAUDE.md §2). Icons are inline SVG. Real `<button>`, `<a>`, `<input>` only.

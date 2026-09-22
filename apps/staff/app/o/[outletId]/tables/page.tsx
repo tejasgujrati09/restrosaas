@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Badge, PageHeader, Skeleton } from "@restosaas/ui";
+import { Badge, PageHeader, sentenceCase, Skeleton } from "@restosaas/ui";
 import { Card, ErrorBanner, Field } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api, openBlob } from "@/lib/api";
@@ -53,7 +53,7 @@ export default function TablesPage() {
       </Card>
       <ErrorBanner message={action.error} />
       {[...byZone.entries()].map(([zoneName, rows]) => (
-        <Card key={zoneName} title={zoneName}>
+        <Card key={zoneName} title={sentenceCase(zoneName)}>
           <div className="inline">
             <button type="button" className="secondary" onClick={() => action.run(() => openBlob(`${base}/tables/qr-sheet.pdf?zone=${encodeURIComponent(zoneName)}`))}>Print QR sheet (PDF)</button>
           </div>

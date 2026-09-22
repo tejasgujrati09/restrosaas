@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
-import { EmptyState, formatInr, PageHeader, Skeleton } from "@restosaas/ui";
+import { EmptyState, formatInr, PageHeader, sentenceCase, Skeleton } from "@restosaas/ui";
 import { ErrorBanner } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
@@ -102,7 +102,7 @@ export default function FloorPage() {
       ) : null}
       {[...zones.entries()].map(([zone, tables]) => (
         <section key={zone} aria-label={zone}>
-          <h2 className="zone">{zone}</h2>
+          <h2 className="zone">{sentenceCase(zone)}</h2>
           <div className="tiles">
             {tables.map((t) => {
               const body = (

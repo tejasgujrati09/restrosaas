@@ -1,4 +1,5 @@
 export { formatInr } from "./format-inr";
+export { humanize, roleLabel, sentenceCase } from "./labels";
 export { formatBp, paiseToInput, parsePercentToBp, parseRupees } from "./parse-input";
 export {
   Badge,
