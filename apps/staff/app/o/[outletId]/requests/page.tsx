@@ -20,11 +20,11 @@ export default function RequestsPage() {
   const action = useAction();
   const now = useNow();
 
-  if (!feed.data) return feed.error ? <ErrorBanner message={feed.error} /> : <Skeleton what="requests" lines={3} block />;
+  if (!feed.data) return feed.error ? <ErrorBanner message={feed.error} onRetry={feed.reload} /> : <Skeleton what="requests" lines={3} block />;
   return (
     <>
       <PageHeader title="Requests" subtitle={feed.data.length > 0 ? `${feed.data.length} waiting, oldest first` : undefined} />
-      <ErrorBanner message={action.error ?? feed.error} />
+      <ErrorBanner message={feed.error} />
       {feed.data.length === 0 ? (
         <EmptyState title="Nothing waiting.">Water, waiter and bill requests from guests will appear here as they come in.</EmptyState>
       ) : null}

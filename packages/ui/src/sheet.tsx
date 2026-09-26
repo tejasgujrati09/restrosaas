@@ -8,11 +8,15 @@ export function Sheet({
   open,
   onClose,
   title,
+  variant = "sheet",
   children,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
+  /** "drawer" docks to the right edge on a wide screen so the page beside it stays visible (a long
+   *  record such as an order); on a phone it is the same bottom sheet. */
+  variant?: "sheet" | "drawer";
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -25,7 +29,7 @@ export function Sheet({
   return (
     <dialog
       ref={ref}
-      className="sheet"
+      className={variant === "drawer" ? "sheet drawer" : "sheet"}
       aria-labelledby="sheet-title"
       onClose={onClose}
       onClick={(e) => {
@@ -40,7 +44,7 @@ export function Sheet({
               <Icon name="close" />
             </button>
           </div>
-          {children}
+          <div className="sheet-content">{children}</div>
         </div>
       ) : null}
     </dialog>

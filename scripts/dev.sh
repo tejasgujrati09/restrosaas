@@ -7,6 +7,9 @@
 #   scripts/dev.sh logs [name]      tail logs: api | worker | guest | staff | admin (default: all)
 #   scripts/dev.sh restart          down, then up
 #
+# LAN=1 scripts/dev.sh restart     reachable from a phone on the same Wi-Fi (uses this Mac's LAN IP;
+#                                  set LAN_HOST=<ip> to override). Development only.
+#
 # Default ports are API 8000, guest 3000, staff 3001, admin 3002. A port that is already
 # taken by something else is skipped and the next free one is used; `status` shows the result.
 # State lives in .run/ (git-ignored): pids, chosen ports and logs.
@@ -102,7 +105,7 @@ cmd_up() {
   done
 
   say "1/6 Postgres and Redis"
-  (cd "$ROOT" && docker compose up -d --wait postgres redis)
+  (cd "$ROOT" && docker compose up -d --wait postgres redis minio)
 
   say "2/6 Dependencies"
   [[ -f "$ROOT/apps/api/.env" ]] || cp "$ROOT/.env.example" "$ROOT/apps/api/.env"
@@ -128,15 +131,22 @@ ADMIN_PORT=$admin_port
 PORTS
 
   say "5/6 Starting services"
-  local api_url="http://localhost:$api_port"
-  local cors="[\"http://localhost:$guest_port\",\"http://localhost:$staff_port\",\"http://localhost:$admin_port\"]"
+  local host="localhost" bind="127.0.0.1" lan_env=""
+  if [[ "${LAN:-}" == "1" ]]; then
+    host="${LAN_HOST:-$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || true)}"
+    [[ -n "$host" ]] || die "LAN=1 needs a LAN IP; set LAN_HOST=<ip>"
+    bind="0.0.0.0"; lan_env="$host"
+  fi
+  echo "$host" >"$RUN/host"
+  local api_url="http://$host:$api_port"
+  local cors="[\"http://$host:$guest_port\",\"http://$host:$staff_port\",\"http://$host:$admin_port\",\"http://localhost:$guest_port\",\"http://localhost:$staff_port\",\"http://localhost:$admin_port\"]"
   start_one api "$ROOT/apps/api" env \
     DATABASE_URL="$RUNTIME_DB" MIGRATION_DATABASE_URL="$OWNER_DB" REDIS_URL="$REDIS_URL" \
     OTP_DEV_FIXED_CODE="$DEV_OTP" CORS_ORIGINS="$cors" \
-    PUBLIC_BASE_URL="http://localhost:$guest_port" STAFF_BASE_URL="http://localhost:$staff_port" \
+    PUBLIC_BASE_URL="http://$host:$guest_port" STAFF_BASE_URL="http://$host:$staff_port" \
     DYLD_FALLBACK_LIBRARY_PATH="${DYLD_FALLBACK_LIBRARY_PATH:-/opt/homebrew/lib}" \
-    uv run uvicorn app.main:app --port "$api_port" --reload
-  wait_for api "$api_url/health" 60
+    uv run uvicorn app.main:app --host "$bind" --port "$api_port" --reload
+  wait_for api "http://localhost:$api_port/health" 60
 
   # The job worker (voice provisioning). Same environment as the API; reads apps/api/.env too.
   start_one worker "$ROOT/apps/api" env \
@@ -147,8 +157,8 @@ PORTS
   for app in guest staff admin; do
     local port_var
     case "$app" in guest) port_var=$guest_port ;; staff) port_var=$staff_port ;; admin) port_var=$admin_port ;; esac
-    start_one "$app" "$ROOT" env NEXT_PUBLIC_API_URL="$api_url" \
-      pnpm --filter "$app" exec next dev --port "$port_var"
+    start_one "$app" "$ROOT" env NEXT_PUBLIC_API_URL="$api_url" LAN_HOST="$lan_env" \
+      pnpm --filter "$app" exec next dev --hostname "$bind" --port "$port_var"
   done
   wait_for guest "http://localhost:$guest_port" 120
   wait_for staff "http://localhost:$staff_port" 120
@@ -156,7 +166,7 @@ PORTS
 
   say "6/6 Demo data"
   if [[ "$seed" == 1 ]]; then
-    (cd "$ROOT/apps/api" && uv run python "$ROOT/scripts/seed_demo.py" "$api_url" "http://localhost:$staff_port" "http://localhost:$admin_port")
+    (cd "$ROOT/apps/api" && uv run python "$ROOT/scripts/seed_demo.py" "http://localhost:$api_port" "http://$host:$staff_port" "http://$host:$admin_port")
     (cd "$ROOT/apps/api" && uv run python "$ROOT/scripts/create_platform_admin.py" +918888800009 --name "Demo Platform Admin")
   else
     echo "skipped (--no-seed)"
@@ -176,7 +186,7 @@ cmd_down() {
     rm -f "$(pid_file "$s")"
   done
   if [[ "${1:-}" == "--all" ]]; then
-    (cd "$ROOT" && docker compose stop postgres redis)
+    (cd "$ROOT" && docker compose stop postgres redis minio)
   else
     echo "Postgres and Redis left running (add --all to stop them too)."
   fi
@@ -190,12 +200,13 @@ cmd_status() {
   done
   if [[ -f "$PORTS_FILE" ]]; then
     load_ports
+    local host; host="$(cat "$RUN/host" 2>/dev/null || echo localhost)"
     echo
     say "Open these"
-    echo "  Guest app   http://localhost:$GUEST_PORT      (guests arrive via a table QR: /t/<token>)"
-    echo "  Staff app   http://localhost:$STAFF_PORT/login (owner and staff)"
-    echo "  Admin app   http://localhost:$ADMIN_PORT"
-    echo "  API docs    http://localhost:$API_PORT/docs"
+    echo "  Guest app   http://$host:$GUEST_PORT      (guests arrive via a table QR: /t/<token>)"
+    echo "  Staff app   http://$host:$STAFF_PORT/login (owner and staff)"
+    echo "  Admin app   http://$host:$ADMIN_PORT"
+    echo "  API docs    http://$host:$API_PORT/docs"
     echo "  Sign-in code in development: $DEV_OTP"
     [[ -f "$RUN/demo.txt" ]] && { echo; cat "$RUN/demo.txt"; }
   fi

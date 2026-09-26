@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { actionLabel, actorLabel, countByStatus, filterRestaurants, initialOf, reasonOf } from "./restaurants";
+import { actionLabel, actorLabel, agoLabel, countByStatus, daysSince, expiryLabel, expiryTone, filterRestaurants, formatPhone, initialOf, reasonOf } from "./restaurants";
 import type { PlatformRestaurant } from "./types";
 
 const r = (brand: string, legal: string, status: "active" | "suspended"): PlatformRestaurant => ({
@@ -10,6 +10,7 @@ const r = (brand: string, legal: string, status: "active" | "suspended"): Platfo
   plan: "trial",
   status,
   voice_orders_allowed: false,
+  plan_expires_at: null,
   created_at: "2026-09-01T00:00:00Z",
 });
 const list = [r("Copper Still", "Copper Hospitality Pvt Ltd", "active"), r("Demo Bar", "Demo LLP", "suspended"), r("Chai Point", "CP Foods", "active")];
@@ -58,5 +59,35 @@ describe("initialOf", () => {
   it("uses the first letter, or a question mark", () => {
     expect(initialOf(" copper")).toBe("C");
     expect(initialOf("")).toBe("?");
+  });
+});
+
+describe("plan expiry wording", () => {
+  it("says how far away the last day is", () => {
+    expect([null, 0, 1, -1, 12, -3].map(expiryLabel)).toEqual(["No expiry set", "today", "tomorrow", "yesterday", "in 12 days", "3 days ago"]);
+  });
+
+  it("is danger once ended, a warning inside two weeks, and neutral with no date", () => {
+    expect([null, -1, 0, 14, 15].map(expiryTone)).toEqual(["neutral", "danger", "warn", "warn", "ok"]);
+  });
+});
+
+describe("how long ago", () => {
+  const now = new Date("2026-09-26T12:00:00Z");
+  it("counts whole days and never goes negative", () => {
+    expect(daysSince("2026-09-26T01:00:00Z", now)).toBe(0);
+    expect(daysSince("2026-09-20T12:00:00Z", now)).toBe(6);
+    expect(daysSince("2026-10-01T00:00:00Z", now)).toBe(0);
+  });
+
+  it("uses days, then months", () => {
+    expect(["2026-09-26T05:00:00Z", "2026-09-25T05:00:00Z", "2026-09-06T00:00:00Z", "2026-05-01T00:00:00Z"].map((i) => agoLabel(i, now))).toEqual(["today", "yesterday", "20 days ago", "4 months ago"]);
+  });
+});
+
+describe("formatPhone", () => {
+  it("groups an Indian mobile and leaves anything else alone", () => {
+    expect(formatPhone("+919876543210")).toBe("+91 98765 43210");
+    expect(formatPhone("+4412345")).toBe("+4412345");
   });
 });

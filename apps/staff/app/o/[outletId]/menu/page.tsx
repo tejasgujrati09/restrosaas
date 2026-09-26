@@ -8,6 +8,7 @@ import { useAction, useResource } from "@/components/hooks";
 import { api, openBlob } from "@/lib/api";
 import { rolesAt, getToken } from "@/lib/session";
 import type { Item, ItemIn, Menu, ModifierGroup } from "@/lib/types";
+import { MenuAiImport } from "./menu-ai-import";
 import { MenuImport } from "./menu-import";
 
 export default function MenuPage() {
@@ -21,7 +22,7 @@ export default function MenuPage() {
   const [categoryName, setCategoryName] = useState("");
   const action = useAction();
 
-  if (!menu.data) return menu.error ? <ErrorBanner message={menu.error} /> : <Skeleton what="the menu" lines={6} block />;
+  if (!menu.data) return menu.error ? <ErrorBanner message={menu.error} onRetry={menu.reload} /> : <Skeleton what="the menu" lines={6} block />;
   const m = menu.data;
   const taxName = (id: string) => m.tax_classes.find((t) => t.id === id)?.name ?? "?";
 
@@ -39,7 +40,6 @@ export default function MenuPage() {
         subtitle={`${m.prices_include_tax ? "Prices include taxes." : "Taxes are added on top of these prices."} Prices are shown exactly as you enter them.`}
         actions={<button type="button" className="secondary" onClick={() => action.run(() => openBlob(`${base}/menu.pdf`))}>Print menu (PDF)</button>}
       />
-      <ErrorBanner message={action.error} />
 
       {m.categories.length === 0 ? (
         <EmptyState title="No menu yet">Add a category and then items below, or import a CSV to start from a spreadsheet.</EmptyState>
@@ -47,7 +47,7 @@ export default function MenuPage() {
       {m.categories.map((c) => (
         <Card key={c.id} title={c.name}>
           {!c.visible ? <Badge tone="danger">Hidden from guests</Badge> : null}
-          <table className="stacked">
+          <table className="stacked menu-table">
             <thead><tr><th>Item</th><th>Price</th><th>Tax class</th><th>Availability</th><th><span className="visually-hidden">Actions</span></th></tr></thead>
             <tbody>
               {c.items.map((item) =>
@@ -94,6 +94,7 @@ export default function MenuPage() {
             </form>
           </Card>
           <ModifierGroups base={base} groups={m.modifier_groups} reload={menu.reload} />
+          <MenuAiImport base={base} reload={menu.reload} />
           <MenuImport base={base} reload={menu.reload} />
         </>
       ) : null}
@@ -168,7 +169,7 @@ function ItemForm({ base, menu, initial, categoryId, onDone, onCancel }: {
           ))}
         </fieldset>
       ) : null}
-      <ErrorBanner message={priceError ?? action.error} />
+      <ErrorBanner message={priceError} />
       <div className="inline">
         <button type="submit" disabled={action.busy || menu.tax_classes.length === 0}>{initial ? "Save item" : "Add item"}</button>
         {onCancel ? <button type="button" className="secondary" onClick={onCancel}>Cancel</button> : null}
@@ -180,8 +181,8 @@ function ItemForm({ base, menu, initial, categoryId, onDone, onCancel }: {
 
 function ModifierGroups({ base, groups, reload }: { base: string; groups: ModifierGroup[]; reload: () => void }) {
   const [name, setName] = useState("");
-  const [min, setMin] = useState("0");
-  const [max, setMax] = useState("1");
+  const [min, setMin] = useState("");
+  const [max, setMax] = useState("");
   const [lines, setLines] = useState("");
   const [inputError, setInputError] = useState<string | null>(null);
   const action = useAction();
@@ -196,7 +197,7 @@ function ModifierGroups({ base, groups, reload }: { base: string; groups: Modifi
       modifiers.push({ name: label, price_delta_paise: delta });
     }
     setInputError(null);
-    if (await action.run(() => api(`${base}/modifier-groups`, { method: "POST", body: { name, min_select: Number(min), max_select: Number(max), modifiers } }))) {
+    if (await action.run(() => api(`${base}/modifier-groups`, { method: "POST", body: { name, min_select: Number(min || 0), max_select: Number(max || 1), modifiers } }))) {
       setName(""); setLines(""); reload();
     }
   }
@@ -214,13 +215,13 @@ function ModifierGroups({ base, groups, reload }: { base: string; groups: Modifi
       <form onSubmit={add}>
         <div className="row">
           <Field label="Group name"><input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Spice level" /></Field>
-          <Field label="Choose at least" size="short"><input inputMode="numeric" value={min} onChange={(e) => setMin(e.target.value)} /></Field>
-          <Field label="Choose at most" size="short"><input inputMode="numeric" value={max} onChange={(e) => setMax(e.target.value)} /></Field>
+          <Field label="Choose at least" size="short" hint="Empty means none"><input inputMode="numeric" placeholder="0" value={min} onChange={(e) => setMin(e.target.value)} /></Field>
+          <Field label="Choose at most" size="short" hint="Empty means one"><input inputMode="numeric" placeholder="1" value={max} onChange={(e) => setMax(e.target.value)} /></Field>
         </div>
         <Field label="Choices, one per line" hint="Add an extra price after a comma, for example: Extra cheese, 30">
           <textarea value={lines} onChange={(e) => setLines(e.target.value)} />
         </Field>
-        <ErrorBanner message={inputError ?? action.error} />
+        <ErrorBanner message={inputError} />
         <button type="submit" disabled={action.busy}>Add options</button>
       </form>
     </Card>

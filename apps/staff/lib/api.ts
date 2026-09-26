@@ -1,6 +1,12 @@
 import { clearSession, getToken } from "./session";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const CONFIGURED_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// In development the API shares the page's host, so the same build works on localhost and, with
+// LAN=1 scripts/dev.sh, from a phone on the LAN. Production always uses the configured URL.
+const API_URL =
+  process.env.NODE_ENV !== "production" && typeof window !== "undefined" && /^https?:\/\/(localhost|\d+\.\d+\.\d+\.\d+)[:/]/.test(CONFIGURED_API_URL)
+    ? CONFIGURED_API_URL.replace(/^(https?:\/\/)[^:/]+/, `$1${window.location.hostname}`)
+    : CONFIGURED_API_URL;
 
 export class ApiError extends Error {
   constructor(
@@ -84,6 +90,54 @@ export async function openBlob(path: string, filename?: string): Promise<void> {
     window.open(url, "_blank");
   }
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+/**
+ * Multipart upload with progress (fetch cannot report upload progress). Files are sent in the
+ * given order as repeated `files` parts. Pass the same `idempotencyKey` when retrying one action.
+ */
+export function uploadFiles<T>(
+  path: string,
+  files: File[],
+  onProgress: (fraction: number) => void,
+  idempotencyKey: string,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_URL}${path}`);
+    const token = getToken();
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.setRequestHeader("Idempotency-Key", idempotencyKey);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(e.loaded / e.total);
+    };
+    xhr.onerror = () => reject(new Error("network"));
+    xhr.ontimeout = () => reject(new Error("network"));
+    xhr.onload = () => {
+      let payload: { code?: string; message?: string; details?: Record<string, unknown> } = {};
+      try {
+        payload = JSON.parse(xhr.responseText);
+      } catch {
+        // non-JSON body; use generic values below
+      }
+      if (xhr.status >= 200 && xhr.status < 300) return resolve(payload as T);
+      if (xhr.status === 401) {
+        clearSession();
+        window.location.replace("/login");
+      }
+      reject(
+        new ApiError(
+          xhr.status,
+          payload.code ?? `http_${xhr.status}`,
+          payload.message ?? "Something went wrong. Try again.",
+          payload.details,
+        ),
+      );
+    };
+    const form = new FormData();
+    for (const file of files) form.append("files", file, file.name);
+    xhr.send(form);
+  });
 }
 
 export function errorMessage(error: unknown): string {

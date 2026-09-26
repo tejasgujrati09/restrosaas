@@ -59,12 +59,12 @@ export function VoiceSheet({
   const allowed = voice.data?.allowed ?? false;
   const copy = allowanceCopy(allowed);
   return (
-    <Sheet open={restaurant !== null} onClose={close} title={restaurant ? `Voice Orders · ${restaurant.brand_name}` : ""}>
-      <ErrorBanner message={action.error ?? voice.error} />
+    <Sheet open={restaurant !== null} onClose={close} title={restaurant ? `Voice orders · ${restaurant.brand_name}` : ""}>
+      <ErrorBanner message={voice.error} />
       {!voice.data && !voice.error ? <Skeleton what="voice orders" lines={3} block /> : null}
       {voice.data ? (
         <>
-          <h3>Voice Orders</h3>
+          <h3>Voice orders</h3>
           <p>
             <strong>{copy.headline}</strong>
           </p>

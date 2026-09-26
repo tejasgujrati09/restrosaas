@@ -33,7 +33,7 @@ export default function FloorPage() {
     return (
       <>
         <PageHeader title="Floor" />
-        {map.error ? <ErrorBanner message={map.error} /> : <Skeleton what="the floor" lines={4} block />}
+        {map.error ? <ErrorBanner message={map.error} onRetry={map.reload} /> : <Skeleton what="the floor" lines={4} block />}
       </>
     );
   }
@@ -52,7 +52,7 @@ export default function FloorPage() {
         title="Floor"
         subtitle={map.data.tables.length > 0 ? `${seated} of ${map.data.tables.length} tables in use` : undefined}
       />
-      <ErrorBanner message={action.error ?? map.error} />
+      <ErrorBanner message={map.error} />
       {map.data.unassigned ? (
         <EmptyState title="You have no tables yet">Ask a manager to assign you some tables, and they will show up here.</EmptyState>
       ) : null}

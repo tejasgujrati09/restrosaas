@@ -8,15 +8,16 @@ existing tenant RLS is what authorises the write. See docs/DECISIONS.md "Platfor
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 
+from app import clock
 from app.api.v1.common import ERRORS, invalid
 from app.api.v1.voice_agent import VoiceStepOut
 from app.auth import issue_platform_token, otp_store
@@ -24,8 +25,10 @@ from app.config import settings
 from app.core.permissions import assert_is_platform_admin
 from app.db.session import anonymous_session, tenant_session
 from app.deps import PlatformContext, get_platform_context
-from app.domains.staff.models import AppUser, AuditLog, PlatformAdmin
-from app.domains.tenant.models import Outlet, Restaurant
+from app.domains.menu.models import MenuCategory, MenuItem
+from app.domains.staff.models import AppUser, AuditLog, PlatformAdmin, StaffRole
+from app.domains.tab.models import Order, Tab
+from app.domains.tenant.models import DiningTable, Outlet, Restaurant, TaxClass
 from app.domains.voice import factory, provisioning
 from app.domains.voice.models import VoiceAgent, VoiceProvisioningAttempt
 from app.domains.voice.status import build_view
@@ -118,6 +121,7 @@ class PlatformRestaurantOut(BaseModel):
     plan: str
     status: Literal["active", "suspended"]
     voice_orders_allowed: bool
+    plan_expires_at: datetime | None
     created_at: datetime
 
 
@@ -130,6 +134,7 @@ def _restaurant_out(r: Restaurant) -> PlatformRestaurantOut:
         plan=r.subscription_plan,
         status="suspended" if r.status == "suspended" else "active",
         voice_orders_allowed=r.voice_orders_allowed,
+        plan_expires_at=r.plan_expires_at,
         created_at=r.created_at,
     )
 
@@ -188,6 +193,197 @@ async def set_restaurant_status(
                     target_id=restaurant_id,
                     before={"status": before},
                     after={"status": body.status, "reason": reason or None},
+                )
+            )
+        return _restaurant_out(restaurant)
+
+
+class OutletDetailOut(BaseModel):
+    id: UUID
+    name: str
+    address: str | None
+    # The GST state code (the first two digits of a GSTIN), e.g. "29".
+    state_code: str
+    timezone: str
+    liquor_licensed: bool
+    tables: int
+
+
+class ContactOut(BaseModel):
+    name: str | None
+    phone: str
+
+
+class ActivityOut(BaseModel):
+    orders_total: int
+    orders_7d: int
+    orders_30d: int
+    first_order_at: datetime | None
+    last_order_at: datetime | None
+    open_tabs: int
+
+
+class SuspensionOut(BaseModel):
+    at: datetime
+    reason: str | None
+    by_name: str | None
+
+
+class PlatformRestaurantDetailOut(PlatformRestaurantOut):
+    days_until_expiry: int | None
+    outlets: list[OutletDetailOut]
+    owners: list[ContactOut]
+    staff_by_role: dict[str, int]
+    menu_categories: int
+    menu_items: int
+    tax_classes: int
+    activity: ActivityOut
+    suspension: SuspensionOut | None
+
+
+@router.get("/restaurants/{restaurant_id}", responses=ERRORS)
+async def get_restaurant(restaurant_id: UUID, ctx: PlatformCtx) -> PlatformRestaurantDetailOut:
+    """Everything an operator needs to know about one restaurant. Read through the
+    restaurant's own tenant session, like the voice view; it returns counts and contacts, never
+    orders, guests or prices."""
+    assert_is_platform_admin(ctx.actor)
+    now = clock.utcnow()
+    async with tenant_session(restaurant_id) as s:
+        r = await s.get(Restaurant, restaurant_id)
+        if r is None:
+            raise ApiError(404, "restaurant_not_found", "That restaurant does not exist.")
+
+        async def count(stmt: Any) -> int:
+            return int(await s.scalar(stmt) or 0)
+
+        table_counts: dict[UUID, int] = {
+            oid: int(n)
+            for oid, n in await s.execute(
+                select(DiningTable.outlet_id, func.count()).group_by(DiningTable.outlet_id)
+            )
+        }
+        outlets = [
+            OutletDetailOut(
+                id=o.id,
+                name=o.name,
+                address=o.address,
+                state_code=o.state_code,
+                timezone=o.timezone,
+                liquor_licensed=o.liquor_licensed,
+                tables=int(table_counts.get(o.id, 0)),
+            )
+            for o in await s.scalars(select(Outlet).order_by(Outlet.name))
+        ]
+        owners = [
+            ContactOut(name=name, phone=phone)
+            for name, phone in await s.execute(
+                select(AppUser.name, AppUser.phone)
+                .join(StaffRole, StaffRole.user_id == AppUser.id)
+                .where(StaffRole.role == "owner", StaffRole.active.is_(True))
+                .distinct()
+            )
+        ]
+        staff_by_role = {
+            role: int(n)
+            for role, n in await s.execute(
+                select(StaffRole.role, func.count(func.distinct(StaffRole.user_id)))
+                .where(StaffRole.active.is_(True))
+                .group_by(StaffRole.role)
+            )
+        }
+        first, last = (
+            await s.execute(select(func.min(Order.placed_at), func.max(Order.placed_at)))
+        ).one()
+        activity = ActivityOut(
+            orders_total=await count(select(func.count()).select_from(Order)),
+            orders_7d=await count(
+                select(func.count())
+                .select_from(Order)
+                .where(Order.placed_at >= now - timedelta(days=7))
+            ),
+            orders_30d=await count(
+                select(func.count())
+                .select_from(Order)
+                .where(Order.placed_at >= now - timedelta(days=30))
+            ),
+            first_order_at=first,
+            last_order_at=last,
+            open_tabs=await count(
+                select(func.count())
+                .select_from(Tab)
+                .where(Tab.status.in_(("open", "bill_requested")))
+            ),
+        )
+        suspension = None
+        if r.status == "suspended":
+            row = (
+                await s.execute(
+                    select(AuditLog, AppUser.name)
+                    .outerjoin(AppUser, AppUser.id == AuditLog.actor_user_id)
+                    .where(
+                        AuditLog.restaurant_id == restaurant_id,
+                        AuditLog.action == "restaurant.suspended",
+                    )
+                    .order_by(AuditLog.at.desc())
+                    .limit(1)
+                )
+            ).first()
+            if row is not None:
+                entry, by = row
+                suspension = SuspensionOut(
+                    at=entry.at, reason=(entry.after or {}).get("reason"), by_name=by
+                )
+        base = _restaurant_out(r)
+        days = None
+        if r.plan_expires_at is not None:
+            days = (r.plan_expires_at.date() - now.date()).days
+        return PlatformRestaurantDetailOut(
+            **base.model_dump(),
+            days_until_expiry=days,
+            outlets=outlets,
+            owners=owners,
+            staff_by_role=staff_by_role,
+            menu_categories=await count(select(func.count()).select_from(MenuCategory)),
+            menu_items=await count(select(func.count()).select_from(MenuItem)),
+            tax_classes=await count(select(func.count()).select_from(TaxClass)),
+            activity=activity,
+            suspension=suspension,
+        )
+
+
+class PlanExpiryIn(BaseModel):
+    # The last day the plan is valid, or null to clear it.
+    expires_on: date | None
+
+
+@router.put("/restaurants/{restaurant_id}/plan-expiry", responses=ERRORS)
+async def set_plan_expiry(
+    restaurant_id: UUID, body: PlanExpiryIn, ctx: PlatformCtx
+) -> PlatformRestaurantOut:
+    """Sets (or clears) the day the plan ends, at the end of that day in UTC. Recorded in the
+    audit log. Setting the value it already has writes nothing, so repeating it is harmless."""
+    assert_is_platform_admin(ctx.actor)
+    new = (
+        None
+        if body.expires_on is None
+        else datetime.combine(body.expires_on, time(23, 59, 59), tzinfo=UTC)
+    )
+    async with tenant_session(restaurant_id) as session:
+        restaurant = await session.get(Restaurant, restaurant_id)
+        if restaurant is None:
+            raise ApiError(404, "restaurant_not_found", "That restaurant does not exist.")
+        if restaurant.plan_expires_at != new:
+            before = restaurant.plan_expires_at
+            restaurant.plan_expires_at = new
+            session.add(
+                AuditLog(
+                    actor_user_id=ctx.actor.user_id,
+                    restaurant_id=restaurant_id,
+                    action="restaurant.plan_expiry_set",
+                    target_type="restaurant",
+                    target_id=restaurant_id,
+                    before={"plan_expires_at": before.isoformat() if before else None},
+                    after={"plan_expires_at": new.isoformat() if new else None},
                 )
             )
         return _restaurant_out(restaurant)

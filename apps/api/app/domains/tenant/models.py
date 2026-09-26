@@ -22,6 +22,8 @@ class Restaurant(Base):
     status: Mapped[str] = mapped_column(Text, default="active")
     # Set by a platform admin only. The owner's own switch lives on `voice_agent`.
     voice_orders_allowed: Mapped[bool] = mapped_column(Boolean, default=False)
+    # When the plan ends; None for a trial or a plan with no fixed end. Set by a platform admin.
+    plan_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -51,6 +53,16 @@ class Outlet(Base):
     )
     expected_prep_minutes: Mapped[int] = mapped_column(
         Integer, default=flags.DEFAULT_EXPECTED_PREP_MINUTES
+    )
+    # Unassigned-table orders (docs/DECISIONS.md "Table assignment: bulk and automatic").
+    auto_assign_unassigned_table_orders: Mapped[bool] = mapped_column(
+        Boolean, default=flags.DEFAULT_AUTO_ASSIGN
+    )
+    auto_assignment_strategy: Mapped[str] = mapped_column(
+        Text, default=flags.DEFAULT_AUTO_ASSIGNMENT_STRATEGY
+    )
+    assignment_rotation_last_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("app_user.id")
     )
     invoice_prefix: Mapped[str] = mapped_column(Text)
     next_invoice_no: Mapped[int] = mapped_column(Integer, default=1)

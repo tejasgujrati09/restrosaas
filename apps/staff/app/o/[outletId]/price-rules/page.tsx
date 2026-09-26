@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Badge, EmptyState, formatBp, formatInr, PageHeader, parsePercentToBp, parseRupees } from "@restosaas/ui";
+import { Badge, EmptyState, formatBp, formatInr, PageHeader, parsePercentToBp, parseRupees, Skeleton } from "@restosaas/ui";
 import { Card, ErrorBanner, Field } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
@@ -21,14 +21,14 @@ export default function PriceRulesPage() {
   const base = `/v1/outlets/${outletId}`;
   const rules = useResource<PriceRule[]>(`${base}/price-rules`);
   const menu = useResource<Menu>(`${base}/menu`);
-  const [name, setName] = useState("Happy hour");
+  const [name, setName] = useState("");
   const [scope, setScope] = useState<"all" | "category" | "item">("all");
   const [target, setTarget] = useState("");
   const [type, setType] = useState<"percent_off" | "fixed">("percent_off");
   const [value, setValue] = useState("");
   const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
-  const [start, setStart] = useState("17:00");
-  const [end, setEnd] = useState("20:00");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
   const [inputError, setInputError] = useState<string | null>(null);
   const action = useAction();
 
@@ -49,12 +49,13 @@ export default function PriceRulesPage() {
   return (
     <div className="narrow">
       <PageHeader
-        title="Happy hours and event pricing"
-        subtitle="A guest is charged the price at the moment they order, and it stays that price on their bill even after the window ends. Times are in your outlet's timezone. A window that runs past midnight belongs to the day it starts."
+        title="Offers"
+        subtitle="Happy hours, event pricing and other special prices. A guest is charged the price at the moment they order, and it stays that price on their bill even after the window ends. Times are in your outlet's timezone. A window that runs past midnight belongs to the day it starts."
       />
-      <Card title="Current rules">
-        <ErrorBanner message={rules.error} />
-        {rules.data?.length === 0 ? <EmptyState title="No rules yet">Add a happy hour below and guests will see the lower price while it runs.</EmptyState> : null}
+      <Card title="Current offers">
+        <ErrorBanner message={rules.error} onRetry={rules.reload} />
+        {!rules.data && !rules.error ? <Skeleton what="your offers" lines={3} /> : null}
+        {rules.data?.length === 0 ? <EmptyState title="No offers yet">Add an offer below and guests will see the lower price while it runs.</EmptyState> : null}
         <ul className="list">
           {rules.data?.map((r) => (
             <li key={r.id}>
@@ -64,21 +65,22 @@ export default function PriceRulesPage() {
           ))}
         </ul>
       </Card>
-      <Card title="Add a rule">
+      <Card title="Add an offer">
         <form onSubmit={add}>
           <div className="row">
-            <Field label="Name"><input required value={name} onChange={(e) => setName(e.target.value)} /></Field>
+            <Field label="Name"><input required value={name} placeholder="e.g. Happy hour" onChange={(e) => setName(e.target.value)} /></Field>
             <Field label="Applies to">
               <select value={scope} onChange={(e) => { setScope(e.target.value as typeof scope); setTarget(""); }}>
                 <option value="all">Everything</option><option value="category">One category</option><option value="item">One item</option>
               </select>
             </Field>
-            {scope === "category" ? (
-              <Field label="Category"><select required value={target} onChange={(e) => setTarget(e.target.value)}><option value="" />{menu.data?.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
-            ) : null}
-            {scope === "item" ? (
-              <Field label="Item"><select required value={target} onChange={(e) => setTarget(e.target.value)}><option value="" />{items.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}</select></Field>
-            ) : null}
+            <Field label={scope === "item" ? "Which item" : "Which category"}>
+              <select required={scope !== "all"} disabled={scope === "all"} value={target} onChange={(e) => setTarget(e.target.value)}>
+                <option value="">{scope === "all" ? "Not needed" : "Choose…"}</option>
+                {scope === "category" ? menu.data?.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>) : null}
+                {scope === "item" ? items.map((i) => <option key={i.id} value={i.id}>{i.name}</option>) : null}
+              </select>
+            </Field>
           </div>
           <div className="row">
             <Field label="Discount type">
@@ -86,9 +88,11 @@ export default function PriceRulesPage() {
                 <option value="percent_off">Percent off</option><option value="fixed">Fixed price</option>
               </select>
             </Field>
-            <Field label={type === "percent_off" ? "Percent off" : "Price (₹)"} size="short"><input required inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} /></Field>
-            <Field label="From" size="short"><input type="time" required value={start} onChange={(e) => setStart(e.target.value)} /></Field>
-            <Field label="Until" size="short"><input type="time" required value={end} onChange={(e) => setEnd(e.target.value)} /></Field>
+            <Field label={type === "percent_off" ? "Percent off" : "Price (₹)"} size="short"><input required inputMode="decimal" value={value} placeholder={type === "percent_off" ? "e.g. 20" : "e.g. 199"} onChange={(e) => setValue(e.target.value)} /></Field>
+          </div>
+          <div className="row">
+            <Field label="From" size="short" hint="For example 17:00"><input type="time" required value={start} onChange={(e) => setStart(e.target.value)} /></Field>
+            <Field label="Until" size="short" hint="For example 20:00"><input type="time" required value={end} onChange={(e) => setEnd(e.target.value)} /></Field>
           </div>
           <fieldset className="field">
             <legend className="field-label">Days</legend>
@@ -98,8 +102,8 @@ export default function PriceRulesPage() {
               ))}
             </div>
           </fieldset>
-          <ErrorBanner message={inputError ?? action.error} />
-          <button type="submit" disabled={action.busy || days.length === 0}>Add rule</button>
+          <ErrorBanner message={inputError} />
+          <button type="submit" disabled={action.busy || days.length === 0}>Add offer</button>
         </form>
       </Card>
     </div>

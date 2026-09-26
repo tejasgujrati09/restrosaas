@@ -18,6 +18,10 @@ export function useLive(): LiveState {
 }
 
 export function socketUrl(outletId: string): string {
-  const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  const configured = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  const api =
+    process.env.NODE_ENV !== "production" && typeof window !== "undefined" && /^https?:\/\/(localhost|\d+\.\d+\.\d+\.\d+)[:/]/.test(configured)
+      ? configured.replace(/^(https?:\/\/)[^:/]+/, `$1${window.location.hostname}`)
+      : configured;
   return `${api.replace(/^http/, "ws")}/v1/outlets/${outletId}/ws`;
 }

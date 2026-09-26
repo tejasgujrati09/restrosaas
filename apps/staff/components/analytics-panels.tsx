@@ -84,7 +84,6 @@ function ExportButton({ outletId, kind, query }: { outletId: string; kind: strin
       >
         {action.busy ? "Preparing…" : "Download CSV"}
       </button>
-      <ErrorBanner message={action.error} />
     </>
   );
 }
@@ -139,6 +138,7 @@ export function OverviewPanel({ outletId, query, onDrill }: PanelProps) {
             {noData ? (
               <EmptyState title="No orders in this range">Pick a wider range, or check back after the next service.</EmptyState>
             ) : null}
+            <h2 className="visually-hidden">Key figures</h2>
             <div className="kpi-grid">
               <KpiCard title="Rounds" kpi={k.orders} note={o.pending_orders ? `${o.pending_orders} still in progress` : undefined} />
               <KpiCard title="Order value" kpi={k.order_value} />
@@ -308,7 +308,6 @@ function ExpectedPrep({ outletId, minutes, onSaved }: { outletId: string; minute
       <button type="submit" disabled={action.busy || Number(value) === minutes}>
         {action.busy ? "Saving…" : "Save"}
       </button>
-      <ErrorBanner message={action.error} />
     </form>
   );
 }

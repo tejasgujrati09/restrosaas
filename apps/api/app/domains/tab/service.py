@@ -34,6 +34,7 @@ from app.core.state import (
 )
 from app.deps import GuestContext, OutletContext
 from app.domains.menu.orderable import LoadedItem, load_items, load_price_rules
+from app.domains.tab.auto_assign import assign_for_new_order
 from app.domains.tab.events import Actor, emit, record_event  # noqa: F401
 from app.domains.tab.models import Order, OrderLine, ServiceRequest, Tab, TabEvent, TabSession
 from app.domains.tab.tickets import cancel_order_tickets, create_tickets
@@ -346,6 +347,7 @@ async def create_round(
     if TabState(tab.status) == TabState.BILL_REQUESTED:
         tab.status = transition_tab(TabState.BILL_REQUESTED, TabState.OPEN).value
         log("bill_request_cleared", {"order_id": str(order.id)})
+    await assign_for_new_order(session, outlet=outlet, tab=tab, order=order, now=now)
     return PlacedOrder(order, lines)
 
 

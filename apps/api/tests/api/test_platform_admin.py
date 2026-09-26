@@ -201,6 +201,106 @@ async def test_admin_lists_restaurants_with_search_and_status_filter(
     ).status_code == 422
 
 
+async def test_restaurant_details_show_the_operators_view_and_only_that_restaurants(
+    client: httpx.AsyncClient, seed: Seed, admin: Admin
+) -> None:
+    headers = bearer(admin.token)
+    r = await client.get(f"/v1/platform/restaurants/{seed.restaurant_a}", headers=headers)
+    assert r.status_code == 200, r.text
+    d = r.json()
+    assert (d["id"], d["brand_name"], d["status"], d["plan"]) == (
+        str(seed.restaurant_a),
+        "Brand a",
+        "active",
+        "trial",
+    )
+    assert d["plan_expires_at"] is None and d["days_until_expiry"] is None
+    assert [o["id"] for o in d["outlets"]] == [str(seed.outlet_a)]
+    assert d["outlets"][0]["tables"] >= 2  # only this restaurant's tables
+    assert {o["phone"] for o in d["owners"]} == {
+        p for k, p in seed.phones.items() if k == "owner_a"
+    }
+    assert d["staff_by_role"].get("waiter") == 1  # the inactive waiter is not counted
+    assert set(d["activity"]) == {
+        "orders_total",
+        "orders_7d",
+        "orders_30d",
+        "first_order_at",
+        "last_order_at",
+        "open_tabs",
+    }
+    assert d["suspension"] is None
+    other = (
+        await client.get(f"/v1/platform/restaurants/{seed.restaurant_b}", headers=headers)
+    ).json()
+    assert [o["id"] for o in other["outlets"]] == [str(seed.outlet_b)]
+    assert (
+        await client.get(f"/v1/platform/restaurants/{uuid.uuid4()}", headers=headers)
+    ).status_code == 404
+    assert (
+        await client.get(
+            f"/v1/platform/restaurants/{seed.restaurant_a}",
+            headers=bearer(seed.token(seed.owner_a, Role.OWNER)),
+        )
+    ).status_code in (401, 403)
+
+
+async def test_plan_expiry_is_set_cleared_audited_and_counted_in_days(
+    client: httpx.AsyncClient, seed: Seed, admin: Admin, owner_engine: AsyncEngine
+) -> None:
+    from datetime import UTC, datetime, timedelta
+
+    headers = bearer(admin.token)
+    url = f"/v1/platform/restaurants/{seed.restaurant_b}"
+    in_ten = (datetime.now(UTC) + timedelta(days=10)).date()
+    r = await client.put(
+        f"{url}/plan-expiry", json={"expires_on": in_ten.isoformat()}, headers=headers
+    )
+    assert r.status_code == 200 and r.json()["plan_expires_at"].startswith(in_ten.isoformat())
+    detail = (await client.get(url, headers=headers)).json()
+    assert detail["days_until_expiry"] == 10
+    past = (datetime.now(UTC) - timedelta(days=3)).date().isoformat()
+    await client.put(f"{url}/plan-expiry", json={"expires_on": past}, headers=headers)
+    assert (await client.get(url, headers=headers)).json()["days_until_expiry"] == -3
+    # The same value again writes no second audit row; clearing works.
+    await client.put(f"{url}/plan-expiry", json={"expires_on": past}, headers=headers)
+    cleared = await client.put(f"{url}/plan-expiry", json={"expires_on": None}, headers=headers)
+    assert cleared.json()["plan_expires_at"] is None
+    async with owner_engine.connect() as conn:
+        n = await conn.scalar(
+            text(
+                "SELECT count(*) FROM audit_log WHERE restaurant_id = :r "
+                "AND action = 'restaurant.plan_expiry_set'"
+            ),
+            {"r": seed.restaurant_b},
+        )
+    assert n == 3  # set, changed, cleared
+    assert (
+        await client.put(f"{url}/plan-expiry", json={"expires_on": "not a date"}, headers=headers)
+    ).status_code == 422
+    ghost = await client.put(
+        f"/v1/platform/restaurants/{uuid.uuid4()}/plan-expiry",
+        json={"expires_on": None},
+        headers=headers,
+    )
+    assert ghost.status_code == 404
+
+
+async def test_a_suspended_restaurants_details_say_who_and_why(
+    client: httpx.AsyncClient, seed: Seed, admin: Admin
+) -> None:
+    headers = bearer(admin.token)
+    url = f"/v1/platform/restaurants/{seed.restaurant_b}"
+    await client.put(
+        f"{url}/status", json={"status": "suspended", "reason": "unpaid invoice"}, headers=headers
+    )
+    try:
+        s = (await client.get(url, headers=headers)).json()["suspension"]
+        assert s["reason"] == "unpaid invoice" and s["by_name"] == "Ops"
+    finally:
+        await client.put(f"{url}/status", json={"status": "active"}, headers=headers)
+
+
 async def test_suspending_needs_a_reason_and_unknown_restaurants_are_404(
     client: httpx.AsyncClient, seed: Seed, admin: Admin
 ) -> None:

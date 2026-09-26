@@ -189,7 +189,7 @@ flowchart TD
 | O1 | Outlet setup | Owner web | Owner | Yes |
 | O2 | Menu editor | Owner web | Owner | Yes |
 | O3 | CSV import | Owner web | Owner | Yes |
-| O4 | Photo/PDF import with review | Owner web | Owner | Phase 2 |
+| O4 | Photo/PDF import with review | Owner web | Owner | Yes (opened 2026-09-26; docs/DECISIONS.md) |
 | O5 | Tables & QR print | Owner web | Owner | Yes |
 | O6 | Staff & roles | Owner web | Owner | Yes |
 | O7 | Reports | Owner web | Owner | Yes |

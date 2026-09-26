@@ -13,17 +13,20 @@ type GuestItem = components["schemas"]["GuestItemOut"];
 export function ItemSheet({
   item,
   canOrder,
+  showNote = true,
   onAdd,
   onClose,
 }: {
   item: GuestItem | null;
   canOrder: boolean;
+  /** Guests write kitchen instructions in the cart; a waiter adding items writes them here. */
+  showNote?: boolean;
   onAdd: (entry: { qty: number; modifier_ids: string[]; note: string }) => void;
   onClose: () => void;
 }) {
   return (
     <Sheet open={item !== null} onClose={onClose} title={item?.name ?? ""}>
-      {item ? <ItemForm key={item.id} item={item} canOrder={canOrder} onAdd={onAdd} /> : null}
+      {item ? <ItemForm key={item.id} item={item} canOrder={canOrder} showNote={showNote} onAdd={onAdd} /> : null}
     </Sheet>
   );
 }
@@ -31,10 +34,12 @@ export function ItemSheet({
 function ItemForm({
   item,
   canOrder,
+  showNote,
   onAdd,
 }: {
   item: GuestItem;
   canOrder: boolean;
+  showNote: boolean;
   onAdd: (entry: { qty: number; modifier_ids: string[]; note: string }) => void;
 }) {
   const [qty, setQty] = useState(1);
@@ -67,6 +72,11 @@ function ItemForm({
         onAdd({ qty, modifier_ids: Object.values(chosen).flat(), note: note.trim() });
       }}
     >
+      <p className="item-meta">
+        <span className="item-price">{formatInr(unit)}</span>
+        {item.price_rule ? <span className="muted">was {formatInr(item.base_price_paise)} · {item.price_rule.name}</span> : null}
+        <span className="muted">{item.veg ? "Veg" : "Non-veg"}</span>
+      </p>
       {item.description ? <p className="muted">{item.description}</p> : null}
       {item.modifier_groups.map((g) => {
         const single = g.max_select === 1;
@@ -94,28 +104,35 @@ function ItemForm({
           </fieldset>
         );
       })}
-      <label className="field">
-        <span className="field-label">Note for the kitchen</span>
-        <input value={note} maxLength={200} placeholder="Less spicy, no onion…" onChange={(e) => setNote(e.target.value)} />
-      </label>
-      <div className="stepper" role="group" aria-label="Quantity">
-        <button type="button" className="secondary icon-btn" aria-label="One less" disabled={qty <= 1} onClick={() => setQty(qty - 1)}>
-          <Icon name="minus" />
-        </button>
-        <output aria-live="polite">{qty}</output>
-        <button type="button" className="secondary icon-btn" aria-label="One more" disabled={qty >= 50} onClick={() => setQty(qty + 1)}>
-          <Icon name="plus" />
+      {showNote ? (
+      <details className="item-note">
+        <summary>Add a note for the kitchen</summary>
+        <label className="field">
+          <span className="field-label">Note for the kitchen</span>
+          <input value={note} maxLength={200} placeholder="e.g. Less spicy, no onion" onChange={(e) => setNote(e.target.value)} />
+        </label>
+      </details>
+      ) : null}
+      <div className="item-actions">
+        <div className="qty-stepper" role="group" aria-label="Quantity">
+          <button type="button" className="secondary icon-btn" aria-label="One less" disabled={qty <= 1} onClick={() => setQty(qty - 1)}>
+            <Icon name="minus" />
+          </button>
+          <output aria-live="polite">{qty}</output>
+          <button type="button" className="secondary icon-btn" aria-label="One more" disabled={qty >= 50} onClick={() => setQty(qty + 1)}>
+            <Icon name="plus" />
+          </button>
+        </div>
+        <button type="submit" className="btn-lg" disabled={!groupsValid || !item.available || !item.self_orderable}>
+          {!item.available
+            ? "Sold out"
+            : !item.self_orderable
+              ? "Ask your waiter"
+              : !groupsValid
+                ? "Choose your options"
+                : `Add to cart · ${formatInr(unit * qty)}`}
         </button>
       </div>
-      <button type="submit" className="wide btn-lg" disabled={!groupsValid || !item.available || !item.self_orderable}>
-        {!item.available
-          ? "Sold out"
-          : !item.self_orderable
-            ? "Ask your waiter"
-            : !groupsValid
-              ? "Choose your options"
-              : `Add to cart · ${formatInr(unit * qty)}`}
-      </button>
       {!canOrder ? <p className="hint">Your waiter needs to confirm your table before you can place an order.</p> : null}
     </form>
   );

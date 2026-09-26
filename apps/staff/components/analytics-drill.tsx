@@ -28,7 +28,7 @@ export function DrillPanel({ outletId, query, drill, onClose }: { outletId: stri
   const cursor = more ? more.cursor : (first.data?.next_cursor ?? null);
   const zone = first.data?.range.timezone ?? "UTC";
   const loading = first.loading || action.busy;
-  const error = first.error ?? action.error;
+  const error = first.error;
 
   function showMore() {
     if (!cursor) return;

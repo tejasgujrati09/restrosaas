@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Badge, PageHeader, roleLabel } from "@restosaas/ui";
+import { Badge, EmptyState, PageHeader, roleLabel, Skeleton } from "@restosaas/ui";
 import { Card, ErrorBanner, Field } from "@/components/ui";
 import { useAction, useResource } from "@/components/hooks";
 import { api } from "@/lib/api";
@@ -54,7 +54,6 @@ export default function StaffPage() {
             <button type="submit" disabled={action.busy || !e164}>Create invite</button>
           </div>
         </form>
-        <ErrorBanner message={action.error} />
         {created?.link ? (
           <div role="status">
             <p className="ok">Invite ready for {created.phone}.</p>
@@ -80,7 +79,10 @@ export default function StaffPage() {
       ) : null}
 
       <Card title="Team">
-        <ErrorBanner message={staff.error} />
+        <ErrorBanner message={staff.error} onRetry={staff.reload} />
+        {!staff.data && !staff.error ? <Skeleton what="your team" lines={3} /> : null}
+        {staff.data && staff.data.length === 0 ? <EmptyState title="No one on the team yet">Invite someone above and they will appear here once they join.</EmptyState> : null}
+        {staff.data && staff.data.length > 0 ? (
         <table className="stacked">
           <thead><tr><th>Name</th><th>Phone</th><th>Role</th><th><span className="visually-hidden">Actions</span></th></tr></thead>
           <tbody>
@@ -99,6 +101,7 @@ export default function StaffPage() {
             ))}
           </tbody>
         </table>
+        ) : null}
       </Card>
     </>
   );

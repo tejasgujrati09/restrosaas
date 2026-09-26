@@ -18,7 +18,7 @@ async function signIn(page: Page, phone: string) {
   await page.getByRole("button", { name: "Sign in" }).click();
 }
 
-test("an owner goes from sign-up to a menu, tables, staff and a happy hour", async ({ page }) => {
+test("an owner goes from sign-up to a menu, tables, staff and an offer", async ({ page }) => {
   const phone = randomPhone();
 
   // Sign up.
@@ -42,6 +42,7 @@ test("an owner goes from sign-up to a menu, tables, staff and a happy hour", asy
 
   const taxCard = page.locator("section", { hasText: "Tax classes" });
   await taxCard.getByLabel("Name").fill("Food 5%");
+  await taxCard.getByLabel("GST (%)").fill("5");
   await taxCard.getByRole("button", { name: "Add tax class" }).click();
   await expect(taxCard.getByText("GST 5%")).toBeVisible();
   await page.reload();
@@ -86,8 +87,14 @@ test("an owner goes from sign-up to a menu, tables, staff and a happy hour", asy
   await page.getByLabel("How many").fill("3");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   const bar = page.locator("section", { has: page.getByRole("heading", { name: "bar", exact: true }) });
-  for (const label of ["B1", "B2", "B3"]) await expect(bar.getByRole("cell", { name: label })).toBeVisible();
-  await expect(bar.getByRole("link", { name: "Open" })).toHaveCount(3);
+  for (const label of ["B1", "B2", "B3"]) await expect(bar.getByRole("article", { name: `Table ${label}` })).toBeVisible();
+  await expect(bar.getByRole("link", { name: "Open QR link" })).toHaveCount(3);
+  // The form is blank again after adding, and one more table can be added from its own slot.
+  await expect(page.getByLabel("Zone")).toHaveValue("");
+  await bar.getByRole("button", { name: "Add table" }).first().click();
+  await bar.getByLabel("Table name").fill("B4");
+  await bar.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(bar.getByRole("article", { name: "Table B4" })).toBeVisible();
 
   // Staff: an invite bound to a phone, with a WhatsApp link.
   await page.getByRole("link", { name: "Staff" }).click();
@@ -96,11 +103,14 @@ test("an owner goes from sign-up to a menu, tables, staff and a happy hour", asy
   await page.getByRole("button", { name: "Create invite" }).click();
   await expect(page.getByRole("link", { name: "Send on WhatsApp" })).toHaveAttribute("href", /^https:\/\/wa\.me\/91999/);
 
-  // Happy hour.
-  await page.getByRole("link", { name: "Happy hours" }).click();
-  await expect(page.getByRole("heading", { name: "Happy hours and event pricing" })).toBeVisible();
+  // Offer (formerly "happy hour"). Every field starts empty, so each is filled.
+  await page.getByRole("link", { name: "Offers" }).click();
+  await expect(page.getByRole("heading", { name: "Offers", level: 1 })).toBeVisible();
+  await page.getByLabel("Name", { exact: true }).fill("Happy hour");
   await page.getByRole("textbox", { name: "Percent off" }).fill("50");
-  await page.getByRole("button", { name: "Add rule" }).click();
+  await page.getByLabel("From").fill("17:00");
+  await page.getByLabel("Until").fill("20:00");
+  await page.getByRole("button", { name: "Add offer" }).click();
   await expect(page.getByText("50% off, 17:00–20:00, every day")).toBeVisible();
 
   // Sign out, sign back in: straight to the menu of the only outlet.

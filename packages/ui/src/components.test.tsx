@@ -71,6 +71,20 @@ describe("banners", () => {
     expect(html(<ErrorBanner message="Nope" />)).toBe('<p class="error" role="alert">Nope</p>');
   });
 
+  it("reserves the height of a hint that changes with a choice", () => {
+    const fixed = html(<Field label="A" hint="Words" hintLines={2}><input /></Field>);
+    expect(fixed).toContain('class="hint reserve"');
+    expect(fixed).toContain("style=");
+    expect(html(<Field label="A" hint="Words"><input /></Field>)).toContain('class="hint"');
+  });
+
+  it("offers a way to try again only when asked to", () => {
+    const out = html(<ErrorBanner message="Nope" onRetry={() => undefined} />);
+    expect(out).toContain('<p class="error" role="alert">Nope</p>');
+    expect(out).toContain("Try again");
+    expect(html(<ErrorBanner message={null} onRetry={() => undefined} />)).toBe("");
+  });
+
   it("announces a notice politely, in warn or info tone", () => {
     expect(html(<Notice>Heads up</Notice>)).toBe('<p class="banner" role="status">Heads up</p>');
     expect(html(<Notice tone="info">FYI</Notice>)).toBe('<p class="notice" role="status">FYI</p>');

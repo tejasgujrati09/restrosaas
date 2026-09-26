@@ -25,7 +25,7 @@ export default function TablePage() {
   const action = useAction();
   const [panel, setPanel] = useState<"transfer" | "merge" | null>(null);
 
-  if (!tab.data) return tab.error ? <ErrorBanner message={tab.error} /> : <Skeleton what="this table" lines={4} block />;
+  if (!tab.data) return tab.error ? <ErrorBanner message={tab.error} onRetry={tab.reload} /> : <Skeleton what="this table" lines={4} block />;
   const view = tab.data.tab;
   const mine = (requests.data ?? []).filter((r) => r.tab_id === tabId);
   const freeTables = (map.data?.tables ?? []).filter((t) => t.active && t.state === "empty");
@@ -74,7 +74,7 @@ export default function TablePage() {
           ) : undefined
         }
       />
-      <ErrorBanner message={action.error ?? tab.error} />
+      <ErrorBanner message={tab.error} />
       {view.status !== "open" && view.status !== "bill_requested" ? <p className="error">This tab is {view.status}.</p> : null}
       {view.awaiting_waiter ? (
         <p className="card">

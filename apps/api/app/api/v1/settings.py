@@ -36,6 +36,9 @@ class SettingsOut(BaseModel):
     ack_threshold_paise: int
     waiter_confirm_mode: bool
     liquor_approval_required: bool
+    # Read-only here; managers change them on the Assign tables screen.
+    auto_assign_unassigned_table_orders: bool
+    auto_assignment_strategy: str
     invoice_prefix: str
     next_invoice_no: int
     next_invoice_preview: str
@@ -104,6 +107,8 @@ async def build_settings(ctx: OutletContext) -> SettingsOut:
         ack_threshold_paise=outlet.ack_threshold_paise,
         waiter_confirm_mode=outlet.waiter_confirm_mode,
         liquor_approval_required=outlet.liquor_approval_required,
+        auto_assign_unassigned_table_orders=outlet.auto_assign_unassigned_table_orders,
+        auto_assignment_strategy=outlet.auto_assignment_strategy,
         invoice_prefix=outlet.invoice_prefix,
         next_invoice_no=outlet.next_invoice_no,
         next_invoice_preview=format_invoice_no(outlet.invoice_prefix, outlet.next_invoice_no),

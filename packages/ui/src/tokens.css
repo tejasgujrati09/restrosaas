@@ -37,6 +37,8 @@
   /* Layout. */
   --gutter: var(--s-5);
   --section-gap: var(--s-6);
+  /* Space between sibling blocks on a page (cards, tab rows, filters, banners, legends). */
+  --gap-block: var(--s-4);
   --w-guest: 560px;
   --w-form: 720px;
   --w-wide: 1120px;
@@ -52,6 +54,40 @@
   --hit: 44px;
   --hit-bar: 48px;
   --hit-cta: 52px;
+
+  /* Table cards (Assign tables, Tables and QR): one width and one height, so cards and
+     "+ Add table" slots line up in a grid. */
+  --tile-min: 184px;
+  --tile-h: 132px;
+
+  /* Weights, marks and layout sizes that used to be literals in the app stylesheets. */
+  --fw-bold: 700;
+  --dot: 8px;
+  --swatch: 12px;
+  --avatar: 48px;
+  --mark: 56px;
+  --mark-lg: 64px;
+  --spinner: 28px;
+  --spin: 0.8s;
+  --row-h: 72px;
+  --hit-xl: 64px;
+  --tile-h-sm: 96px;
+  --tile-min-sm: 160px;
+  --field-min: 160px;
+  --card-min: 280px;
+  --bottom-bar: 76px;
+  --sidebar-w: 248px;
+  --w-auth: 440px;
+  --w-console: 960px;
+  --w-search: 420px;
+  --w-drawer: 480px;
+  --r-xs: 3px;
+  --switch-w: 48px;
+  --switch-h: 28px;
+  --z-base: 1;
+  --z-raised: 2;
+  --z-bar: 5;
+  --z-toast: 20;
 
   /* Elevation and motion. */
   --shadow-pop: 0 8px 24px rgb(28 26 23 / 0.14);

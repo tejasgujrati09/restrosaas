@@ -5,13 +5,13 @@ import { useState } from "react";
 import { formatInr, Icon, ItemSheet, Notice } from "@restosaas/ui";
 
 import { EmptyState, ErrorBanner, Skeleton } from "@/components/ui";
-import { addToCart, useCart } from "@/lib/cart-store";
+import { addToCart, setQty, useCart } from "@/lib/cart-store";
 import { timeOf } from "@/lib/format";
 import { useSession } from "@/lib/session";
 import type { GuestItem, GuestMenu, TabView } from "@/lib/types";
 import { useResource } from "@/lib/use-resource";
 
-/** "Happy hour until 8:00 PM", from the first item the API says has a price rule on. */
+/** "<offer name> until 8:00 PM", from the first item the API says has a price rule on. */
 function dealLine(menu: GuestMenu): string | null {
   for (const category of menu.categories) {
     for (const item of category.items) {
@@ -34,7 +34,7 @@ export default function MenuPage() {
   const [selected, setSelected] = useState<GuestItem | null>(null);
 
   if (!session) return null;
-  if (!menu.data) return menu.error ? <ErrorBanner message={menu.error} /> : <Skeleton what="the menu" lines={6} />;
+  if (!menu.data) return menu.error ? <ErrorBanner message={menu.error} onRetry={menu.reload} /> : <Skeleton what="the menu" lines={6} />;
 
   const awaiting = tab.data?.awaiting_waiter ?? false;
   const count = cart.reduce((n, e) => n + e.qty, 0);
@@ -57,7 +57,7 @@ export default function MenuPage() {
           Waiting for your waiter to confirm this table. You can look at the menu, but ordering opens once they confirm.
         </Notice>
       ) : null}
-      <ErrorBanner message={menu.error} />
+      <ErrorBanner message={menu.error} onRetry={menu.reload} />
       <div className="chips" role="group" aria-label="Filter and jump to a section">
         <button type="button" aria-pressed={vegOnly} onClick={() => setVegOnly(!vegOnly)}>
           Veg only
@@ -85,40 +85,80 @@ export default function MenuPage() {
       {categories.map((c) => (
         <section key={c.id} id={`cat-${c.id}`} aria-labelledby={`h-${c.id}`}>
           <h2 id={`h-${c.id}`}>{c.name}</h2>
-          {c.items.map((item) => (
-            <button key={item.id} type="button" className="item" disabled={!item.available} onClick={() => setSelected(item)}>
-              <span className={item.veg ? "dot" : "dot nonveg"} role="img" aria-label={item.veg ? "Veg" : "Non-veg"} />
-              <span className="grow">
-                <span className="name">{item.name}</span>
-                {item.description ? <span className="desc">{item.description}</span> : null}
-                {item.price_rule ? (
-                  <span className="deal">
-                    {item.price_rule.name}
-                    {item.price_rule.ends_at ? ` until ${timeOf(item.price_rule.ends_at)}` : ""}
-                  </span>
-                ) : null}
-                {!item.available ? (
-                  <span className="desc">Sold out</span>
-                ) : !item.self_orderable ? (
-                  <span className="desc">Ask your waiter</span>
-                ) : null}
-              </span>
-              <span className="price">
-                {item.price_rule ? <span className="was">{formatInr(item.base_price_paise)}</span> : null}
-                {formatInr(item.price_paise)}
-              </span>
-              {item.available && item.self_orderable ? (
-                <span className="add" aria-hidden="true">
-                  <Icon name="plus" />
+          {c.items.map((item) => {
+            const orderable = item.available && item.self_orderable;
+            const body = (
+              <>
+                <span className={item.veg ? "dot" : "dot nonveg"} role="img" aria-label={item.veg ? "Veg" : "Non-veg"} />
+                <span className="grow">
+                  <span className="name">{item.name}</span>
+                  {item.description ? <span className="desc">{item.description}</span> : null}
+                  {item.price_rule ? (
+                    <span className="deal">
+                      {item.price_rule.name}
+                      {item.price_rule.ends_at ? ` until ${timeOf(item.price_rule.ends_at)}` : ""}
+                    </span>
+                  ) : null}
+                  {!item.available ? (
+                    <span className="desc">Sold out</span>
+                  ) : !item.self_orderable ? (
+                    <span className="desc">Ask your waiter</span>
+                  ) : item.modifier_groups.length > 0 ? (
+                    <span className="desc">Choose options</span>
+                  ) : null}
                 </span>
-              ) : null}
-            </button>
-          ))}
+                <span className="price">
+                  {item.price_rule ? <span className="was">{formatInr(item.base_price_paise)}</span> : null}
+                  {formatInr(item.price_paise)}
+                </span>
+              </>
+            );
+            // Items with choices still open the sheet; everything else is added right here.
+            if (!orderable || item.modifier_groups.length > 0) {
+              return (
+                <button key={item.id} type="button" className="item" disabled={!item.available} onClick={() => setSelected(item)}>
+                  {body}
+                  {orderable ? (
+                    <span className="add" aria-hidden="true">
+                      <Icon name="plus" />
+                    </span>
+                  ) : null}
+                </button>
+              );
+            }
+            const line = cart.find((e) => e.menu_item_id === item.id && e.modifier_ids.length === 0);
+            return (
+              <div key={item.id} className="item">
+                {body}
+                {line ? (
+                  <div className="qty" role="group" aria-label={`Quantity of ${item.name}`}>
+                    <button type="button" className="secondary icon-btn" aria-label={`One less ${item.name}`} onClick={() => setQty(session.tab_id, line.key, line.qty - 1)}>
+                      <Icon name="minus" />
+                    </button>
+                    <output aria-live="polite">{line.qty}</output>
+                    <button type="button" className="secondary icon-btn" aria-label={`One more ${item.name}`} disabled={line.qty >= 50} onClick={() => setQty(session.tab_id, line.key, line.qty + 1)}>
+                      <Icon name="plus" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="add"
+                    aria-label={`Add ${item.name}`}
+                    onClick={() => addToCart(session.tab_id, { menu_item_id: item.id, name: item.name, qty: 1, modifier_ids: [], note: "" })}
+                  >
+                    <Icon name="plus" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </section>
       ))}
       <ItemSheet
         item={selected}
         canOrder={!awaiting}
+        showNote={false}
         onClose={() => setSelected(null)}
         onAdd={(entry) => {
           if (selected) addToCart(session.tab_id, { menu_item_id: selected.id, name: selected.name, ...entry });

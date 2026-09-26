@@ -270,6 +270,77 @@
     font: var(--f-caption);
     color: var(--ink-2);
   }
+  /* Text that changes with a choice keeps the height of its longest variant: nothing below moves. */
+  .reserve {
+    display: block;
+    min-height: calc(var(--reserve, 2) * 1lh);
+  }
+  /* A phone has less width, so the same text takes one more line. */
+  @media (max-width: 639px) {
+    .reserve {
+      min-height: calc((var(--reserve, 2) + 1) * 1lh);
+    }
+  }
+
+  /* ---- Toast: feedback for an action, floating, never in the flow ---- */
+  .toasts {
+    position: fixed;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: calc(var(--bottom-bar) + var(--s-3) + env(safe-area-inset-bottom));
+    z-index: var(--z-toast);
+    display: grid;
+    justify-items: center;
+    gap: var(--s-2);
+    pointer-events: none;
+  }
+  .toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    width: 100%;
+    max-width: var(--w-form);
+    min-height: var(--hit);
+    padding: var(--s-2) var(--s-4);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-pop);
+    font: var(--f-body);
+  }
+  .toast.ok {
+    border-color: var(--ok-line);
+  }
+  .toast.error {
+    border-color: var(--danger-line);
+  }
+  .toast-mark {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--s-6);
+    height: var(--s-6);
+    border-radius: 50%;
+    color: var(--on-accent);
+    font-weight: var(--fw-bold);
+  }
+  .toast.ok .toast-mark {
+    background: var(--ok-solid);
+  }
+  .toast.error .toast-mark {
+    background: var(--danger-solid);
+  }
+  .toast-text {
+    flex: 1 1 auto;
+  }
+  @media (min-width: 1024px) {
+    .toasts {
+      bottom: var(--s-6);
+    }
+  }
   .field-error {
     font: var(--f-caption);
     font-weight: 700;
@@ -282,7 +353,7 @@
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
     padding: var(--s-4);
-    margin: 0 0 var(--s-3);
+    margin: 0 0 var(--gap-block);
   }
   .card > h2,
   .card > h3 {
@@ -422,7 +493,7 @@
     align-items: flex-end;
     justify-content: space-between;
     gap: var(--s-3);
-    margin-bottom: var(--s-5);
+    margin-bottom: var(--section-gap);
   }
   .page-head > div:first-child {
     display: flex;
@@ -516,7 +587,7 @@
     width: 100%;
     max-width: 640px;
     margin: auto auto 0;
-    max-height: 90vh;
+    max-height: 85dvh;
     background: var(--surface);
     color: var(--ink);
     box-shadow: var(--shadow-pop);
@@ -524,18 +595,48 @@
   .sheet::backdrop {
     background: var(--overlay);
   }
+  /* The title and the close button stay put; only the content scrolls. */
+  .sheet[open] {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
   .sheet-body {
-    padding: var(--s-5) var(--gutter) calc(var(--s-5) + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
   }
   .sheet-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: var(--s-2);
+    padding: var(--s-4) var(--gutter) var(--s-3);
+    border-bottom: 1px solid var(--border);
+  }
+  .sheet-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--s-4) var(--gutter) calc(var(--s-5) + env(safe-area-inset-bottom));
+  }
+  .sheet-content > p {
     margin-bottom: var(--s-3);
   }
-  .sheet-body > p {
-    margin-bottom: var(--s-3);
+  /* A drawer: from 1024 px it fills the height at the right edge and leaves the page beside it. */
+  @media (min-width: 1024px) {
+    .sheet.drawer {
+      width: var(--w-drawer);
+      max-width: 100%;
+      height: 100dvh;
+      max-height: 100dvh;
+      margin: 0 0 0 auto;
+      border-radius: var(--r-xl) 0 0 var(--r-xl);
+    }
+    .sheet.drawer::backdrop {
+      background: transparent;
+    }
   }
   .group {
     border: 0;
@@ -547,18 +648,61 @@
     font-weight: 700;
     padding: 0;
   }
-  .stepper {
+  /* Quantity: minus, the number, plus, in one row (never confuse with .stepper, the step list). */
+  .qty-stepper {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: var(--s-6);
-    margin: var(--s-2) 0;
+    gap: var(--s-2);
+    flex: none;
   }
-  .stepper output {
-    min-width: 32px;
+  .qty-stepper output {
+    min-width: var(--s-8);
     text-align: center;
+    font: var(--f-h3);
+    font-variant-numeric: tabular-nums;
+  }
+  /* The item sheet: what it is and costs, the choices, an optional note, then the action row. */
+  .item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-2) var(--s-3);
+    margin: 0 0 var(--s-2);
+  }
+  .item-meta .item-price {
     font: var(--f-h2);
     font-variant-numeric: tabular-nums;
+  }
+  .item-note {
+    margin: var(--s-4) 0 0;
+  }
+  .item-note summary {
+    display: flex;
+    align-items: center;
+    min-height: var(--hit);
+    color: var(--accent-text);
+    font: var(--f-small);
+    font-weight: var(--fw-bold);
+    cursor: pointer;
+  }
+  .item-note .field {
+    margin-top: var(--s-2);
+  }
+  /* Stays in view at the bottom of a tall sheet, so the way to add is never scrolled away. */
+  .item-actions {
+    position: sticky;
+    bottom: calc(var(--s-5) * -1 - env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    margin: var(--s-5) calc(var(--gutter) * -1) calc(var(--s-5) * -1);
+    padding: var(--s-3) var(--gutter) calc(var(--s-3) + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .item-actions .btn-lg {
+    flex: 1 1 auto;
+    width: auto;
   }
 
   /* TabStrip: views of one list, scrolls sideways inside itself on a phone. */
@@ -566,7 +710,7 @@
     display: flex;
     gap: var(--s-1);
     overflow-x: auto;
-    margin: 0 0 var(--s-3);
+    margin: 0 0 var(--gap-block);
     padding: var(--s-1);
     background: var(--sunken);
     border-radius: var(--r-md);

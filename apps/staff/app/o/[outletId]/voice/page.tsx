@@ -20,7 +20,7 @@ export default function VoiceOrderingPage() {
   const [note, setNote] = useState<string | null>(null);
 
   const a = agent.data;
-  if (!a) return agent.error ? <ErrorBanner message={agent.error} /> : <Skeleton what="voice ordering" lines={3} block />;
+  if (!a) return agent.error ? <ErrorBanner message={agent.error} onRetry={agent.reload} /> : <Skeleton what="voice ordering" lines={3} block />;
 
   async function call(path: string, done: string | null) {
     setNote(null);
@@ -39,7 +39,7 @@ export default function VoiceOrderingPage() {
         title="Voice ordering"
         subtitle="Let customers order by phone. An assistant answers, takes the order and sends it to you to accept."
       />
-      <ErrorBanner message={action.error ?? agent.error} />
+      <ErrorBanner message={agent.error} />
       {note ? <Notice tone="info">{note}</Notice> : null}
 
       {a.phase === "unavailable" ? (

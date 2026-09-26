@@ -134,8 +134,10 @@ class TableAssignment(Base):
         ForeignKey("dining_table.id", ondelete="CASCADE"), primary_key=True
     )
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("app_user.id"), primary_key=True)
-    assigned_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("app_user.id"))
+    # None when the system assigned it (`auto_assigned`); those are released when the guest leaves.
+    assigned_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("app_user.id"))
     assigned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    auto_assigned: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class TabEvent(Base):

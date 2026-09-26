@@ -6,7 +6,8 @@ import { TotalsTable } from "@/components/totals";
 import { EmptyState, ErrorBanner, Notice } from "@/components/ui";
 import { formatInr, Icon } from "@restosaas/ui";
 import { api, errorMessage, isRetryable } from "@/lib/api";
-import { setQty, useCart, writeCart } from "@/lib/cart-store";
+import { LineNote } from "@/components/line-note";
+import { setNote, setQty, useCart, writeCart } from "@/lib/cart-store";
 import { secondsUntil, timeOf } from "@/lib/format";
 import { useSession } from "@/lib/session";
 import type { Quote, Round } from "@/lib/types";
@@ -175,10 +176,10 @@ export default function CartPage() {
                   <strong>{e.name}</strong>
                   {priced?.modifiers.length ? <div className="muted">{priced.modifiers.map((m) => m.name).join(", ")}</div> : null}
                   {priced?.price_rule ? <div className="deal">{priced.price_rule.name}</div> : null}
-                  {e.note ? <div className="muted">“{e.note}”</div> : null}
                 </div>
                 <strong>{priced ? formatInr(priced.line_total_paise) : "…"}</strong>
               </div>
+              <LineNote name={e.name} note={e.note} onSave={(note) => setNote(session.tab_id, e.key, note)} />
               <div className="controls">
                 <div className="qty" role="group" aria-label={`Quantity of ${e.name}`}>
                   <button

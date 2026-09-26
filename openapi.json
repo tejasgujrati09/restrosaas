@@ -18,6 +18,60 @@
         "title": "AckIn",
         "type": "object"
       },
+      "ActivityOut": {
+        "properties": {
+          "first_order_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Order At"
+          },
+          "last_order_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Order At"
+          },
+          "open_tabs": {
+            "title": "Open Tabs",
+            "type": "integer"
+          },
+          "orders_30d": {
+            "title": "Orders 30D",
+            "type": "integer"
+          },
+          "orders_7d": {
+            "title": "Orders 7D",
+            "type": "integer"
+          },
+          "orders_total": {
+            "title": "Orders Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "orders_total",
+          "orders_7d",
+          "orders_30d",
+          "first_order_at",
+          "last_order_at",
+          "open_tabs"
+        ],
+        "title": "ActivityOut",
+        "type": "object"
+      },
       "AlertOut": {
         "properties": {
           "item": {
@@ -1569,6 +1623,34 @@
         "title": "AssigneesIn",
         "type": "object"
       },
+      "AssignmentBoardOut": {
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/AutoAssignConfigOut"
+          },
+          "tables": {
+            "items": {
+              "$ref": "#/components/schemas/BoardTableOut"
+            },
+            "title": "Tables",
+            "type": "array"
+          },
+          "waiters": {
+            "items": {
+              "$ref": "#/components/schemas/BoardWaiterOut"
+            },
+            "title": "Waiters",
+            "type": "array"
+          }
+        },
+        "required": [
+          "config",
+          "waiters",
+          "tables"
+        ],
+        "title": "AssignmentBoardOut",
+        "type": "object"
+      },
       "AuditEntryOut": {
         "properties": {
           "action": {
@@ -1674,6 +1756,52 @@
         "title": "AuditEntryOut",
         "type": "object"
       },
+      "AutoAssignConfigIn": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "strategy": {
+            "enum": [
+              "nearest",
+              "least_loaded",
+              "rotation"
+            ],
+            "title": "Strategy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled",
+          "strategy"
+        ],
+        "title": "AutoAssignConfigIn",
+        "type": "object"
+      },
+      "AutoAssignConfigOut": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "strategy": {
+            "enum": [
+              "nearest",
+              "least_loaded",
+              "rotation"
+            ],
+            "title": "Strategy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled",
+          "strategy"
+        ],
+        "title": "AutoAssignConfigOut",
+        "type": "object"
+      },
       "AvailabilityIn": {
         "properties": {
           "available": {
@@ -1687,6 +1815,124 @@
         "title": "AvailabilityIn",
         "type": "object"
       },
+      "BoardTableOut": {
+        "properties": {
+          "auto_assigned": {
+            "title": "Auto Assigned",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "needs_waiter": {
+            "title": "Needs Waiter",
+            "type": "boolean"
+          },
+          "seats": {
+            "title": "Seats",
+            "type": "integer"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TableState"
+          },
+          "table_id": {
+            "format": "uuid",
+            "title": "Table Id",
+            "type": "string"
+          },
+          "waiters": {
+            "items": {
+              "$ref": "#/components/schemas/WaiterOut"
+            },
+            "title": "Waiters",
+            "type": "array"
+          },
+          "waiting_orders": {
+            "items": {
+              "$ref": "#/components/schemas/WaitingOrderOut"
+            },
+            "title": "Waiting Orders",
+            "type": "array"
+          },
+          "zone": {
+            "title": "Zone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table_id",
+          "label",
+          "zone",
+          "seats",
+          "state",
+          "waiters",
+          "auto_assigned",
+          "needs_waiter",
+          "waiting_orders"
+        ],
+        "title": "BoardTableOut",
+        "type": "object"
+      },
+      "BoardWaiterOut": {
+        "properties": {
+          "active_tables": {
+            "title": "Active Tables",
+            "type": "integer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          },
+          "tables": {
+            "title": "Tables",
+            "type": "integer"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "phone",
+          "tables",
+          "active_tables"
+        ],
+        "title": "BoardWaiterOut",
+        "type": "object"
+      },
+      "Body_upload_v1_outlets__outlet_id__menu_imports_post": {
+        "properties": {
+          "files": {
+            "description": "A PDF, or JPG/PNG pages in order.",
+            "items": {
+              "contentMediaType": "application/octet-stream",
+              "type": "string"
+            },
+            "title": "Files",
+            "type": "array"
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_v1_outlets__outlet_id__menu_imports_post",
+        "type": "object"
+      },
       "Bucket": {
         "enum": [
           "day",
@@ -1695,6 +1941,35 @@
         ],
         "title": "Bucket",
         "type": "string"
+      },
+      "BulkAssignIn": {
+        "properties": {
+          "table_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Table Ids",
+            "type": "array"
+          },
+          "user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "User Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "table_ids",
+          "user_ids"
+        ],
+        "title": "BulkAssignIn",
+        "type": "object"
       },
       "BulkTablesIn": {
         "properties": {
@@ -1894,6 +2169,157 @@
           "confirmed_at"
         ],
         "title": "ConfirmOut",
+        "type": "object"
+      },
+      "ContactOut": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "phone"
+        ],
+        "title": "ContactOut",
+        "type": "object"
+      },
+      "Defaults": {
+        "properties": {
+          "food_tax_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Food Tax Class"
+          },
+          "liquor_tax_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Liquor Tax Class"
+          }
+        },
+        "title": "Defaults",
+        "type": "object"
+      },
+      "DraftRow": {
+        "description": "One row of the CSV the owner will import. `price` is rupees text and may be empty until\nthe owner fills it. `notes` and `confidence` are for the owner's review only.",
+        "properties": {
+          "available": {
+            "default": true,
+            "title": "Available",
+            "type": "boolean"
+          },
+          "category": {
+            "default": "",
+            "title": "Category",
+            "type": "string"
+          },
+          "confidence": {
+            "default": "high",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_liquor": {
+            "default": false,
+            "title": "Is Liquor",
+            "type": "boolean"
+          },
+          "item": {
+            "default": "",
+            "title": "Item",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "price": {
+            "default": "",
+            "title": "Price",
+            "type": "string"
+          },
+          "skip": {
+            "default": false,
+            "title": "Skip",
+            "type": "boolean"
+          },
+          "source_page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Page"
+          },
+          "tax_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Class"
+          },
+          "veg": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Veg"
+          }
+        },
+        "title": "DraftRow",
         "type": "object"
       },
       "EffectivePriceOut": {
@@ -2254,6 +2680,83 @@
         "title": "ImportApplyOut",
         "type": "object"
       },
+      "ImportJobOut": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "failed_pages": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Failed Pages",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "pages_done": {
+            "title": "Pages Done",
+            "type": "integer"
+          },
+          "pages_total": {
+            "title": "Pages Total",
+            "type": "integer"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UsageOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "stage",
+          "pages_total",
+          "pages_done",
+          "failed_pages",
+          "error",
+          "usage",
+          "created_at"
+        ],
+        "title": "ImportJobOut",
+        "type": "object"
+      },
       "ImportPreviewOut": {
         "properties": {
           "added": {
@@ -2327,6 +2830,87 @@
           "diff_hash"
         ],
         "title": "ImportPreviewOut",
+        "type": "object"
+      },
+      "ImportReviewOut": {
+        "properties": {
+          "defaults": {
+            "$ref": "#/components/schemas/Defaults"
+          },
+          "diff": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImportPreviewOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "general_errors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "General Errors",
+            "type": "array"
+          },
+          "job": {
+            "$ref": "#/components/schemas/ImportJobOut"
+          },
+          "matches_existing": {
+            "title": "Matches Existing",
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "similar_existing": {
+            "title": "Similar Existing",
+            "type": "integer"
+          },
+          "tax_classes": {
+            "items": {
+              "$ref": "#/components/schemas/TaxClassOptionOut"
+            },
+            "title": "Tax Classes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "job",
+          "rows",
+          "defaults",
+          "tax_classes",
+          "general_errors",
+          "diff",
+          "matches_existing",
+          "similar_existing"
+        ],
+        "title": "ImportReviewOut",
+        "type": "object"
+      },
+      "ImportUpdateIn": {
+        "properties": {
+          "defaults": {
+            "$ref": "#/components/schemas/Defaults"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/DraftRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rows",
+          "defaults"
+        ],
+        "title": "ImportUpdateIn",
         "type": "object"
       },
       "InviteAcceptIn": {
@@ -3694,6 +4278,57 @@
         "title": "OtpVerifyIn",
         "type": "object"
       },
+      "OutletDetailOut": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "liquor_licensed": {
+            "title": "Liquor Licensed",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "state_code": {
+            "title": "State Code",
+            "type": "string"
+          },
+          "tables": {
+            "title": "Tables",
+            "type": "integer"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "address",
+          "state_code",
+          "timezone",
+          "liquor_licensed",
+          "tables"
+        ],
+        "title": "OutletDetailOut",
+        "type": "object"
+      },
       "PlaceOrderIn": {
         "properties": {
           "lines": {
@@ -3710,6 +4345,27 @@
           "lines"
         ],
         "title": "PlaceOrderIn",
+        "type": "object"
+      },
+      "PlanExpiryIn": {
+        "properties": {
+          "expires_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires On"
+          }
+        },
+        "required": [
+          "expires_on"
+        ],
+        "title": "PlanExpiryIn",
         "type": "object"
       },
       "PlatformMeOut": {
@@ -3778,6 +4434,146 @@
         "title": "PlatformOtpVerifyIn",
         "type": "object"
       },
+      "PlatformRestaurantDetailOut": {
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/ActivityOut"
+          },
+          "brand_name": {
+            "title": "Brand Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "days_until_expiry": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Until Expiry"
+          },
+          "gstin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gstin"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "legal_name": {
+            "title": "Legal Name",
+            "type": "string"
+          },
+          "menu_categories": {
+            "title": "Menu Categories",
+            "type": "integer"
+          },
+          "menu_items": {
+            "title": "Menu Items",
+            "type": "integer"
+          },
+          "outlets": {
+            "items": {
+              "$ref": "#/components/schemas/OutletDetailOut"
+            },
+            "title": "Outlets",
+            "type": "array"
+          },
+          "owners": {
+            "items": {
+              "$ref": "#/components/schemas/ContactOut"
+            },
+            "title": "Owners",
+            "type": "array"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          },
+          "plan_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Expires At"
+          },
+          "staff_by_role": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Staff By Role",
+            "type": "object"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "suspension": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SuspensionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tax_classes": {
+            "title": "Tax Classes",
+            "type": "integer"
+          },
+          "voice_orders_allowed": {
+            "title": "Voice Orders Allowed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "brand_name",
+          "legal_name",
+          "gstin",
+          "plan",
+          "status",
+          "voice_orders_allowed",
+          "plan_expires_at",
+          "created_at",
+          "days_until_expiry",
+          "outlets",
+          "owners",
+          "staff_by_role",
+          "menu_categories",
+          "menu_items",
+          "tax_classes",
+          "activity",
+          "suspension"
+        ],
+        "title": "PlatformRestaurantDetailOut",
+        "type": "object"
+      },
       "PlatformRestaurantOut": {
         "properties": {
           "brand_name": {
@@ -3813,6 +4609,18 @@
             "title": "Plan",
             "type": "string"
           },
+          "plan_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Expires At"
+          },
           "status": {
             "enum": [
               "active",
@@ -3834,6 +4642,7 @@
           "plan",
           "status",
           "voice_orders_allowed",
+          "plan_expires_at",
           "created_at"
         ],
         "title": "PlatformRestaurantOut",
@@ -4400,6 +5209,122 @@
         "title": "RestaurantStatusIn",
         "type": "object"
       },
+      "ReviewRowOut": {
+        "properties": {
+          "available": {
+            "default": true,
+            "title": "Available",
+            "type": "boolean"
+          },
+          "category": {
+            "default": "",
+            "title": "Category",
+            "type": "string"
+          },
+          "confidence": {
+            "default": "high",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "errors": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "is_liquor": {
+            "default": false,
+            "title": "Is Liquor",
+            "type": "boolean"
+          },
+          "item": {
+            "default": "",
+            "title": "Item",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "price": {
+            "default": "",
+            "title": "Price",
+            "type": "string"
+          },
+          "similar_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Similar To"
+          },
+          "skip": {
+            "default": false,
+            "title": "Skip",
+            "type": "boolean"
+          },
+          "source_page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Page"
+          },
+          "tax_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Class"
+          },
+          "veg": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Veg"
+          }
+        },
+        "title": "ReviewRowOut",
+        "type": "object"
+      },
       "Role": {
         "description": "Mirrors `StaffRole.role` (docs/SPEC.md \u00a77.1).",
         "enum": [
@@ -4668,6 +5593,14 @@
             ],
             "title": "Address"
           },
+          "auto_assign_unassigned_table_orders": {
+            "title": "Auto Assign Unassigned Table Orders",
+            "type": "boolean"
+          },
+          "auto_assignment_strategy": {
+            "title": "Auto Assignment Strategy",
+            "type": "string"
+          },
           "brand_name": {
             "title": "Brand Name",
             "type": "string"
@@ -4766,6 +5699,8 @@
           "ack_threshold_paise",
           "waiter_confirm_mode",
           "liquor_approval_required",
+          "auto_assign_unassigned_table_orders",
+          "auto_assignment_strategy",
           "invoice_prefix",
           "next_invoice_no",
           "next_invoice_preview",
@@ -5248,6 +6183,44 @@
         "title": "StationOut",
         "type": "object"
       },
+      "SuspensionOut": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "By Name"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "at",
+          "reason",
+          "by_name"
+        ],
+        "title": "SuspensionOut",
+        "type": "object"
+      },
       "TabOut": {
         "properties": {
           "awaiting_waiter": {
@@ -5612,6 +6585,24 @@
         "title": "TaxClassIn",
         "type": "object"
       },
+      "TaxClassOptionOut": {
+        "properties": {
+          "liquor": {
+            "title": "Liquor",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "liquor"
+        ],
+        "title": "TaxClassOptionOut",
+        "type": "object"
+      },
       "TaxClassOut": {
         "properties": {
           "gst_rate_bp": {
@@ -5954,6 +6945,52 @@
           "table_id"
         ],
         "title": "TransferIn",
+        "type": "object"
+      },
+      "UsageOut": {
+        "properties": {
+          "completion_tokens": {
+            "default": 0,
+            "title": "Completion Tokens",
+            "type": "integer"
+          },
+          "duration_ms": {
+            "default": 0,
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "estimated_cost_usd": {
+            "default": 0.0,
+            "title": "Estimated Cost Usd",
+            "type": "number"
+          },
+          "failed_pages": {
+            "default": 0,
+            "title": "Failed Pages",
+            "type": "integer"
+          },
+          "pages": {
+            "default": 0,
+            "title": "Pages",
+            "type": "integer"
+          },
+          "prompt_tokens": {
+            "default": 0,
+            "title": "Prompt Tokens",
+            "type": "integer"
+          },
+          "requests": {
+            "default": 0,
+            "title": "Requests",
+            "type": "integer"
+          },
+          "retries": {
+            "default": 0,
+            "title": "Retries",
+            "type": "integer"
+          }
+        },
+        "title": "UsageOut",
         "type": "object"
       },
       "ValidationError": {
@@ -6478,6 +7515,30 @@
           "phone"
         ],
         "title": "WaiterOut",
+        "type": "object"
+      },
+      "WaitingOrderOut": {
+        "properties": {
+          "order_id": {
+            "format": "uuid",
+            "title": "Order Id",
+            "type": "string"
+          },
+          "short_id": {
+            "title": "Short Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "short_id",
+          "status"
+        ],
+        "title": "WaitingOrderOut",
         "type": "object"
       },
       "ZoneAssigneesIn": {
@@ -9960,6 +11021,746 @@
         "summary": "Preview Import",
         "tags": [
           "menu-import"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/menu/imports": {
+      "post": {
+        "operationId": "upload_v1_outlets__outlet_id__menu_imports_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_v1_outlets__outlet_id__menu_imports_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Upload",
+        "tags": [
+          "menu-imports"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/menu/imports/{import_id}": {
+      "get": {
+        "operationId": "get_import_v1_outlets__outlet_id__menu_imports__import_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Import Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Import",
+        "tags": [
+          "menu-imports"
+        ]
+      },
+      "put": {
+        "description": "Replace the draft rows and default tax classes with the owner's corrections.",
+        "operationId": "update_v1_outlets__outlet_id__menu_imports__import_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Import Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportReviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update",
+        "tags": [
+          "menu-imports"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/menu/imports/{import_id}/confirm": {
+      "post": {
+        "description": "Apply the reviewed draft with the existing CSV import. All or nothing: one transaction.",
+        "operationId": "confirm_v1_outlets__outlet_id__menu_imports__import_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Import Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "diff_hash",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 64,
+              "title": "Diff Hash",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportApplyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm",
+        "tags": [
+          "menu-imports"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/menu/imports/{import_id}/csv": {
+      "get": {
+        "operationId": "download_csv_v1_outlets__outlet_id__menu_imports__import_id__csv_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Import Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Download Csv",
+        "tags": [
+          "menu-imports"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/menu/imports/{import_id}/preview": {
+      "get": {
+        "operationId": "preview_v1_outlets__outlet_id__menu_imports__import_id__preview_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Import Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportReviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Preview",
+        "tags": [
+          "menu-imports"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/menu/imports/{import_id}/retry": {
+      "post": {
+        "description": "Re-run a failed job. Pages that already succeeded are not sent to the model again.",
+        "operationId": "retry_v1_outlets__outlet_id__menu_imports__import_id__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Import Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Retry",
+        "tags": [
+          "menu-imports"
         ]
       }
     },
@@ -13839,6 +15640,327 @@
         ]
       }
     },
+    "/v1/outlets/{outlet_id}/table-assignments/auto": {
+      "put": {
+        "description": "Turns automatic assignment of unassigned-table orders on or off and picks the strategy.\nThe strategy is kept while it is off but has no effect.",
+        "operationId": "set_auto_assignment_v1_outlets__outlet_id__table_assignments_auto_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutoAssignConfigIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignmentBoardOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Auto Assignment",
+        "tags": [
+          "assignments"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/table-assignments/board": {
+      "get": {
+        "description": "Every table as a card with its state and waiters, the waiters with their load, and the\nautomatic-assignment setting: everything the Assign tables screen shows, in one read.",
+        "operationId": "assignment_board_v1_outlets__outlet_id__table_assignments_board_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignmentBoardOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Assignment Board",
+        "tags": [
+          "assignments"
+        ]
+      }
+    },
+    "/v1/outlets/{outlet_id}/table-assignments/bulk": {
+      "put": {
+        "description": "Makes `user_ids` exactly the waiters of every selected table (an empty list clears them).\nOnly assignment changes: tabs, orders and table states are untouched, so nothing in flight\nis disturbed.",
+        "operationId": "assign_tables_bulk_v1_outlets__outlet_id__table_assignments_bulk_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkAssignIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignmentBoardOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Assign Tables Bulk",
+        "tags": [
+          "assignments"
+        ]
+      }
+    },
     "/v1/outlets/{outlet_id}/table-assignments/zone": {
       "put": {
         "description": "Sets the waiters for every table in a zone in one go, e.g. at the start of a shift.",
@@ -17435,6 +19557,194 @@
           }
         ],
         "summary": "List Restaurants",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/v1/platform/restaurants/{restaurant_id}": {
+      "get": {
+        "description": "Everything an operator needs to know about one restaurant. Read through the\nrestaurant's own tenant session, like the voice view; it returns counts and contacts, never\norders, guests or prices.",
+        "operationId": "get_restaurant_v1_platform_restaurants__restaurant_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "restaurant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Restaurant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformRestaurantDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Restaurant",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/v1/platform/restaurants/{restaurant_id}/plan-expiry": {
+      "put": {
+        "description": "Sets (or clears) the day the plan ends, at the end of that day in UTC. Recorded in the\naudit log. Setting the value it already has writes nothing, so repeating it is harmless.",
+        "operationId": "set_plan_expiry_v1_platform_restaurants__restaurant_id__plan_expiry_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "restaurant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Restaurant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanExpiryIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformRestaurantOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Plan Expiry",
         "tags": [
           "platform"
         ]

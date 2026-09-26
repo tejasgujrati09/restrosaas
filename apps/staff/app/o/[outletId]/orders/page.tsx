@@ -230,8 +230,8 @@ function OrderSheet({
 
   const voiceBase = `/v1/outlets/${outletId}/staff/voice-orders/${orderId}`;
   return (
-    <Sheet open={orderId !== null} onClose={onClose} title={d ? `Order #${d.short_id}` : "Order"}>
-      <ErrorBanner message={action.error ?? detail.error} />
+    <Sheet open={orderId !== null} onClose={onClose} variant="drawer" title={d ? `Order #${d.short_id}` : "Order"}>
+      <ErrorBanner message={detail.error} />
       {!d && !detail.error ? <Skeleton what="order" lines={4} block /> : null}
       {d ? (
         <>

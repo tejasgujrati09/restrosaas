@@ -1,6 +1,12 @@
 import { clearSession, getToken } from "./session";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const CONFIGURED_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// In development the API shares the page's host, so the same build works on localhost and, with
+// LAN=1 scripts/dev.sh, from a phone on the LAN. Production always uses the configured URL.
+const API_URL =
+  process.env.NODE_ENV !== "production" && typeof window !== "undefined" && /^https?:\/\/(localhost|\d+\.\d+\.\d+\.\d+)[:/]/.test(CONFIGURED_API_URL)
+    ? CONFIGURED_API_URL.replace(/^(https?:\/\/)[^:/]+/, `$1${window.location.hostname}`)
+    : CONFIGURED_API_URL;
 
 export class ApiError extends Error {
   constructor(

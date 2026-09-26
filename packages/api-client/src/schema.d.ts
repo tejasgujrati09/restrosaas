@@ -536,6 +536,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/outlets/{outlet_id}/menu/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload */
+        post: operations["upload_v1_outlets__outlet_id__menu_imports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/menu/imports/{import_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Import */
+        get: operations["get_import_v1_outlets__outlet_id__menu_imports__import_id__get"];
+        /**
+         * Update
+         * @description Replace the draft rows and default tax classes with the owner's corrections.
+         */
+        put: operations["update_v1_outlets__outlet_id__menu_imports__import_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/menu/imports/{import_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm
+         * @description Apply the reviewed draft with the existing CSV import. All or nothing: one transaction.
+         */
+        post: operations["confirm_v1_outlets__outlet_id__menu_imports__import_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/menu/imports/{import_id}/csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Csv */
+        get: operations["download_csv_v1_outlets__outlet_id__menu_imports__import_id__csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/menu/imports/{import_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview */
+        get: operations["preview_v1_outlets__outlet_id__menu_imports__import_id__preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/menu/imports/{import_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry
+         * @description Re-run a failed job. Pages that already succeeded are not sent to the model again.
+         */
+        post: operations["retry_v1_outlets__outlet_id__menu_imports__import_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/outlets/{outlet_id}/modifier-groups": {
         parameters: {
             query?: never;
@@ -1045,6 +1157,70 @@ export interface paths {
         /** List Assignments */
         get: operations["list_assignments_v1_outlets__outlet_id__table_assignments_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/table-assignments/auto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Auto Assignment
+         * @description Turns automatic assignment of unassigned-table orders on or off and picks the strategy.
+         *     The strategy is kept while it is off but has no effect.
+         */
+        put: operations["set_auto_assignment_v1_outlets__outlet_id__table_assignments_auto_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/table-assignments/board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Assignment Board
+         * @description Every table as a card with its state and waiters, the waiters with their load, and the
+         *     automatic-assignment setting: everything the Assign tables screen shows, in one read.
+         */
+        get: operations["assignment_board_v1_outlets__outlet_id__table_assignments_board_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outlets/{outlet_id}/table-assignments/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Assign Tables Bulk
+         * @description Makes `user_ids` exactly the waiters of every selected table (an empty list clears them).
+         *     Only assignment changes: tabs, orders and table states are untouched, so nothing in flight
+         *     is disturbed.
+         */
+        put: operations["assign_tables_bulk_v1_outlets__outlet_id__table_assignments_bulk_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1622,6 +1798,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/platform/restaurants/{restaurant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Restaurant
+         * @description Everything an operator needs to know about one restaurant. Read through the
+         *     restaurant's own tenant session, like the voice view; it returns counts and contacts, never
+         *     orders, guests or prices.
+         */
+        get: operations["get_restaurant_v1_platform_restaurants__restaurant_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/platform/restaurants/{restaurant_id}/plan-expiry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Plan Expiry
+         * @description Sets (or clears) the day the plan ends, at the end of that day in UTC. Recorded in the
+         *     audit log. Setting the value it already has writes nothing, so repeating it is harmless.
+         */
+        put: operations["set_plan_expiry_v1_platform_restaurants__restaurant_id__plan_expiry_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/platform/restaurants/{restaurant_id}/status": {
         parameters: {
             query?: never;
@@ -1772,6 +1991,21 @@ export interface components {
              * @enum {string}
              */
             answer: "ours" | "not_ours";
+        };
+        /** ActivityOut */
+        ActivityOut: {
+            /** First Order At */
+            first_order_at: string | null;
+            /** Last Order At */
+            last_order_at: string | null;
+            /** Open Tabs */
+            open_tabs: number;
+            /** Orders 30D */
+            orders_30d: number;
+            /** Orders 7D */
+            orders_7d: number;
+            /** Orders Total */
+            orders_total: number;
         };
         /** AlertOut */
         AlertOut: {
@@ -2294,6 +2528,14 @@ export interface components {
             /** User Ids */
             user_ids: string[];
         };
+        /** AssignmentBoardOut */
+        AssignmentBoardOut: {
+            config: components["schemas"]["AutoAssignConfigOut"];
+            /** Tables */
+            tables: components["schemas"]["BoardTableOut"][];
+            /** Waiters */
+            waiters: components["schemas"]["BoardWaiterOut"][];
+        };
         /** AuditEntryOut */
         AuditEntryOut: {
             /** Action */
@@ -2327,16 +2569,90 @@ export interface components {
             /** Target Type */
             target_type: string;
         };
+        /** AutoAssignConfigIn */
+        AutoAssignConfigIn: {
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Strategy
+             * @enum {string}
+             */
+            strategy: "nearest" | "least_loaded" | "rotation";
+        };
+        /** AutoAssignConfigOut */
+        AutoAssignConfigOut: {
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Strategy
+             * @enum {string}
+             */
+            strategy: "nearest" | "least_loaded" | "rotation";
+        };
         /** AvailabilityIn */
         AvailabilityIn: {
             /** Available */
             available: boolean;
+        };
+        /** BoardTableOut */
+        BoardTableOut: {
+            /** Auto Assigned */
+            auto_assigned: boolean;
+            /** Label */
+            label: string;
+            /** Needs Waiter */
+            needs_waiter: boolean;
+            /** Seats */
+            seats: number;
+            state: components["schemas"]["TableState"];
+            /**
+             * Table Id
+             * Format: uuid
+             */
+            table_id: string;
+            /** Waiters */
+            waiters: components["schemas"]["WaiterOut"][];
+            /** Waiting Orders */
+            waiting_orders: components["schemas"]["WaitingOrderOut"][];
+            /** Zone */
+            zone: string;
+        };
+        /** BoardWaiterOut */
+        BoardWaiterOut: {
+            /** Active Tables */
+            active_tables: number;
+            /** Name */
+            name: string | null;
+            /** Phone */
+            phone: string;
+            /** Tables */
+            tables: number;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** Body_upload_v1_outlets__outlet_id__menu_imports_post */
+        Body_upload_v1_outlets__outlet_id__menu_imports_post: {
+            /**
+             * Files
+             * @description A PDF, or JPG/PNG pages in order.
+             */
+            files: string[];
         };
         /**
          * Bucket
          * @enum {string}
          */
         Bucket: "day" | "week" | "month";
+        /** BulkAssignIn */
+        BulkAssignIn: {
+            /** Table Ids */
+            table_ids: string[];
+            /** User Ids */
+            user_ids: string[];
+        };
         /** BulkTablesIn */
         BulkTablesIn: {
             /** Labels */
@@ -2415,6 +2731,73 @@ export interface components {
              * Format: uuid
              */
             tab_id: string;
+        };
+        /** ContactOut */
+        ContactOut: {
+            /** Name */
+            name: string | null;
+            /** Phone */
+            phone: string;
+        };
+        /** Defaults */
+        Defaults: {
+            /** Food Tax Class */
+            food_tax_class?: string | null;
+            /** Liquor Tax Class */
+            liquor_tax_class?: string | null;
+        };
+        /**
+         * DraftRow
+         * @description One row of the CSV the owner will import. `price` is rupees text and may be empty until
+         *     the owner fills it. `notes` and `confidence` are for the owner's review only.
+         */
+        DraftRow: {
+            /**
+             * Available
+             * @default true
+             */
+            available: boolean;
+            /**
+             * Category
+             * @default
+             */
+            category: string;
+            /**
+             * Confidence
+             * @default high
+             * @enum {string}
+             */
+            confidence: "high" | "medium" | "low";
+            /** Description */
+            description?: string | null;
+            /**
+             * Is Liquor
+             * @default false
+             */
+            is_liquor: boolean;
+            /**
+             * Item
+             * @default
+             */
+            item: string;
+            /** Notes */
+            notes?: string[];
+            /**
+             * Price
+             * @default
+             */
+            price: string;
+            /**
+             * Skip
+             * @default false
+             */
+            skip: boolean;
+            /** Source Page */
+            source_page?: number | null;
+            /** Tax Class */
+            tax_class?: string | null;
+            /** Veg */
+            veg?: boolean | null;
         };
         /** EffectivePriceOut */
         EffectivePriceOut: {
@@ -2552,6 +2935,29 @@ export interface components {
             /** Items Updated */
             items_updated: number;
         };
+        /** ImportJobOut */
+        ImportJobOut: {
+            /** Created At */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Failed Pages */
+            failed_pages: number[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Pages Done */
+            pages_done: number;
+            /** Pages Total */
+            pages_total: number;
+            /** Stage */
+            stage: string | null;
+            /** Status */
+            status: string;
+            usage: components["schemas"]["UsageOut"] | null;
+        };
         /** ImportPreviewOut */
         ImportPreviewOut: {
             /** Added */
@@ -2571,6 +2977,28 @@ export interface components {
             ][];
             /** Unchanged */
             unchanged: number;
+        };
+        /** ImportReviewOut */
+        ImportReviewOut: {
+            defaults: components["schemas"]["Defaults"];
+            diff: components["schemas"]["ImportPreviewOut"] | null;
+            /** General Errors */
+            general_errors: string[];
+            job: components["schemas"]["ImportJobOut"];
+            /** Matches Existing */
+            matches_existing: number;
+            /** Rows */
+            rows: components["schemas"]["ReviewRowOut"][];
+            /** Similar Existing */
+            similar_existing: number;
+            /** Tax Classes */
+            tax_classes: components["schemas"]["TaxClassOptionOut"][];
+        };
+        /** ImportUpdateIn */
+        ImportUpdateIn: {
+            defaults: components["schemas"]["Defaults"];
+            /** Rows */
+            rows: components["schemas"]["DraftRow"][];
         };
         /** InviteAcceptIn */
         InviteAcceptIn: {
@@ -3067,10 +3495,35 @@ export interface components {
             /** Phone */
             phone: string;
         };
+        /** OutletDetailOut */
+        OutletDetailOut: {
+            /** Address */
+            address: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Liquor Licensed */
+            liquor_licensed: boolean;
+            /** Name */
+            name: string;
+            /** State Code */
+            state_code: string;
+            /** Tables */
+            tables: number;
+            /** Timezone */
+            timezone: string;
+        };
         /** PlaceOrderIn */
         PlaceOrderIn: {
             /** Lines */
             lines: components["schemas"]["CartLineIn"][];
+        };
+        /** PlanExpiryIn */
+        PlanExpiryIn: {
+            /** Expires On */
+            expires_on: string | null;
         };
         /** PlatformMeOut */
         PlatformMeOut: {
@@ -3096,6 +3549,54 @@ export interface components {
             /** Phone */
             phone: string;
         };
+        /** PlatformRestaurantDetailOut */
+        PlatformRestaurantDetailOut: {
+            activity: components["schemas"]["ActivityOut"];
+            /** Brand Name */
+            brand_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Days Until Expiry */
+            days_until_expiry: number | null;
+            /** Gstin */
+            gstin: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Legal Name */
+            legal_name: string;
+            /** Menu Categories */
+            menu_categories: number;
+            /** Menu Items */
+            menu_items: number;
+            /** Outlets */
+            outlets: components["schemas"]["OutletDetailOut"][];
+            /** Owners */
+            owners: components["schemas"]["ContactOut"][];
+            /** Plan */
+            plan: string;
+            /** Plan Expires At */
+            plan_expires_at: string | null;
+            /** Staff By Role */
+            staff_by_role: {
+                [key: string]: number;
+            };
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended";
+            suspension: components["schemas"]["SuspensionOut"] | null;
+            /** Tax Classes */
+            tax_classes: number;
+            /** Voice Orders Allowed */
+            voice_orders_allowed: boolean;
+        };
         /** PlatformRestaurantOut */
         PlatformRestaurantOut: {
             /** Brand Name */
@@ -3116,6 +3617,8 @@ export interface components {
             legal_name: string;
             /** Plan */
             plan: string;
+            /** Plan Expires At */
+            plan_expires_at: string | null;
             /**
              * Status
              * @enum {string}
@@ -3342,6 +3845,62 @@ export interface components {
              */
             status: "active" | "suspended";
         };
+        /** ReviewRowOut */
+        ReviewRowOut: {
+            /**
+             * Available
+             * @default true
+             */
+            available: boolean;
+            /**
+             * Category
+             * @default
+             */
+            category: string;
+            /**
+             * Confidence
+             * @default high
+             * @enum {string}
+             */
+            confidence: "high" | "medium" | "low";
+            /** Description */
+            description?: string | null;
+            /**
+             * Errors
+             * @default []
+             */
+            errors: string[];
+            /**
+             * Is Liquor
+             * @default false
+             */
+            is_liquor: boolean;
+            /**
+             * Item
+             * @default
+             */
+            item: string;
+            /** Notes */
+            notes?: string[];
+            /**
+             * Price
+             * @default
+             */
+            price: string;
+            /** Similar To */
+            similar_to?: string | null;
+            /**
+             * Skip
+             * @default false
+             */
+            skip: boolean;
+            /** Source Page */
+            source_page?: number | null;
+            /** Tax Class */
+            tax_class?: string | null;
+            /** Veg */
+            veg?: boolean | null;
+        };
         /**
          * Role
          * @description Mirrors `StaffRole.role` (docs/SPEC.md §7.1).
@@ -3451,6 +4010,10 @@ export interface components {
             ack_threshold_paise: number;
             /** Address */
             address: string | null;
+            /** Auto Assign Unassigned Table Orders */
+            auto_assign_unassigned_table_orders: boolean;
+            /** Auto Assignment Strategy */
+            auto_assignment_strategy: string;
             /** Brand Name */
             brand_name: string;
             /** Go Live Blockers */
@@ -3636,6 +4199,18 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** SuspensionOut */
+        SuspensionOut: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** By Name */
+            by_name: string | null;
+            /** Reason */
+            reason: string | null;
+        };
         /** TabOut */
         TabOut: {
             /** Awaiting Waiter */
@@ -3785,6 +4360,13 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** TaxClassOptionOut */
+        TaxClassOptionOut: {
+            /** Liquor */
+            liquor: boolean;
+            /** Name */
+            name: string;
+        };
         /** TaxClassOut */
         TaxClassOut: {
             /** Gst Rate Bp */
@@ -3919,6 +4501,49 @@ export interface components {
              * Format: uuid
              */
             table_id: string;
+        };
+        /** UsageOut */
+        UsageOut: {
+            /**
+             * Completion Tokens
+             * @default 0
+             */
+            completion_tokens: number;
+            /**
+             * Duration Ms
+             * @default 0
+             */
+            duration_ms: number;
+            /**
+             * Estimated Cost Usd
+             * @default 0
+             */
+            estimated_cost_usd: number;
+            /**
+             * Failed Pages
+             * @default 0
+             */
+            failed_pages: number;
+            /**
+             * Pages
+             * @default 0
+             */
+            pages: number;
+            /**
+             * Prompt Tokens
+             * @default 0
+             */
+            prompt_tokens: number;
+            /**
+             * Requests
+             * @default 0
+             */
+            requests: number;
+            /**
+             * Retries
+             * @default 0
+             */
+            retries: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -4085,6 +4710,18 @@ export interface components {
              * Format: uuid
              */
             user_id: string;
+        };
+        /** WaitingOrderOut */
+        WaitingOrderOut: {
+            /**
+             * Order Id
+             * Format: uuid
+             */
+            order_id: string;
+            /** Short Id */
+            short_id: string;
+            /** Status */
+            status: string;
         };
         /** ZoneAssigneesIn */
         ZoneAssigneesIn: {
@@ -6134,6 +6771,495 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportPreviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    upload_v1_outlets__outlet_id__menu_imports_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_v1_outlets__outlet_id__menu_imports_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    get_import_v1_outlets__outlet_id__menu_imports__import_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                import_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    update_v1_outlets__outlet_id__menu_imports__import_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                import_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportReviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    confirm_v1_outlets__outlet_id__menu_imports__import_id__confirm_post: {
+        parameters: {
+            query: {
+                diff_hash: string;
+            };
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                import_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportApplyOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    download_csv_v1_outlets__outlet_id__menu_imports__import_id__csv_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                import_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    preview_v1_outlets__outlet_id__menu_imports__import_id__preview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                import_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportReviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    retry_v1_outlets__outlet_id__menu_imports__import_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                import_id: string;
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobOut"];
                 };
             };
             /** @description Unauthorized */
@@ -8593,6 +9719,219 @@ export interface operations {
             };
         };
     };
+    set_auto_assignment_v1_outlets__outlet_id__table_assignments_auto_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutoAssignConfigIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentBoardOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    assignment_board_v1_outlets__outlet_id__table_assignments_board_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentBoardOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    assign_tables_bulk_v1_outlets__outlet_id__table_assignments_bulk_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkAssignIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentBoardOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     assign_zone_v1_outlets__outlet_id__table_assignments_zone_put: {
         parameters: {
             query?: never;
@@ -10830,6 +12169,144 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlatformRestaurantOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    get_restaurant_v1_platform_restaurants__restaurant_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformRestaurantDetailOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    set_plan_expiry_v1_platform_restaurants__restaurant_id__plan_expiry_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanExpiryIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformRestaurantOut"];
                 };
             };
             /** @description Unauthorized */

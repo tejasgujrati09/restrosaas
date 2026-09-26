@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, time
+from typing import Any
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, SmallInteger, Text, Time
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -92,3 +93,26 @@ class PriceRule(Base):
     valid_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     valid_to: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class MenuImport(Base):
+    """One import-from-PDF-or-photos job (migration 0012). `files` holds storage keys only;
+    `pages` the per-page progress and raw extraction; `rows` the owner's editable draft."""
+
+    __tablename__ = "menu_import"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    restaurant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("restaurant.id"))
+    outlet_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("outlet.id"))
+    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("app_user.id"))
+    status: Mapped[str] = mapped_column(Text, default="queued")
+    stage: Mapped[str | None] = mapped_column(Text)
+    error: Mapped[str | None] = mapped_column(Text)
+    files: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    pages: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    rows: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    defaults: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    usage: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

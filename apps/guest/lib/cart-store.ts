@@ -74,6 +74,15 @@ export function setQty(tabId: string, key: string, qty: number): void {
   );
 }
 
+/** The kitchen instruction for one cart line ("less spicy"). Trimmed and capped like the server. */
+export function setNote(tabId: string, key: string, note: string): void {
+  const clean = note.trim().slice(0, 200);
+  writeCart(
+    tabId,
+    readCart(tabId).map((e) => (e.key === key ? { ...e, note: clean } : e)),
+  );
+}
+
 function subscribe(listener: () => void): () => void {
   window.addEventListener(EVENT, listener);
   window.addEventListener("storage", listener);

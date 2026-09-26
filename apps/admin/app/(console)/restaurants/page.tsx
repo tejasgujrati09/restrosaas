@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { countByStatus, filterRestaurants, formatDay, initialOf, type StatusFilter } from "@/lib/restaurants";
 import type { PlatformRestaurant } from "@/lib/types";
 import { useAction, useResource } from "@/lib/use-resource";
+import { DetailsSheet } from "./details-sheet";
 import { VoiceSheet } from "./voice-sheet";
 
 const FILTERS: { value: StatusFilter; label: string }[] = [
@@ -21,6 +22,7 @@ export default function RestaurantsPage() {
   const [target, setTarget] = useState<PlatformRestaurant | null>(null);
   const [reason, setReason] = useState("");
   const [voiceFor, setVoiceFor] = useState<PlatformRestaurant | null>(null);
+  const [detailsFor, setDetailsFor] = useState<PlatformRestaurant | null>(null);
   const action = useAction();
 
   const shown = useMemo(() => filterRestaurants(list.data ?? [], query, status), [list.data, query, status]);
@@ -30,7 +32,7 @@ export default function RestaurantsPage() {
     return (
       <>
         <PageHeader title="Restaurants" />
-        {list.error ? <ErrorBanner message={list.error} /> : <Skeleton what="restaurants" lines={3} block />}
+        {list.error ? <ErrorBanner message={list.error} onRetry={list.reload} /> : <Skeleton what="restaurants" lines={3} block />}
       </>
     );
   }
@@ -61,7 +63,7 @@ export default function RestaurantsPage() {
   return (
     <>
       <PageHeader title="Restaurants" subtitle={`${counts.all} on the platform · ${counts.active} active · ${counts.suspended} suspended`} />
-      <ErrorBanner message={list.error} />
+      <ErrorBanner message={list.error} onRetry={list.reload} />
       <div className="toolbar">
         <Field label="Search restaurants">
           <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Restaurant or registered name" />
@@ -99,6 +101,7 @@ export default function RestaurantsPage() {
         <ul className="restaurant-grid">
           {shown.map((r) => (
             <li key={r.id} className="restaurant-card">
+              <button type="button" className="restaurant-open" aria-label={`Details for ${r.brand_name}`} onClick={() => setDetailsFor(r)}>
               <div className="top">
                 <span className="avatar" aria-hidden="true">
                   {initialOf(r.brand_name)}
@@ -114,6 +117,7 @@ export default function RestaurantsPage() {
                 <Badge tone={r.voice_orders_allowed ? "ok" : "neutral"}>Voice orders: {r.voice_orders_allowed ? "enabled" : "disabled"}</Badge>
                 <span className="since">Joined {formatDay(r.created_at)}</span>
               </div>
+              </button>
               <button type="button" className="secondary" aria-label={`Voice orders for ${r.brand_name}`} onClick={() => setVoiceFor(r)}>
                 Voice orders
               </button>
@@ -130,6 +134,13 @@ export default function RestaurantsPage() {
         </ul>
       )}
 
+      <DetailsSheet
+        restaurant={detailsFor}
+        onClose={() => setDetailsFor(null)}
+        onSuspend={setTarget}
+        onVoice={setVoiceFor}
+        onChanged={list.reload}
+      />
       <VoiceSheet restaurant={voiceFor} onClose={() => setVoiceFor(null)} onChanged={list.reload} />
 
       <Sheet open={target !== null} onClose={close} title={target ? `${suspending ? "Suspend" : "Reactivate"} ${target.brand_name}?` : ""}>
@@ -145,7 +156,6 @@ export default function RestaurantsPage() {
                 <textarea value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} />
               </Field>
             ) : null}
-            <ErrorBanner message={action.error} />
             <div className="stack">
               <button
                 type="button"

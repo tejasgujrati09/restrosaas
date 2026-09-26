@@ -44,12 +44,12 @@ main > h2,
   align-items: center;
   gap: var(--s-2);
   font: var(--f-caption);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--ok);
 }
 .conn-dot {
-  width: 8px;
-  height: 8px;
+  width: var(--dot);
+  height: var(--dot);
   border-radius: 50%;
   background: currentColor;
 }
@@ -63,7 +63,7 @@ main > h2,
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: var(--z-bar);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -77,7 +77,7 @@ main > h2,
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 5;
+  z-index: var(--z-bar);
   display: flex;
   gap: var(--s-1);
   padding: var(--s-2) var(--s-3) calc(var(--s-2) + env(safe-area-inset-bottom));
@@ -90,7 +90,7 @@ main > h2,
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--s-1);
   min-height: var(--hit-bar);
   padding: var(--s-1) var(--s-2);
   border: 0;
@@ -98,7 +98,7 @@ main > h2,
   background: none;
   color: var(--ink-2);
   font: var(--f-caption);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-decoration: none;
   position: relative;
 }
@@ -112,12 +112,12 @@ main > h2,
 }
 .tab .badge.count {
   position: absolute;
-  top: 2px;
+  top: var(--s-1);
   right: 22%;
   margin: 0;
 }
 .content-col main {
-  padding-bottom: 96px;
+  padding-bottom: calc(var(--bottom-bar) + var(--s-5));
 }
 
 .nav-label {
@@ -144,7 +144,7 @@ main > h2,
   border-radius: var(--r-md);
   color: var(--ink);
   font: var(--f-small);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-decoration: none;
 }
 .nav-link:hover {
@@ -162,7 +162,7 @@ main > h2,
 @media (min-width: 1024px) {
   .shell {
     display: grid;
-    grid-template-columns: 248px minmax(0, 1fr);
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
   }
   .sidebar {
     position: sticky;
@@ -200,7 +200,7 @@ main > h2,
 /* Floor map */
 .tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-min-sm), 1fr));
   gap: var(--s-3);
   margin-bottom: var(--s-5);
 }
@@ -210,7 +210,7 @@ main > h2,
   align-items: flex-start;
   justify-content: flex-start;
   gap: var(--s-1);
-  min-height: 96px;
+  min-height: var(--tile-h-sm);
   padding: var(--s-3);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
@@ -263,18 +263,22 @@ main > h2,
 
 /* Legend, zone titles and manager alerts */
 .zone {
-  margin: var(--s-5) 0 var(--s-3);
+  margin: var(--section-gap) 0 var(--s-3);
 }
 .legend {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-2) var(--s-4);
   list-style: none;
-  margin: 0 0 var(--s-2);
+  margin: var(--section-gap) 0 0;
   padding: 0;
   font: var(--f-caption);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--ink-2);
+}
+.legend + section .zone-head,
+.legend + .zone {
+  margin-top: var(--s-3);
 }
 .legend li {
   display: inline-flex;
@@ -282,9 +286,9 @@ main > h2,
   gap: var(--s-2);
 }
 .swatch {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+  width: var(--swatch);
+  height: var(--swatch);
+  border-radius: var(--r-xs);
   border: 1px solid var(--border-strong);
 }
 .swatch.state-empty {
@@ -300,7 +304,7 @@ main > h2,
   background: var(--tile-bill);
 }
 .alerts {
-  margin-bottom: var(--s-4);
+  margin-bottom: var(--gap-block);
   padding: var(--s-4);
   border: 1px solid var(--danger-line);
   border-radius: var(--r-lg);
@@ -334,7 +338,7 @@ main > h2,
   margin-bottom: var(--s-3);
   min-height: var(--hit);
   font: var(--f-small);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .badges {
   display: flex;
@@ -360,7 +364,7 @@ main > h2,
 /* Sticky primary action, above the phone tab bar */
 .cta {
   position: sticky;
-  bottom: calc(76px + env(safe-area-inset-bottom));
+  bottom: calc(var(--bottom-bar) + env(safe-area-inset-bottom));
   box-shadow: var(--shadow-pop);
 }
 @media (min-width: 1024px) {
@@ -381,9 +385,9 @@ main > h2,
   border-radius: 0;
 }
 .qty output {
-  min-width: 32px;
+  min-width: var(--s-8);
   text-align: center;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
 }
 
@@ -391,12 +395,12 @@ main > h2,
 .hold {
   margin: var(--s-2) 0 0;
   font: var(--f-small);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--ink-2);
 }
 .tickets {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min), 1fr));
   gap: var(--s-4);
   align-items: start;
   margin-bottom: var(--s-6);
@@ -428,13 +432,13 @@ main > h2,
   margin: var(--s-2) 0 0;
 }
 .ticket .sub {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   margin: 0 0 0 var(--s-3);
 }
 .ticket .big {
   width: 100%;
-  min-height: 64px;
-  font-size: 1.2rem;
+  min-height: var(--hit-xl);
+  font: var(--f-h3);
   margin-top: var(--s-3);
 }
 .stations {
@@ -503,8 +507,8 @@ main > h2,
 /* Setup: what "Save" covers, always in reach */
 .savebar {
   position: sticky;
-  bottom: calc(76px + env(safe-area-inset-bottom));
-  z-index: 2;
+  bottom: calc(var(--bottom-bar) + env(safe-area-inset-bottom));
+  z-index: var(--z-raised);
   display: flex;
   align-items: center;
   gap: var(--s-3);
@@ -523,7 +527,7 @@ main > h2,
 
 /* Sign-in, sign-up and invite: a calm, centred card */
 main.auth {
-  max-width: 440px;
+  max-width: var(--w-auth);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -547,7 +551,7 @@ main.auth .card > button {
 
 /* Restaurant picker: one card per place you work */
 main.picker-page {
-  max-width: 960px;
+  max-width: var(--w-console);
   padding-block: var(--s-8);
 }
 .outlet-grid {
@@ -555,7 +559,7 @@ main.picker-page {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min), 1fr));
   gap: var(--s-4);
 }
 .outlet-card {
@@ -585,8 +589,8 @@ main.picker-page {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: var(--avatar);
+  height: var(--avatar);
   border-radius: var(--r-md);
   background: var(--accent-bg);
   color: var(--accent-text);
@@ -632,7 +636,7 @@ main.picker-page {
   flex: 0 0 8em;
   color: var(--ink-2);
   font: var(--f-caption);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .facts dd {
   margin: 0;
@@ -642,9 +646,9 @@ main.picker-page {
 .filters {
   display: grid;
   gap: var(--s-3);
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(var(--field-min), 1fr));
   align-items: start;
-  margin-bottom: var(--s-3);
+  margin-bottom: var(--gap-block);
 }
 .orders {
   list-style: none;
@@ -703,7 +707,7 @@ main.picker-page {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-1);
-  margin-bottom: var(--s-5);
+  margin-bottom: var(--gap-block);
   border-bottom: 1px solid var(--border-strong);
 }
 .tabs button {
@@ -803,7 +807,7 @@ main.picker-page {
 }
 .kpi-change {
   font: var(--f-small);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--ink);
 }
 .kpi-how {
@@ -828,7 +832,7 @@ main.picker-page {
   background: var(--surface);
   color: var(--ink-2);
   font: var(--f-small);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .seg button:hover {
   background: var(--sunken);
@@ -922,4 +926,370 @@ main.picker-page {
 }
 .heat tbody tr:hover td {
   background: color-mix(in srgb, var(--accent) var(--heat, 0%), var(--sunken));
+}
+
+/* ---- Menu import from a PDF or photos (docs/DESIGN.md "FileDrop") ---- */
+.filedrop {
+  position: relative;
+  display: grid;
+  gap: var(--s-1);
+  justify-items: center;
+  padding: var(--s-6) var(--s-4);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  text-align: center;
+  cursor: pointer;
+  min-height: var(--hit-cta);
+}
+
+.filedrop:hover,
+.filedrop.dragging,
+.filedrop:focus-within {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.filedrop-title {
+  font: var(--f-h3);
+}
+
+.filelist {
+  list-style: none;
+  margin: var(--s-3) 0;
+  padding: 0;
+}
+
+.filelist li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--border);
+}
+
+.review td .badge {
+  display: inline-block;
+  margin: var(--s-1) var(--s-1) 0 0;
+}
+
+.review-notes {
+  display: block;
+}
+
+.review tr.skipped input:not([type="checkbox"]),
+.review tr.skipped select {
+  background: var(--sunken);
+  color: var(--ink-3);
+}
+
+progress {
+  width: 100%;
+  max-width: var(--w-form);
+  accent-color: var(--accent);
+}
+
+/* ---- Assign tables: selectable cards, add-table slots, selection bar ---- */
+.tile.selected {
+  outline: 3px solid var(--accent);
+  outline-offset: -2px;
+}
+.tile.placeholder {
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--border-strong);
+  background: transparent;
+  color: var(--accent-text);
+  font: var(--f-h3);
+}
+.tile.placeholder:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.tile.placeholder.adding {
+  align-items: stretch;
+  justify-content: flex-start;
+  cursor: default;
+  color: var(--ink);
+  background: var(--surface);
+}
+.zone-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.assign-bar {
+  position: sticky;
+  top: var(--s-2);
+  z-index: var(--z-bar);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-5);
+  margin-bottom: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.assign-count {
+  font: var(--f-h3);
+}
+/* Label, select and buttons share one bottom edge; the count is centred against them. */
+.assign-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-3);
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+.assign-controls .field {
+  flex: 1 1 var(--field-min);
+  max-width: var(--w-search);
+  margin: 0;
+}
+@media (max-width: 639px) {
+  .assign-controls,
+  .assign-controls .field {
+    flex-basis: 100%;
+    max-width: none;
+  }
+  .assign-controls button {
+    flex: 1 1 auto;
+  }
+}
+.assign-notes {
+  flex-basis: 100%;
+  margin: 0;
+  padding-left: var(--s-5);
+  font: var(--f-small);
+  color: var(--ink-2);
+}
+
+/* A table card that is not itself a button (Tables and QR): same look, no press behaviour. */
+.tile.static {
+  cursor: default;
+}
+.tile.static:hover {
+  border-color: var(--border);
+}
+.tile.static .actions-cell {
+  margin-top: auto;
+}
+
+/* ---- Table cards, managed (Assign tables, Tables and QR) ---- */
+.tiles.roomy {
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-min), 1fr));
+}
+.tiles.roomy > .tile {
+  min-height: var(--tile-h);
+}
+.tile-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+  width: 100%;
+}
+.tile.static {
+  padding: var(--s-3) var(--s-3) 0;
+  gap: var(--s-1);
+}
+.tile.static .tile-foot {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: calc(100% + var(--s-6));
+  margin: auto calc(var(--s-3) * -1) 0;
+  border-top: 1px solid var(--border);
+}
+.tile.static .tile-foot button {
+  min-height: var(--hit);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font: var(--f-small);
+  font-weight: var(--fw-bold);
+}
+.tile.static .tile-foot button + button {
+  border-left: 1px solid var(--border);
+}
+.tile.static .tile-foot button:first-child {
+  border-bottom-left-radius: var(--r-lg);
+  color: var(--ink);
+}
+.tile.static .tile-foot button:last-child {
+  border-bottom-right-radius: var(--r-lg);
+  color: var(--danger);
+}
+.tile.static .tile-foot button:hover {
+  background: var(--sunken);
+}
+.tile.placeholder {
+  font: var(--f-h3);
+}
+.tile.placeholder .plus {
+  font: var(--f-display);
+}
+.zone-head .actions-cell {
+  flex: none;
+}
+
+/* A settings panel: a row per setting (words left, control right), then fields, then Save. */
+.auto-panel {
+  display: grid;
+  gap: var(--s-4);
+}
+.auto-panel h2,
+.auto-panel .field {
+  margin: 0;
+}
+.auto-panel .field {
+  max-width: var(--w-search);
+}
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  min-height: var(--hit);
+  padding-block: var(--s-3);
+  border-block: 1px solid var(--border);
+  cursor: pointer;
+}
+.setting-text {
+  display: grid;
+  gap: var(--s-1);
+}
+.setting-text .muted {
+  max-width: var(--w-form);
+}
+/* An on/off switch: a real checkbox drawn as a track and a knob. On is filled and the knob moves,
+   and the words next to it say what on means, so state is never colour alone. */
+input.switch {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: var(--switch-w);
+  height: var(--switch-h);
+  min-height: 0;
+  margin: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  background: var(--sunken);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+input.switch::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: var(--s-1);
+  width: calc(var(--switch-h) - var(--s-3));
+  height: calc(var(--switch-h) - var(--s-3));
+  border-radius: 50%;
+  background: var(--ink-2);
+  transform: translateY(-50%);
+  transition: transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+input.switch:checked {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+input.switch:checked::before {
+  background: var(--on-accent);
+  transform: translate(calc(var(--switch-w) - var(--switch-h)), -50%);
+}
+
+/* Tables and QR: the "add zone or several tables" form as one compact row. */
+.add-zone {
+  display: grid;
+  gap: var(--s-3);
+}
+.add-zone .row {
+  align-items: end;
+}
+
+.zone-head {
+  margin: var(--section-gap) 0 var(--s-3);
+}
+.legend + section .zone-head {
+  margin-top: var(--s-3);
+}
+.zone-head .zone {
+  margin: 0;
+}
+
+/* Two cards per row on a phone, as on the floor map. */
+@media (max-width: 639px) {
+  .tiles.roomy {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tiles.roomy > .tile.static .tile-name,
+  .tiles.roomy > .tile .tile-name {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* The real file input fills the drop zone invisibly: it is focusable and clickable, and cannot
+   widen the page. The zone shows the focus ring. */
+.filedrop input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.filedrop:focus-within {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* Tab rows never wrap to a second line on a phone: they scroll sideways inside themselves. */
+.tabs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+.tabs button {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* Menu category tables share one column layout, so the columns line up card to card. */
+@media (min-width: 640px) {
+  .menu-table {
+    table-layout: fixed;
+  }
+  .menu-table th:nth-child(1) {
+    width: 34%;
+  }
+  .menu-table th:nth-child(2),
+  .menu-table th:nth-child(3) {
+    width: 14%;
+  }
+  .menu-table th:nth-child(4) {
+    width: 16%;
+  }
+}
+
+/* The legend lives on the heading row of the tiles it explains. */
+.zone-head .legend {
+  margin: 0;
+  justify-content: flex-end;
+}
+.zone-head .legend + .zone,
+.legend + section .zone-head {
+  margin-top: var(--s-3);
+}
+h3.zone {
+  margin-top: var(--gap-block);
 }

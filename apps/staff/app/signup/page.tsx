@@ -16,7 +16,7 @@ export default function SignupPage() {
     phone: "", code: "", owner_name: "", legal_name: "", brand_name: "", outlet_name: "", state_code: "29",
   });
   const [sent, setSent] = useState(false);
-  const { busy, error, run } = useAction();
+  const { busy, error, run } = useAction({ inline: true });
   const e164 = toE164(form.phone);
   const set = (key: keyof typeof form) => (e: { target: { value: string } }) => setForm({ ...form, [key]: e.target.value });
 

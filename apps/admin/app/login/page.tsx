@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
-  const { busy, error, run, clearError } = useAction();
+  const { busy, error, run, clearError } = useAction({ inline: true });
   const e164 = toE164(phone);
 
   async function requestCode(event: FormEvent) {

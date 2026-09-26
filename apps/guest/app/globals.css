@@ -4,7 +4,7 @@
 main {
   max-width: var(--w-guest);
   margin: 0 auto;
-  padding: var(--s-5) var(--gutter) 112px;
+  padding: var(--s-5) var(--gutter) calc(var(--bottom-bar) + var(--s-10));
 }
 main > h1 {
   margin-bottom: var(--s-1);
@@ -19,7 +19,7 @@ main > h1 {
   position: sticky;
   top: 0;
   background: var(--bg);
-  z-index: 1;
+  z-index: var(--z-base);
 }
 .chips a,
 .chips button {
@@ -31,7 +31,7 @@ main > h1 {
   background: var(--surface);
   color: var(--ink);
   font: var(--f-small);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   display: inline-flex;
   align-items: center;
   text-decoration: none;
@@ -47,13 +47,19 @@ main > h1 {
   color: var(--bg);
 }
 
+/* Jumping to a category leaves its heading clear of the sticky chip bar (44 px chips, 2 x 8 px
+   padding, and a little air). */
+section[id^="cat-"] {
+  scroll-margin-top: calc(var(--hit) + var(--s-4) + var(--s-3));
+}
+
 /* Page header: venue or page title on the left, a pill or back button beside it */
 .g-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--s-3);
-  margin-bottom: var(--s-3);
+  margin-bottom: var(--gap-block);
 }
 .g-head > div {
   display: flex;
@@ -83,7 +89,7 @@ main > h1 {
   background: var(--ink);
   color: var(--bg);
   font: var(--f-small);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .deal-line {
   display: flex;
@@ -94,8 +100,8 @@ main > h1 {
 }
 .deal-line::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: var(--dot);
+  height: var(--dot);
   border-radius: 50%;
   background: var(--accent);
   flex: none;
@@ -110,7 +116,7 @@ section[aria-labelledby] > h2 {
   gap: var(--s-3);
   align-items: center;
   width: 100%;
-  min-height: 72px;
+  min-height: var(--row-h);
   margin-bottom: var(--s-2);
   padding: var(--s-3) var(--s-4);
   border: 1px solid var(--border);
@@ -135,7 +141,7 @@ section[aria-labelledby] > h2 {
   display: block;
 }
 .item .name {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .item .desc {
   font: var(--f-small);
@@ -151,7 +157,7 @@ section[aria-labelledby] > h2 {
   flex-direction: column;
   align-items: flex-end;
   text-align: right;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
 }
 .item[disabled] .price {
@@ -169,10 +175,10 @@ section[aria-labelledby] > h2 {
   color: var(--on-accent);
 }
 .dot {
-  width: 12px;
-  height: 12px;
+  width: var(--swatch);
+  height: var(--swatch);
   border: 2px solid var(--ok);
-  border-radius: 2px;
+  border-radius: var(--r-xs);
   flex: none;
 }
 .dot.nonveg {
@@ -181,7 +187,7 @@ section[aria-labelledby] > h2 {
 .deal {
   color: var(--accent-text);
   font: var(--f-caption);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .was {
   text-decoration: line-through;
@@ -226,7 +232,7 @@ section[aria-labelledby] > h2 {
 /* The screen's one primary action: sticks just above the bottom bar. */
 .cta {
   position: sticky;
-  bottom: calc(76px + env(safe-area-inset-bottom));
+  bottom: calc(var(--bottom-bar) + env(safe-area-inset-bottom));
   display: flex;
   width: 100%;
   min-height: var(--hit-cta);
@@ -311,9 +317,9 @@ section[aria-labelledby] > h2 {
   border-radius: 0;
 }
 .qty output {
-  min-width: 32px;
+  min-width: var(--s-8);
   text-align: center;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
 }
 .ack {
@@ -325,7 +331,7 @@ section[aria-labelledby] > h2 {
 }
 .ack p {
   margin-bottom: var(--s-2);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--warn);
 }
 .tax-note {
@@ -345,8 +351,8 @@ section[aria-labelledby] > h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: var(--mark);
+  height: var(--mark);
   border-radius: 50%;
   background: var(--ok-bg);
   color: var(--ok);
@@ -376,17 +382,58 @@ section[aria-labelledby] > h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
+  width: var(--mark-lg);
+  height: var(--mark-lg);
   border-radius: var(--r-xl);
   background: var(--accent-bg);
   color: var(--accent-text);
 }
 .spinner {
-  width: 28px;
-  height: 28px;
+  width: var(--spinner);
+  height: var(--spinner);
   border: 3px solid var(--border-strong);
   border-top-color: var(--accent);
   border-radius: 50%;
-  animation: ui-spin 0.8s linear infinite;
+  animation: ui-spin var(--spin) linear infinite;
+}
+
+/* A menu row that adds in place: the add button is a real button now, so it needs its own look. */
+button.add {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hit);
+  height: var(--hit);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+button.add:hover {
+  background: var(--accent-hover);
+}
+button.add:disabled {
+  background: var(--sunken);
+  color: var(--ink-3);
+}
+div.item .qty {
+  flex: none;
+}
+
+/* The kitchen note on a cart line: one link, or one field. */
+.line-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  margin-top: var(--s-2);
+}
+.line-note.open {
+  align-items: flex-end;
+}
+.line-note .field {
+  flex: 1 1 var(--field-min);
+  margin: 0;
 }

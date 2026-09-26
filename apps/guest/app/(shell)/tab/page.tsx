@@ -40,7 +40,7 @@ export default function TabPage() {
   const now = useNow(undoable);
 
   if (!session || !path) return null;
-  if (!tab.data) return tab.error ? <ErrorBanner message={tab.error} /> : <Skeleton what="your tab" block lines={3} />;
+  if (!tab.data) return tab.error ? <ErrorBanner message={tab.error} onRetry={tab.reload} /> : <Skeleton what="your tab" block lines={3} />;
   const data = tab.data;
 
   async function answer(line: Line, answer: "ours" | "not_ours") {
@@ -65,7 +65,7 @@ export default function TabPage() {
           </div>
         ) : null}
       </header>
-      <ErrorBanner message={action.error ?? tab.error} />
+      <ErrorBanner message={tab.error} />
       {data.status === "bill_requested" ? (
         <Notice tone="info">Bill requested. A waiter will bring it shortly. You can still order more.</Notice>
       ) : null}

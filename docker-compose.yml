@@ -25,6 +25,25 @@ services:
       timeout: 5s
       retries: 10
 
+  # Private S3-compatible storage for uploaded menus. Move to AWS S3 by changing the STORAGE_*
+  # settings only; nothing else knows which service it is.
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api:
     build:
       context: apps/api
@@ -35,12 +54,15 @@ services:
       DATABASE_URL: postgresql+asyncpg://app:app@postgres:5432/app_dev
       MIGRATION_DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/app_dev
       REDIS_URL: redis://redis:6379/0
+      STORAGE_ENDPOINT_URL: http://minio:9000
     ports:
       - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     command: >
       sh -c "uv run alembic upgrade head &&
@@ -58,10 +80,13 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://app:app@postgres:5432/app_dev
       REDIS_URL: redis://redis:6379/0
+      STORAGE_ENDPOINT_URL: http://minio:9000
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     command: uv run celery -A app.worker.celery_app worker --loglevel=info
     volumes:
@@ -69,3 +94,4 @@ services:
 
 volumes:
   postgres_data:
+  minio_data:

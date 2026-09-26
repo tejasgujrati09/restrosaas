@@ -81,7 +81,7 @@ export function Heatmap({ grid }: { grid: number[][] }) {
   const top = Math.max(0, ...grid.flat());
   const hours = Array.from({ length: 24 }, (_, h) => h);
   return (
-    <div className="heat-wrap">
+    <div className="heat-wrap" role="region" aria-label="Rounds by weekday and hour, scrolls sideways" tabIndex={0}>
       <table className="heat" aria-label="Rounds by weekday and hour">
         <thead>
           <tr>

@@ -33,3 +33,12 @@ describe("roleLabel", () => {
     expect(roleLabel("head_chef")).toBe("Head chef");
   });
 });
+
+import { stateName } from "./gst-states";
+
+describe("stateName", () => {
+  it("names a GST state code and leaves an unknown one alone", () => {
+    expect(stateName("29")).toBe("Karnataka");
+    expect(stateName("99")).toBe("99");
+  });
+});

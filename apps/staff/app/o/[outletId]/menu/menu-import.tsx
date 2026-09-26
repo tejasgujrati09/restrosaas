@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { formatInr } from "@restosaas/ui";
-import { Card, ErrorBanner } from "@/components/ui";
+import { formatInr, toast } from "@restosaas/ui";
+import { Card } from "@/components/ui";
 import { useAction } from "@/components/hooks";
 import { api, openBlob } from "@/lib/api";
 import type { ImportPreview } from "@/lib/types";
@@ -10,12 +10,10 @@ import type { ImportPreview } from "@/lib/types";
 export function MenuImport({ base, reload }: { base: string; reload: () => void }) {
   const [csv, setCsv] = useState<string | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
-  const [done, setDone] = useState<string | null>(null);
   const action = useAction();
 
   async function choose(file: File | undefined) {
     setPreview(null);
-    setDone(null);
     if (!file) return;
     const text = await file.text();
     setCsv(text);
@@ -31,7 +29,7 @@ export function MenuImport({ base, reload }: { base: string; reload: () => void 
       const r = await api<{ categories_added: number; items_added: number; items_updated: number }>(
         `${base}/menu/import/apply?diff_hash=${hash}`, { method: "POST", raw: csv },
       );
-      setDone(`Added ${r.items_added} items and ${r.categories_added} categories; updated ${r.items_updated}.`);
+      toast.ok(`Added ${r.items_added} items and ${r.categories_added} categories; updated ${r.items_updated}.`);
     });
     if (ok) { setPreview(null); setCsv(null); reload(); }
   }
@@ -49,8 +47,6 @@ export function MenuImport({ base, reload }: { base: string; reload: () => void 
           <input type="file" accept=".csv,text/csv" hidden onChange={(e) => choose(e.target.files?.[0])} />
         </label>
       </div>
-      <ErrorBanner message={action.error} />
-      {done ? <p role="status" className="ok">{done}</p> : null}
 
       {preview && preview.errors.length > 0 ? (
         <>

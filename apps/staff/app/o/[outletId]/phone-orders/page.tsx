@@ -22,7 +22,7 @@ export default function PhoneOrdersPage() {
   const [reason, setReason] = useState("");
   const [note, setNote] = useState<string | null>(null);
 
-  if (!feed.data) return feed.error ? <ErrorBanner message={feed.error} /> : <Skeleton what="phone orders" lines={3} block />;
+  if (!feed.data) return feed.error ? <ErrorBanner message={feed.error} onRetry={feed.reload} /> : <Skeleton what="phone orders" lines={3} block />;
 
   async function accept(o: VoiceOrder) {
     if (await action.run(() => api(`${base}/${o.order_id}/accept`, { method: "POST" }))) {
@@ -50,7 +50,7 @@ export default function PhoneOrdersPage() {
             : "Orders taken by the phone assistant wait here until you accept them."
         }
       />
-      <ErrorBanner message={action.error ?? feed.error} />
+      <ErrorBanner message={feed.error} />
       {note ? <Notice tone="info">{note}</Notice> : null}
       {feed.data.length === 0 ? (
         <EmptyState title="No phone orders waiting.">

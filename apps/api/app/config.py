@@ -33,6 +33,30 @@ class Settings(BaseSettings):
     voice_tools_base_url: str | None = None
     # The one SR number the enable flow may link (else the first unlinked one). Never a linked one.
     voice_sr_number: str | None = None
+    # Object storage for uploaded menus (docs/DECISIONS.md "Menu import from PDF or photos").
+    # Any S3-compatible service: MinIO locally, S3 later by changing these values only.
+    storage_endpoint_url: str | None = "http://localhost:9010"
+    storage_access_key: str = "minioadmin"
+    storage_secret_key: str = "minioadmin"
+    storage_bucket: str = "restosaas-uploads"
+    storage_region: str = "us-east-1"
+    # Menu extraction. The provider is chosen by name; the key comes from the environment only.
+    menu_extraction_provider: str = "openai"
+    openai_api_key: str | None = None
+    openai_base_url: str = "https://api.openai.com/v1"
+    menu_extraction_model: str = "gpt-4o"
+    menu_extraction_timeout_seconds: float = 90.0
+    menu_extraction_max_attempts: int = 3
+    menu_extraction_max_files: int = 20
+    menu_extraction_max_pages: int = 40
+    menu_extraction_max_file_bytes: int = 15_000_000
+    # A PDF page with fewer characters than this has no usable text layer and is read as an image.
+    menu_extraction_min_text_chars: int = 40
+    # Longest image side sent to the model. Smaller than this is never enlarged.
+    menu_extraction_max_image_px: int = 2000
+    # Estimated cost, USD per million tokens (gpt-4o list price). Reporting only.
+    menu_extraction_input_usd_per_mtok: float = 2.5
+    menu_extraction_output_usd_per_mtok: float = 10.0
     # Browser origins allowed to call the API (the three Next.js apps).
     cors_origins: list[str] = [
         "http://localhost:3000",

@@ -21,7 +21,7 @@ export default function AddItemsPage() {
   const [cart, setCart] = useState<Entry[]>([]);
   const [saved, setSaved] = useState<string | null>(null);
   const send = useAction();
-  if (!menu.data) return menu.error ? <ErrorBanner message={menu.error} /> : <Skeleton what="the menu" lines={6} />;
+  if (!menu.data) return menu.error ? <ErrorBanner message={menu.error} onRetry={menu.reload} /> : <Skeleton what="the menu" lines={6} />;
 
   const update = setCart;
 

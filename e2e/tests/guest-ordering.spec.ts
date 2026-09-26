@@ -16,8 +16,7 @@ test("a guest scans, orders two items with a modifier, sees locked prices and as
   await expect(page.getByRole("button", { name: /Add to cart · ₹330\.00/ })).toBeVisible();
   await page.getByRole("button", { name: "One more" }).click();
   await page.getByRole("button", { name: /Add to cart · ₹660\.00/ }).click();
-  await page.getByRole("button", { name: /Spring Roll/ }).click();
-  await page.getByRole("button", { name: /Add to cart/ }).click();
+  await page.getByRole("button", { name: "Add Spring Roll" }).click(); // adds in place: no options to choose
   console.log(`scan to cart ready: ${Date.now() - started} ms`);
 
   await page.getByRole("link", { name: /View cart/ }).click();
@@ -58,8 +57,7 @@ test("a guest scans, orders two items with a modifier, sees locked prices and as
 test("undo within the window cancels the round and leaves nothing on the tab", async ({ page, request }) => {
   const venue = await setUpVenue(request);
   await page.goto(`${guest}/t/${venue.qrToken}`);
-  await page.getByRole("button", { name: /Spring Roll/ }).click();
-  await page.getByRole("button", { name: /Add to cart/ }).click();
+  await page.getByRole("button", { name: "Add Spring Roll" }).click(); // adds in place: no options to choose
   await page.getByRole("link", { name: /View cart/ }).click();
   await page.getByRole("button", { name: "Place order" }).click();
   await page.getByRole("button", { name: "Undo this order" }).click();
@@ -124,8 +122,7 @@ test("waiter-confirm mode blocks ordering until the waiter confirms, and the gue
   const venue = await setUpVenue(request, { waiterConfirm: true });
   await page.goto(`${guest}/t/${venue.qrToken}`);
   await expect(page.getByText(/Waiting for your waiter to confirm/)).toBeVisible();
-  await page.getByRole("button", { name: /Spring Roll/ }).click();
-  await page.getByRole("button", { name: /Add to cart/ }).click();
+  await page.getByRole("button", { name: "Add Spring Roll" }).click(); // adds in place: no options to choose
 
   // With the socket up the page only re-polls every 40 s, so a change within seconds is a push.
   const tabId = await page.evaluate(() => JSON.parse(localStorage.getItem("restosaas.guest") ?? "{}").tab_id as string);
@@ -141,8 +138,7 @@ test("a round accepted after the undo window shows up on the tab without a reloa
   test.setTimeout(120_000); // waits out the real 60-second undo window
   const venue = await setUpVenue(request);
   await page.goto(`${guest}/t/${venue.qrToken}`);
-  await page.getByRole("button", { name: /Spring Roll/ }).click();
-  await page.getByRole("button", { name: /Add to cart/ }).click();
+  await page.getByRole("button", { name: "Add Spring Roll" }).click(); // adds in place: no options to choose
   await page.getByRole("link", { name: /View cart/ }).click();
   await page.getByRole("button", { name: "Place order" }).click();
   await page.getByRole("link", { name: "See my tab" }).click();

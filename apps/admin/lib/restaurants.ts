@@ -58,3 +58,39 @@ export function formatWhen(iso: string): string {
 export function formatDay(iso: string): string {
   return new Date(iso).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
 }
+
+/** How far away a plan's last day is, in words: "in 12 days", "today", "3 days ago". */
+export function expiryLabel(days: number | null): string {
+  if (days === null) return "No expiry set";
+  if (days === 0) return "today";
+  if (days === 1) return "tomorrow";
+  if (days === -1) return "yesterday";
+  return days > 0 ? `in ${days} days` : `${-days} days ago`;
+}
+
+/** Ended is danger, within two weeks is a warning, otherwise fine; no date is neutral. */
+export function expiryTone(days: number | null): "neutral" | "ok" | "warn" | "danger" {
+  if (days === null) return "neutral";
+  if (days < 0) return "danger";
+  return days <= 14 ? "warn" : "ok";
+}
+
+/** Whole days between two moments, rounded down: how long ago something happened. */
+export function daysSince(iso: string, now: Date = new Date()): number {
+  return Math.max(0, Math.floor((now.getTime() - new Date(iso).getTime()) / 86_400_000));
+}
+
+export function agoLabel(iso: string, now: Date = new Date()): string {
+  const d = daysSince(iso, now);
+  if (d === 0) return "today";
+  if (d === 1) return "yesterday";
+  if (d < 60) return `${d} days ago`;
+  return `${Math.floor(d / 30)} months ago`;
+}
+
+const PHONE = /^\+91(\d{5})(\d{5})$/;
+/** +919876543210 -> +91 98765 43210; anything else is shown as it is. */
+export function formatPhone(phone: string): string {
+  const m = PHONE.exec(phone);
+  return m ? `+91 ${m[1]} ${m[2]}` : phone;
+}

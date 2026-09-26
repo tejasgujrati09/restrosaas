@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { addToCart, readCart, setQty, writeCart } from "./cart-store";
+import { addToCart, readCart, setNote, setQty, writeCart } from "./cart-store";
 import { stubBrowser } from "./test-env";
 
 let n = 0;
@@ -43,6 +43,19 @@ describe("cart store", () => {
     expect(readCart("tab")[0]?.qty).toBe(50);
     setQty("tab", "key-1", 99);
     expect(readCart("tab")[0]?.qty).toBe(50);
+  });
+
+  it("sets, trims, caps and clears the note on one line only", () => {
+    addToCart("tab", entry);
+    addToCart("tab", { ...entry, modifier_ids: ["m1"] });
+    setNote("tab", "key-1", "  less oil  ");
+    expect(readCart("tab").map((e) => e.note)).toEqual(["less oil", ""]);
+    setNote("tab", "key-1", "x".repeat(300));
+    expect(readCart("tab")[0]?.note).toHaveLength(200);
+    setNote("tab", "key-1", "");
+    expect(readCart("tab")[0]?.note).toBe("");
+    setNote("tab", "nope", "ignored");
+    expect(readCart("tab").map((e) => e.note)).toEqual(["", ""]);
   });
 
   it("removes a line when its quantity drops below one", () => {

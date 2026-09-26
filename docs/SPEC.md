@@ -54,7 +54,7 @@ Six actors; the customer and waiter flows carry the MVP, the rest support them. 
 | Manager | Day close: sales by method, voids, discounts | Yes | Bill, Payment, Report |
 | Manager | Set happy hour and event pricing windows | Yes | PriceRule |
 | Owner | Edit menu, categories, modifiers, tax classes; import from CSV | Yes | Menu, MenuItem, TaxClass |
-| Owner | Import menu from photo/PDF with review step | Phase 2 | MenuImport |
+| Owner | Import menu from photo/PDF with review step | Yes (opened 2026-09-26) | MenuImport |
 | Owner | Manage staff and roles; phone-number login; invite by WhatsApp link | Yes | User, StaffRole |
 | Owner | Generate table QRs; print menu PDF from current data | Yes | Table, QRCode |
 | Owner | Multi-outlet dashboard; export to Tally/CSV | Phase 2 | Outlet, Export |

@@ -34,6 +34,7 @@ from app.deps import OutletContext
 from app.domains.staff.models import AppUser
 from app.domains.tab import service, tickets
 from app.domains.tab.access import require_table_access, sees_all_tables, visible_table_ids
+from app.domains.tab.auto_assign import release_if_vacant
 from app.domains.tab.events import Actor, emit
 from app.domains.tab.models import (
     Order,
@@ -417,6 +418,7 @@ async def transfer_tab(
             await ctx.session.flush()
         except IntegrityError as exc:  # someone sat down there a moment ago
             raise ApiError(409, "table_occupied", "Someone just sat at that table.") from exc
+        await release_if_vacant(ctx.session, from_id)
         emit(
             ctx.session,
             restaurant_id=ctx.restaurant_id,
@@ -550,6 +552,8 @@ async def merge_tab(
             source.status = transition_tab(TabState.BILL_REQUESTED, TabState.OPEN).value
         source.status = transition_tab(TabState(source.status), TabState.VOIDED).value
         source.closed_at = now
+        await session.flush()
+        await release_if_vacant(session, source.table_id)
         emit(
             session,
             restaurant_id=ctx.restaurant_id,

@@ -24,7 +24,7 @@ export const NAV: NavGroup[] = [
     label: "Manage",
     items: [
       { href: "menu", label: "Menu", icon: "book", roles: ["owner", "manager", "waiter", "kitchen", "bar"] },
-      { href: "price-rules", label: "Happy hours", icon: "tag", roles: ["owner", "manager"] },
+      { href: "price-rules", label: "Offers", icon: "tag", roles: ["owner", "manager"] },
       { href: "tables", label: "Tables & QR", icon: "qr", roles: ["owner", "manager"] },
       { href: "assignments", label: "Assign tables", icon: "users", roles: ["owner", "manager"] },
       { href: "staff", label: "Staff", icon: "user", roles: ["owner", "manager"] },

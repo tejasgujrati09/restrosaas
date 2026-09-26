@@ -13,7 +13,7 @@ export default function InvitePage() {
   const [sent, setSent] = useState(false);
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
-  const { busy, error, run } = useAction();
+  const { busy, error, run } = useAction({ inline: true });
 
   async function sendCode() {
     if (await run(() => api("/v1/invites/otp", { method: "POST", body: { token }, authenticated: false }))) setSent(true);

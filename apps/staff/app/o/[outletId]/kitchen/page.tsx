@@ -24,7 +24,7 @@ export default function KitchenPage() {
   const [search, setSearch] = useState("");
   const [note, setNote] = useState<string | null>(null);
 
-  if (!queue.data) return queue.error ? <ErrorBanner message={queue.error} /> : <Skeleton what="the queue" lines={3} block />;
+  if (!queue.data) return queue.error ? <ErrorBanner message={queue.error} onRetry={queue.reload} /> : <Skeleton what="the queue" lines={3} block />;
 
   async function move(t: Ticket, verb: "start" | "ready" | "recall") {
     if (await action.run(() => act("POST", `${base}/tickets/${t.id}/${verb}`, undefined, `${verb[0]?.toUpperCase()}${verb.slice(1)} ticket for table ${t.table_label ?? "?"}`))) queue.reload();
@@ -42,7 +42,7 @@ export default function KitchenPage() {
   return (
     <>
       <PageHeader title="Kitchen and bar" subtitle={queue.data.queue.length > 0 ? `${queue.data.queue.length} ticket${queue.data.queue.length === 1 ? "" : "s"} waiting` : undefined} />
-      <ErrorBanner message={action.error ?? queue.error} />
+      <ErrorBanner message={queue.error} />
       <div className="stations" role="group" aria-label="Station">
         <button type="button" className="secondary" aria-pressed={station === null} onClick={() => setStation(null)}>Everything</button>
         {(menu.data?.stations ?? []).map((s) => (

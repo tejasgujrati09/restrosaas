@@ -1,4 +1,4 @@
-import { Children, cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
+import { Children, cloneElement, isValidElement, type CSSProperties, type ReactElement, type ReactNode } from "react";
 import { formatInr } from "./format-inr";
 
 export type Tone = "neutral" | "ok" | "warn" | "danger" | "info";
@@ -10,6 +10,7 @@ export function Field({
   hint,
   error,
   size,
+  hintLines,
   children,
 }: {
   label: string;
@@ -17,6 +18,9 @@ export function Field({
   error?: string | null;
   /** "short" for a number, a percentage or a prefix: a short value gets a short input. */
   size?: "short";
+  /** Set when the hint text changes with the person's choice: the hint reserves this many lines
+   *  (the longest variant), so what is below it never moves. */
+  hintLines?: number;
   children: ReactNode;
 }) {
   const only = Children.count(children) === 1 ? Children.only(children) : null;
@@ -28,7 +32,14 @@ export function Field({
     <label className={size === "short" ? "field short" : "field"}>
       <span className="field-label">{label}</span>
       {control}
-      {hint ? <span className="hint">{hint}</span> : null}
+      {hint ? (
+        <span
+          className={hintLines ? "hint reserve" : "hint"}
+          style={hintLines ? ({ "--reserve": hintLines } as CSSProperties) : undefined}
+        >
+          {hint}
+        </span>
+      ) : null}
       {error ? (
         <span className="field-error" role="alert">
           {error}
@@ -48,13 +59,24 @@ export function Card({ title, children }: { title?: string; children: ReactNode 
   );
 }
 
-/** An error that just happened, announced to screen readers. */
-export function ErrorBanner({ message }: { message: string | null }) {
-  return message ? (
+/** An error that just happened, announced to screen readers. Pass `onRetry` when the failure
+ *  was loading something, so the person has a way to recover (design rule: error states offer a fix). */
+export function ErrorBanner({ message, onRetry }: { message: string | null; onRetry?: () => void }) {
+  if (!message) return null;
+  const banner = (
     <p className="error" role="alert">
       {message}
     </p>
-  ) : null;
+  );
+  if (!onRetry) return banner;
+  return (
+    <div className="stack">
+      {banner}
+      <button type="button" className="secondary" onClick={onRetry}>
+        Try again
+      </button>
+    </div>
+  );
 }
 
 /** A notice that is not an error; `role="status"` so it is announced politely. */

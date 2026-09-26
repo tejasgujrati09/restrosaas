@@ -158,7 +158,7 @@ lines = [
     f"  Platform admin   {ADMIN}   phone 8888800009, code {CODE}   (all restaurants; suspend and audit)",
     "  Guest links (open on a phone-sized window):",
     *[f"    Table {t['label']:<3} {t['qr_url']}" for t in tables],
-    "  Happy hour: Craft Beer is Rs 200 between 4 PM and 8 PM, otherwise Rs 300.",
+    "  Offer: Craft Beer is Rs 200 between 4 PM and 8 PM, otherwise Rs 300.",
 ]
 OUT.parent.mkdir(exist_ok=True)
 OUT.write_text("\n".join(lines) + "\n")

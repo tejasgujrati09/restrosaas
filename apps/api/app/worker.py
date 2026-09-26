@@ -102,3 +102,29 @@ def voice_disable(self: Task, restaurant_id: str, outlet_id: str) -> str:
     if outcome == provisioning.JobOutcome.RETRY:
         raise self.retry(countdown=backoff(self.request.retries))
     return str(outcome)
+
+
+@celery_app.task(bind=True, name="menu.extract", max_retries=2)  # type: ignore[untyped-decorator]
+def menu_extract(self: Task, restaurant_id: str, outlet_id: str, import_id: str) -> str:
+    """Reads an uploaded menu (docs/DECISIONS.md "Menu import from PDF or photos"). Page-level
+    failures are handled inside the pipeline and end as a `failed` job the owner can retry; a
+    Celery retry is only for the worker itself failing."""
+    from app.domains.menu.extract import pipeline
+    from app.domains.menu.extract.factory import make_provider
+    from app.storage import get_storage
+
+    async def main() -> str:
+        provider = make_provider()
+        try:
+            return await pipeline.run_extraction(
+                UUID(restaurant_id), UUID(outlet_id), UUID(import_id), provider, get_storage()
+            )
+        finally:
+            await provider.aclose()
+            await engine.dispose()
+
+    try:
+        return asyncio.run(main())
+    except Exception as exc:
+        logger.exception("menu_extraction_worker_error", import_id=import_id)
+        raise self.retry(countdown=backoff(self.request.retries), exc=exc) from exc

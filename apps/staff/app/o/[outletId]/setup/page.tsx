@@ -32,7 +32,7 @@ export default function SetupPage() {
   const base = `/v1/outlets/${outletId}`;
   const settings = useResource<Settings>(`${base}/settings`);
   const menu = useResource<Menu>(`${base}/menu`);
-  if (!settings.data) return settings.error ? <ErrorBanner message={settings.error} /> : <Skeleton what="your settings" lines={5} block />;
+  if (!settings.data) return settings.error ? <ErrorBanner message={settings.error} onRetry={settings.reload} /> : <Skeleton what="your settings" lines={5} block />;
   return <SetupForm base={base} s={settings.data} reload={settings.reload} menu={menu} />;
 }
 
@@ -111,9 +111,9 @@ function SetupForm({ base, s, reload, menu }: {
             <span className="hint">You cannot switch this once the menu has items, because every price would change meaning.</span>
           </fieldset>
           <label className="check"><input type="checkbox" checked={form.liquor_licensed} onChange={(e) => set("liquor_licensed", e.target.checked)} /> This outlet serves liquor</label>
-          {form.liquor_licensed ? (
-            <Field label="State VAT on liquor (%)" size="short"><input inputMode="decimal" value={form.liquor_vat} onChange={(e) => set("liquor_vat", e.target.value)} /></Field>
-          ) : null}
+          <Field label="State VAT on liquor (%)" size="short" hint="Charged on liquor instead of GST. Only needed when this outlet serves liquor.">
+            <input inputMode="decimal" value={form.liquor_vat} disabled={!form.liquor_licensed} onChange={(e) => set("liquor_vat", e.target.value)} />
+          </Field>
           <Field label="Service charge (%)" hint="Guests can remove it. Leave 0 for none." size="short"><input inputMode="decimal" value={form.service_charge} onChange={(e) => set("service_charge", e.target.value)} /></Field>
         </Card>
         <Card title="Ordering">
@@ -143,7 +143,7 @@ function SetupForm({ base, s, reload, menu }: {
 
 function TaxClasses({ base, menu }: { base: string; menu: ReturnType<typeof useResource<Menu>> }) {
   const [name, setName] = useState("");
-  const [rate, setRate] = useState("5");
+  const [rate, setRate] = useState("");
   const [liquor, setLiquor] = useState(false);
   const action = useAction();
 
@@ -169,11 +169,10 @@ function TaxClasses({ base, menu }: { base: string; menu: ReturnType<typeof useR
       </ul>
       <form onSubmit={add} className="row">
         <Field label="Name"><input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Food 5%" /></Field>
-        <Field label="GST (%)" size="short"><input inputMode="decimal" value={rate} disabled={liquor} onChange={(e) => setRate(e.target.value)} /></Field>
+        <Field label="GST (%)" size="short"><input inputMode="decimal" required={!liquor} placeholder="e.g. 5" value={rate} disabled={liquor} onChange={(e) => setRate(e.target.value)} /></Field>
         <label className="check"><input type="checkbox" checked={liquor} onChange={(e) => setLiquor(e.target.checked)} /> Liquor (state VAT)</label>
         <button type="submit" disabled={action.busy}>Add tax class</button>
       </form>
-      <ErrorBanner message={action.error} />
     </Card>
   );
 }
@@ -196,7 +195,6 @@ function Stations({ base, menu }: { base: string; menu: ReturnType<typeof useRes
         <Field label="Name"><input required value={name} onChange={(e) => setName(e.target.value)} /></Field>
         <button type="submit" disabled={action.busy}>Add station</button>
       </form>
-      <ErrorBanner message={action.error} />
     </Card>
   );
 }

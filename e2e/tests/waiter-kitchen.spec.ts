@@ -63,8 +63,7 @@ test("the kitchen sees a guest's round at once but cannot start it until the gue
   await expect(kitchen.getByText("No tickets waiting.")).toBeVisible();
 
   const guest = await guestPage(browser, venue.qrToken);
-  await guest.getByRole("button", { name: /Spring Roll/ }).click();
-  await guest.getByRole("button", { name: /Add to cart/ }).click();
+  await guest.getByRole("button", { name: "Add Spring Roll" }).click(); // adds in place: no options to choose
   await guest.getByRole("link", { name: /View cart/ }).click();
   await guest.getByRole("button", { name: "Place order" }).click();
 

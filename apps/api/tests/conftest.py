@@ -172,6 +172,7 @@ async def seed(owner_engine: AsyncEngine) -> AsyncIterator[Seed]:
             "customer_address",
             "customer",
             "voice_agent",
+            "menu_import",
             "idempotency_key",
             "audit_log",
             "staff_invite",
